@@ -214,7 +214,7 @@ main { padding: 1.2rem 2rem 4rem; }
 
 <header>
   <div class="header-top">
-    <h1>Beyblade X</h1>
+    <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
     <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0506 更新</span></span>
   </div>
   <div class="controls">
@@ -299,9 +299,12 @@ const IMG = {
   "BX-24": "https://m.media-amazon.com/images/I/617GsEjCUsL._AC_SX679_.jpg",
   "BX-27": "https://m.media-amazon.com/images/I/61xasxtwODL._AC_SX679_.jpg",
   "BX-19": "https://m.media-amazon.com/images/I/612lVsBzJJL._AC_SX679_.jpg",
-  "BX-37": "https://m.media-amazon.com/images/I/611eYwWAd8L._AC_SX679_.jpg",};
+  "BX-37": "https://m.media-amazon.com/images/I/611eYwWAd8L._AC_SX679_.jpg",
+  "BX-22": "https://m.media-amazon.com/images/I/61CiHS+OmSL._AC_SX679_.jpg",
+  "BX-26": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755566/1/639138459113230000?v=1",};
 
-const DB = [  {cat:"blade",id:"UX-15",           name:"鮫鯊狂鱗",         nameEn:"Dran Buster",         tier:"X",  type:"attack",  buy:"yes"},
+const DB = [
+  {cat:"blade",id:"UX-15",           name:"鮫鯊狂鱗",         nameEn:"Dran Buster",         tier:"X",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"UX-03",           name:"魔導神杖",         nameEn:"Cobalt Dragoon",      tier:"X",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"UX-17",           name:"隕星龍騎士",        nameEn:"Wizard Rod",          tier:"X",  type:"stamina",  buy:"yes"},
   {cat:"blade",id:"UX-00",           name:"空力天馬",         nameEn:"Dran Sword",          tier:"X",  type:"attack",  buy:"yes"},
@@ -315,7 +318,7 @@ const DB = [  {cat:"blade",id:"UX-15",           name:"鮫鯊狂鱗",         na
   {cat:"blade",id:"UX-08",           name:"霜輝銀狼",         nameEn:"Silver Wolf",         tier:"S",  type:"balance",  buy:"yes"},
   {cat:"blade",id:"CX-14",           name:"騎士堡壘GV",       nameEn:"Blast CX",            tier:"S",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"UX-14",           name:"天蠍長矛",         nameEn:"Blitz Belial",        tier:"S",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"八叉大蛇",            name:"八叉大蛇",         nameEn:"",                    tier:"S",  type:"attack",  buy:"yes"},
+  {cat:"blade",id:"八岐大蛇",            name:"八岐大蛇",         nameEn:"",                    tier:"S",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"UX-19",           name:"子彈獅鷲",         nameEn:"UX-19",               tier:"S",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"CX-11",           name:"帝王威能",         nameEn:"Rage CX",             tier:"A+",  type:"attack",  buy:"yes"},
   {cat:"blade",id:"CX-12",           name:"鳳凰閃焰Z",        nameEn:"Leon Claw CX",        tier:"A+",  type:"attack",  buy:"yes"},
@@ -350,7 +353,7 @@ const DB = [  {cat:"blade",id:"UX-15",           name:"鮫鯊狂鱗",         na
   {cat:"blade",id:"UX-07",           name:"鳳凰尾翼",         nameEn:"Dran Buster UX7",     tier:"C",  type:"attack",  buy:"no"},
   {cat:"blade",id:"BX-01",           name:"蒼龍神劍",         nameEn:"Dran Sword BX",       tier:"C",  type:"attack",  buy:"no"},
   {cat:"blade",id:"BX-21",           name:"惡魔鎖鏈",         nameEn:"Hells Chain BX",      tier:"C",  type:"balance",  buy:"no"},
-  {cat:"blade",id:"BX-28",           name:"BX-28",        nameEn:"Blast BX",            tier:"C",  type:"attack",  buy:"no"},
+  {cat:"blade",id:"BX-26",           name:"BX-28",        nameEn:"Blast BX",            tier:"C",  type:"attack",  buy:"no"},
   {cat:"blade",id:"BX-20-01",        name:"蒼龍利刃",         nameEn:"Leon Claw BX20",      tier:"D+",  type:"attack",  buy:"no"},
   {cat:"blade",id:"UX-06",           name:"雄獅巔峰",         nameEn:"Cobalt Dragoon UX6",  tier:"D+",  type:"attack",  buy:"no"},
   {cat:"blade",id:"BX-38",           name:"赫燃天鳳",         nameEn:"Weiss Tiger BX38",    tier:"D+",  type:"attack",  buy:"no"},
@@ -524,7 +527,10 @@ const DB = [  {cat:"blade",id:"UX-15",           name:"鮫鯊狂鱗",         na
   {cat:"bit",id:"CX-07 Tr",      name:"天馬爆擊 Tr",    tier:"E", type:"bit",buy:"yes"},
   {cat:"bit",id:"UX-05-01 MN",      name:"忍者闇影 MN",    tier:"E", type:"bit",buy:"yes"},
   {cat:"bit",id:"UX-10-02 RA",      name:"騎士圓甲 RA",    tier:"E", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-31-01 Q",      name:"隨機強化組 Q",    tier:"E", type:"bit",buy:"yes"},];
+  {cat:"bit",id:"BX-31-01 Q",      name:"隨機強化組 Q",    tier:"E", type:"bit",buy:"yes"},
+  {cat:"blade",id:"BX-22",         name:"蒼龍神劍",         nameEn:"",                     tier:"-",  type:"attack",  buy:"yes"},
+  {cat:"ratchet",id:"BX-26 5-60",      name:"幻獸刺心 5-60",    tier:"-", type:"ratchet",buy:"yes"}
+];
 
 const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E"];
 const RATCHET_TIERS = ["X","S","A","B","C","D","E","-"];
@@ -577,6 +583,7 @@ function getImgUrl(d) {
 
 function buildCatTabs() {
   const el = document.getElementById("catTabs");
+  el.innerHTML = "";
   ["all","blade","ratchet","bit"].forEach(cat => {
     const btn = document.createElement("button");
     btn.className = "cat-tab" + (cat===activeCategory?" active":"");
@@ -620,6 +627,7 @@ function buildTierFilter() {
 
 function buildBuyFilter() {
   const el = document.getElementById("buyFilter");
+  el.innerHTML = "";
   [["all","全部"],["yes","推薦"],["maybe","視情況"],["no","不推薦"]].forEach(([val,label]) => {
     const btn = document.createElement("button");
     btn.className = "bfbtn"+(val===activeBuy?" active":"");
@@ -631,6 +639,17 @@ function buildBuyFilter() {
     };
     el.appendChild(btn);
   });
+}
+
+function resetHome() {
+  document.getElementById("searchInput").value = "";
+  activeCategory = "all";
+  activeTier = "all";
+  activeBuy = "all";
+  buildCatTabs();
+  buildTierFilter();
+  buildBuyFilter();
+  render();
 }
 
 function render() {
