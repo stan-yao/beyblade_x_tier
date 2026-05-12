@@ -216,10 +216,13 @@ main { padding: 1.2rem 2rem 4rem; }
 <header>
   <div class="header-top">
     <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
-    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0511 更新</span></span>
+    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0506 更新</span></span>
   </div>
   <div class="controls">
-    <input type="text" id="searchInput" placeholder="搜尋型號或名稱（CX07 或 CX-07）…" oninput="render()" autocomplete="off">
+    <div style="position: relative; display: inline-block; width: 100%; max-width: 400px;">
+      <input type="text" id="searchInput" placeholder="搜尋型號或名稱（CX07 或 CX-07）…" autocomplete="off" style="width: 100%; padding-right: 36px; box-sizing: border-box;">
+      <button id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; document.getElementById('clearSearchBtn').style.display='none'; render();" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; display: none; padding: 0;">&times;</button>
+    </div>
     <div class="cat-tabs" id="catTabs"></div>
     <div class="buy-filter" id="buyFilter"></div>
   </div>
@@ -245,19 +248,19 @@ const IMG = {
   "UX-17": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755165/1/639138459016370000?v=1",
   "UX-19": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11628077/0/639138459012300000?v=1",
   "BX-23": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755563/0/639138459109900000?v=1",
-  "BX-31-01": "https://i.ibb.co/rKmggBx4/2026-05-11-202935.png",
+  "BX-31-01": "https://i.ibb.co/Gv1V1DR2/image.png",
   "BX-34": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755572/0/639138459246800000?v=1",
-  "BX-36-01": "https://i.ibb.co/LDMrrWqH/image.png",
+  "BX-36-01": "https://i.ibb.co/jkYBc9rB/BL-PRD-914617-01.png",
   "BX-45": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755578/1/639138459261700000?v=1",
-  "BX-14-01": "https://i.ibb.co/cK3NcnRd/image.png",
-  "BX-20-01": "https://i.ibb.co/rG9s9fbq/image.png",
+  "BX-14-01": "https://i.ibb.co/8LkLwTXT/image.png",
+  "BX-20-01": "https://i.ibb.co/jk7KXkqp/image.png",
   "BX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755552/0/639138459078930000?v=1",
   "BX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755553/0/639138459080870000?v=1",
   "BX-03": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755554/0/639138459083200000?v=1",
-  "BX-04": "https://m.media-amazon.com/images/I/61uRtZD63RL._AC_SX679_.jpg",
+  "BX-04": "https://i.ibb.co/ccDdjCS6/image.png",
   "UX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755580/0/639138459267170000?v=1",
   "UX-11": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755192/1/639138459066170000?v=1",
-  "UX-16-01": "https://i.ibb.co/m5SkxCMp/2026-05-11-202247.png",
+  "UX-16-01": "https://i.ibb.co/Y4XyYgDM/image.png",
   "CX-07": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755178/1/639138459039070000?v=1",
   "CX-11": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755182/0/639138459047230000?v=1",
   "CX-12": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755183/1/639138459049800000?v=1",
@@ -265,39 +268,39 @@ const IMG = {
   "CX-14": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11594589/1/639138459008200000?v=1",
   "CX-15": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11594590/0/639138459010430000?v=1",
   "UX-18-01": "https://malloftoys.com/cdn/shop/files/IMG-3549_720x.webp?v=1767390561",
-  "CX-17-01": "https://i.ibb.co/XxLvJr78/2026-05-11-201840.png",
+  "CX-17-01": "https://i.ibb.co/qXHVjW7/image.png",
   "UX-09": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755190/1/639138459062630000?v=1",
-  "UX-10-01": "https://i.ibb.co/8nK1YLwX/image.png",
+  "UX-10-01": "https://i.ibb.co/R43HWCgG/image.png",
   "CX-09": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755180/1/639138459043030000?v=1",
-  "CX-08-01": "https://i.ibb.co/WWN0kV8h/image.png",
-  "CX-08-02": "https://i.ibb.co/20cd189s/image.png",
+  "CX-08-01": "https://i.ibb.co/rR6Nx3Cd/image.png",
+  "CX-08-02": "https://i.ibb.co/tMNMpw2L/image.png",
   "CX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755171/1/639138459028470000?v=1",
   "CX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755172/1/639138459030170000?v=1",
-  "CX-05-01": "https://i.ibb.co/pjg8jrB4/image.png",
-  "CX-05-02": "https://i.ibb.co/bjcsHn42/image.png",
-  "CX-06-01": "https://i.ibb.co/8Dg9HsJ1/image.png",
+  "CX-05-01": "https://i.ibb.co/0R59QbdM/image.png",
+  "CX-05-02": "https://i.ibb.co/MyXQ55BQ/image.png",
+  "CX-06-01": "https://i.ibb.co/X153ZPQ/image.png",
   "CX-10": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755181/0/639138459045230000?v=1",
   "CX-03": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755173/0/639138459031900000?v=1",
-  "UX-07-01": "https://i.ibb.co/8L5f8205/image.png",
+  "UX-07-01": "https://i.ibb.co/fzzyKpr5/image.png",
   "UX-06": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755186/0/639138459054830000?v=1",
-  "BX-48-03": "https://i.ibb.co/HLLFvLsN/image.png",
+  "BX-48-03": "https://i.ibb.co/sdq4PV91/image.png",
   "UX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755582/0/639138459268930000?v=1",
-  "UX-12-01": "https://i.ibb.co/fGqtzhL4/image.png",
+  "UX-12-01": "https://i.ibb.co/v4PGj3FR/image.png",
   "BX-33": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755571/1/639138459242370000?v=1",
-  "BX-35-01": "https://i.ibb.co/ZpnkjS3z/image.png",
-  "UX-10-01": "https://i.ibb.co/8nK1YLwX/image.png",
+  "BX-35-01": "https://i.ibb.co/vCHG4z8r/image.png",
+  "UX-10-01": "https://i.ibb.co/R43HWCgG/image.png",
   "BX-46": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755579/0/639138459264530000?v=1",
-  "UX-05-01": "https://i.ibb.co/MyGjKFmx/image.png",
+  "UX-05-01": "https://i.ibb.co/VWLsjJcR/image.png",
 
   "BX-13": "https://m.media-amazon.com/images/I/71IhbJu4NqL._AC_SX679_.jpg",
   "BX-15": "https://m.media-amazon.com/images/I/61KORBf3t7L._AC_SX679_.jpg",
   "UX-13": "https://m.media-amazon.com/images/I/71Ljh800EQL._AC_SX679_.jpg",
   "BX-44": "https://m.media-amazon.com/images/I/71wkciumhSL._AC_SX679_.jpg",
-  "BX-21-01": "https://i.ibb.co/DP1GVgdT/image.png",
+  "BX-21-01": "https://i.ibb.co/ccxnk9nY/image.png",
   "BX-38": "https://m.media-amazon.com/images/I/71+V-FD+8lL._AC_SX679_.jpg",
-  "BX-39-01": "https://i.ibb.co/0RqYX71x/image.png",
-  "BX-16-01": "https://i.ibb.co/whxZdM6V/image.png",
-  "BX-24-01": "https://i.ibb.co/ycpc80pd/image.png",
+  "BX-39-01": "https://i.ibb.co/vCw8tM1S/image.png",
+  "BX-16-01": "https://i.ibb.co/xKS1PCzW/image.png",
+  "BX-24-01": "https://i.ibb.co/bRPK7xVG/image.png",
   "BX-27": "https://m.media-amazon.com/images/I/61xasxtwODL._AC_SX679_.jpg",
   "BX-19": "https://m.media-amazon.com/images/I/612lVsBzJJL._AC_SX679_.jpg",
   "BX-37": "https://m.media-amazon.com/images/I/611eYwWAd8L._AC_SX679_.jpg",
@@ -312,9 +315,9 @@ const IMG = {
   "2-60Q": "https://i.ibb.co/84frmfSY/2-60Q.png",
   "5-70GF": "https://i.ibb.co/xt5hyVdL/5-70GF.png",
   "4-60LF": "https://i.ibb.co/BHxS42yr/4-60LF.png",
-  "UX-15-01": "https://i.ibb.co/PHqfKmx/tw-11134207-7ra0i-mdmu1skba9yb26.jpg",
-  "CX-11-01": "https://i.ibb.co/0pwsbSTP/2026-05-11-201701.png",
-  "UX-10-03": "https://i.ibb.co/3m3ZXCZ4/image.png",};
+  "UX-15-01": "https://i.ibb.co/Q71NLfM5/image.png",
+  "CX-11-01": "https://i.ibb.co/99qrhNdw/image.png",
+  "UX-10-03": "https://i.ibb.co/Q7MZhVNk/image.png",};
 
 const DB = [
   {cat:"blade",id:"UX-15-01",           name:"鮫鯊狂鱗",         nameEn:"Dran Buster",         tier:"X",  type:"attack",  buy:"yes", source:"UX-15 鮫鯊狂鱗改造組", combo:"固鎖：4-50(UF) / 1-60 / 1-70<br>軸心：K / L / R / LO / W / D<br>打擊力強，持久度需增加"},
@@ -805,6 +808,12 @@ buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
 render();
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
+  render();
+});
+
 </script>
 </body>
 </html>
