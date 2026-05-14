@@ -574,7 +574,14 @@ let activeTier = "all";
 let activeBuy  = "all";
 
 // 搜尋正規化：移除 - 和空格
-function norm(s){ return s.replace(/[-\s]/g,"").toLowerCase(); }
+function norm(s) {
+  if (!s) return "";
+  // 移除英文與數字之間的橫槓 (例如 BX-36 -> BX36)
+  // 但保留數字與數字之間的橫槓 (例如 3-60)
+  return s.toLowerCase()
+    .replace(/([a-z])-(\d)/g, '$1$2')
+    .replace(/\s+/g, '');
+}
 
 function matchSearch(d, q) {
   if (!q) return true;
