@@ -293,41 +293,60 @@ async function loadData() {
       const comboText = row[12] ? row[12].trim() : "";
       const noteText = row[13] ? row[13].trim() : "";
       
+      if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
+
       let comboHtml = "";
       if (ratchet || bit) {
         comboHtml += `固鎖：${ratchet}${ratchetTier ? ` (${ratchetTier}級)` : ''}<br>`;
         comboHtml += `軸心：${bit}${bitTier ? ` (${bitTier}級)` : ''}<br>`;
       }
-      if (comboText) {
-        comboHtml += comboText.replace(/\|/g, "<br>") + "<br>";
-      }
-      if (noteText) {
-        comboHtml += noteText;
-      }
-      if (ratchet || bit) {
-          if (!comboHtml.includes("原裝配置") && !noteText) {
-               comboHtml += "原裝配置";
-          }
+      if (comboText) comboHtml += comboText.replace(/\|/g, "<br>") + "<br>";
+      if (noteText) comboHtml += noteText;
+      if ((ratchet || bit) && !comboHtml.includes("原裝配置") && !noteText) {
+         comboHtml += "原裝配置";
       }
 
-      DB.push({
-        id: id,
-        name: name,
-        cat: cat,
-        type: type,
-        tier: tier,
-        buy: buy,
-        source: source,
-        combo: comboHtml.trim()
-      });
-      
-      if (imgUrl) {
-         IMG[id.split(" ")[0]] = imgUrl; 
+      // 1. 戰刃主資料
+      if (tier && tier !== "-") {
+          DB.push({ id, name, cat, type, tier, buy, source, combo: comboHtml.trim() });
+      }
+
+      // 2. 自動生成固鎖資料 (自動繼承戰刃的 source)
+      if (ratchet && ratchetTier && ratchetTier !== "-") {
+          let rBuy = "no";
+          if (["X", "S+", "S", "A+", "A"].includes(ratchetTier)) rBuy = "yes";
+          else if (["B+", "B", "C+", "C"].includes(ratchetTier)) rBuy = "maybe";
+          
+          DB.push({
+              id: `${id} ${ratchet}`,
+              name: `${name} ${ratchet}`,
+              cat: "ratchet",
+              type: "ratchet",
+              tier: ratchetTier,
+              buy: rBuy,
+              source: source 
+          });
+      }
+
+      // 3. 自動生成軸心資料 (自動繼承戰刃的 source)
+      if (bit && bitTier && bitTier !== "-") {
+          let bBuy = "no";
+          if (["X", "S+", "S", "A+", "A"].includes(bitTier)) bBuy = "yes";
+          else if (["B+", "B", "C+", "C"].includes(bitTier)) bBuy = "maybe";
+          
+          DB.push({
+              id: `${id} ${bit}`,
+              name: `${name} ${bit}`,
+              cat: "bit",
+              type: "bit",
+              tier: bitTier,
+              buy: bBuy,
+              source: source
+          });
       }
     }
     
     render();
-    
   } catch(e) {
     console.error(e);
     document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold; font-size:1.1rem;">❌ 讀取資料失敗<br><br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認您已開啟 Local Server 測試環境<br>並確保 Google Sheets 的權限設定為「知道連結的人皆可檢視」。</span></div>`;
@@ -550,13 +569,23 @@ function openModal(d) {
 
   let modalName = d.name;
   let productNameRow = "";
+  let displaySource = d.source;
+  
   if (d.cat === "ratchet" || d.cat === "bit") {
     const nameParts = d.name.split(" ");
     if (nameParts.length > 1) {
-        modalName = nameParts[nameParts.length - 1]; // 例如 "9-60"
-        const prodName = nameParts.slice(0, -1).join(" "); // 例如 "鳳凰飛翼"
-        productNameRow = `<div class="modal-row"><span class="modal-label">產品名稱</span><span class="modal-val">${prodName}</span></div>`;
+        modalName = nameParts[nameParts.length - 1]; 
+        const prodName = nameParts.slice(0, -1).join(" "); 
+        // 產品名稱自動補上型號 (UX-18-01 古屍詛咒)
+        productNameRow = `<div class="modal-row"><span class="modal-label">產品名稱</span><span class="modal-val" style="text-align:right;">${srcId} ${prodName}</span></div>`;
     }
+    // 固鎖與軸心自動繼承戰刃來源
+    if (!displaySource) {
+        const parentBlade = DB.find(item => item.id === srcId && item.cat === "blade");
+        displaySource = (parentBlade && parentBlade.source) ? parentBlade.source : srcId;
+    }
+  } else {
+      if (!displaySource) displaySource = d.id;
   }
 
   const overlay = document.createElement("div");
@@ -565,26 +594,27 @@ function openModal(d) {
     <div class="modal-box">
       <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
       ${imgHtml}
-      <div style="text-align:center">
-        <span class="modal-tier-badge" style="background:${color}22;color:${color}">${d.tier} 級</span>
+      <div style="text-align:center; margin-bottom:1.5rem">
+        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier} 級</span>
         <div class="modal-name">${modalName}</div>
         <div class="modal-id">${d.id}</div>
       </div>
       <div class="modal-row"><span class="modal-label">分類</span><span class="modal-val">${CAT_LABELS[d.cat]}</span></div>
       <div class="modal-row"><span class="modal-label">類型</span><span class="modal-val">${TYPE_LABELS[d.type]}</span></div>
-      <div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val">${d.source || srcId}</span></div>
+      <div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val" style="text-align:right;">${displaySource}</span></div>
       ${productNameRow}
       
-      <div class="buy-rec ${d.buy}">${BUY_LABELS[d.buy]}　<span style="font-weight:400;opacity:0.8">${BUY_DESCS[d.buy]}</span></div>
+      <div class="buy-rec ${d.buy}" style="margin-top:1.5rem; padding:12px; border-radius:10px; font-weight:700; text-align:center;">
+        ${BUY_LABELS[d.buy]}　<span style="font-weight:400;opacity:0.8">${BUY_DESCS[d.buy]}</span>
+      </div>
       ${d.combo ? `
       <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
-        <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">建議配置：</div>
+        <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">相關配置：</div>
         <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
           ${d.combo}
         </div>
       </div>
       ` : ""}
-    
     </div>
   `;
   overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
