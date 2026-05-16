@@ -240,315 +240,100 @@ main { padding: 1.2rem 2rem 4rem; }
 <script>
 // 圖片對照表（來源：東海模型 img.91app.com CDN）
 // 未填寫的型號顯示文字佔位，待後續補充
-const IMG = {
-  "UX-03": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755583/1/639138459271370000?v=1",
-  "UX-08": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755189/1/639138459060230000?v=1",
-  "UX-14": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755194/1/639138459071070000?v=1",
-  "UX-15": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755195/0/639138459074000000?v=1",
-  "UX-17": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755165/1/639138459016370000?v=1",
-  "UX-19": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11628077/0/639138459012300000?v=1",
-  "BX-23": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755563/0/639138459109900000?v=1",
-  "BX-31-01": "https://i.ibb.co/Gv1V1DR2/image.png",
-  "BX-34": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755572/0/639138459246800000?v=1",
-  "BX-36-01": "https://i.ibb.co/jkYBc9rB/BL-PRD-914617-01.png",
-  "BX-45": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755578/1/639138459261700000?v=1",
-  "BX-14-01": "https://i.ibb.co/8LkLwTXT/image.png",
-  "BX-20-01": "https://i.ibb.co/jk7KXkqp/image.png",
-  "BX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755552/0/639138459078930000?v=1",
-  "BX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755553/0/639138459080870000?v=1",
-  "BX-03": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755554/0/639138459083200000?v=1",
-  "BX-04": "https://i.ibb.co/ccDdjCS6/image.png",
-  "UX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755580/0/639138459267170000?v=1",
-  "UX-11": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755192/1/639138459066170000?v=1",
-  "UX-16-01": "https://i.ibb.co/Y4XyYgDM/image.png",
-  "CX-07": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755178/1/639138459039070000?v=1",
-  "CX-11": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755182/0/639138459047230000?v=1",
-  "CX-12": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755183/1/639138459049800000?v=1",
-  "CX-13": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11594604/1/639138459014370000?v=1",
-  "CX-14": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11594589/1/639138459008200000?v=1",
-  "CX-15": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11594590/0/639138459010430000?v=1",
-  "UX-18-01": "https://malloftoys.com/cdn/shop/files/IMG-3549_720x.webp?v=1767390561",
-  "CX-17-01": "https://i.ibb.co/qXHVjW7/image.png",
-  "UX-09": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755190/1/639138459062630000?v=1",
-  "UX-10-01": "https://i.ibb.co/R43HWCgG/image.png",
-  "CX-09": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755180/1/639138459043030000?v=1",
-  "CX-08-01": "https://i.ibb.co/rR6Nx3Cd/image.png",
-  "CX-08-02": "https://i.ibb.co/tMNMpw2L/image.png",
-  "CX-01": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755171/1/639138459028470000?v=1",
-  "CX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755172/1/639138459030170000?v=1",
-  "CX-05-01": "https://i.ibb.co/0R59QbdM/image.png",
-  "CX-05-02": "https://i.ibb.co/MyXQ55BQ/image.png",
-  "CX-06-01": "https://i.ibb.co/X153ZPQ/image.png",
-  "CX-10": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755181/0/639138459045230000?v=1",
-  "CX-03": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755173/0/639138459031900000?v=1",
-  "UX-07-01": "https://i.ibb.co/fzzyKpr5/image.png",
-  "UX-06": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755186/0/639138459054830000?v=1",
-  "BX-48-03": "https://i.ibb.co/sdq4PV91/image.png",
-  "UX-02": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755582/0/639138459268930000?v=1",
-  "UX-12-01": "https://i.ibb.co/v4PGj3FR/image.png",
-  "BX-33": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755571/1/639138459242370000?v=1",
-  "BX-35-01": "https://i.ibb.co/vCHG4z8r/image.png",
-  "UX-10-01": "https://i.ibb.co/R43HWCgG/image.png",
-  "BX-46": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755579/0/639138459264530000?v=1",
-  "UX-05-01": "https://i.ibb.co/VWLsjJcR/image.png",
 
-  "BX-13": "https://m.media-amazon.com/images/I/71IhbJu4NqL._AC_SX679_.jpg",
-  "BX-15": "https://m.media-amazon.com/images/I/61KORBf3t7L._AC_SX679_.jpg",
-  "UX-13": "https://m.media-amazon.com/images/I/71Ljh800EQL._AC_SX679_.jpg",
-  "BX-44": "https://m.media-amazon.com/images/I/71wkciumhSL._AC_SX679_.jpg",
-  "BX-21-01": "https://i.ibb.co/ccxnk9nY/image.png",
-  "BX-38": "https://m.media-amazon.com/images/I/71+V-FD+8lL._AC_SX679_.jpg",
-  "BX-39-01": "https://i.ibb.co/vCw8tM1S/image.png",
-  "BX-16-01": "https://i.ibb.co/xKS1PCzW/image.png",
-  "BX-24-01": "https://i.ibb.co/bRPK7xVG/image.png",
-  "BX-27": "https://m.media-amazon.com/images/I/61xasxtwODL._AC_SX679_.jpg",
-  "BX-19": "https://m.media-amazon.com/images/I/612lVsBzJJL._AC_SX679_.jpg",
-  "BX-37": "https://m.media-amazon.com/images/I/611eYwWAd8L._AC_SX679_.jpg",
-  "BX-22": "https://m.media-amazon.com/images/I/61CiHS+OmSL._AC_SX679_.jpg",
-  "BX-26": "https://img.91app.com/webapi/imagesV3/Original/SalePage/11755566/1/639138459113230000?v=1",
-  "UX-00": "https://i.ibb.co/60kwzYTv/image.png",
-  "A賞飛龍": "https://i.ibb.co/ZRm5NZVn/A.png",
-  "八岐大蛇": "https://i.ibb.co/FqzKXrph/image.jpg",
-  "S4-70V": "https://i.ibb.co/XkCZmrRV/S4-70V.avif",
-  "4-60F": "https://i.ibb.co/gZs8xxD3/4-60F.png",
-  "T4-60A": "https://i.ibb.co/cSYHTC43/T4-60A.png",
-  "2-60Q": "https://i.ibb.co/84frmfSY/2-60Q.png",
-  "5-70GF": "https://i.ibb.co/xt5hyVdL/5-70GF.png",
-  "4-60LF": "https://i.ibb.co/BHxS42yr/4-60LF.png",
-  "UX-15-01": "https://i.ibb.co/Q71NLfM5/image.png",
-  "CX-11-01": "https://i.ibb.co/99qrhNdw/image.png",
-  "UX-10-03": "https://i.ibb.co/Q7MZhVNk/image.png",
-  "UX-10-02": "https://i.ibb.co/vvdRtQjt/image.png",};
 
-const DB = [
-  {cat:"blade",id:"UX-15-01",           name:"鮫鯊狂鱗",         nameEn:"Dran Buster",         tier:"X",  type:"attack",  buy:"yes", source:"UX-15 鮫鯊狂鱗改造組", combo:"固鎖：4-50(UF) / 1-60 / 1-70<br>軸心：K / L / R / LO / W / D<br>打擊力強，持久度需增加"},
-  {cat:"blade",id:"UX-03",           name:"魔導神杖",         nameEn:"Cobalt Dragoon",      tier:"X",  type:"attack",  buy:"yes", combo:"固鎖：1-60 / 3-60 / 9-60 / 6-60<br>軸心：B / O / H / FB / UN<br>最強光棍王(youtube)"},
-  {cat:"blade",id:"UX-17",           name:"隕星龍騎士",        nameEn:"Wizard Rod",          tier:"X",  type:"stamina",  buy:"yes", combo:"固鎖：5-70(L) / 9-60(E)<br>軸心：E / L"},
-  {cat:"blade",id:"UX-00",           name:"空力天馬",         nameEn:"Dran Sword",          tier:"X",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"CX-07",           name:"天馬爆擊",         nameEn:"Unicorn Sting CX",    tier:"X",  type:"stamina",  buy:"yes", combo:"固鎖：W 7-60 / S 6-60(V) / J 3-60(H)<br>軸心：LR / H / T<br>陀螺較重，想達到1萬以上的sp，需要的力量會比較大"},
-  {cat:"blade",id:"BX-34",           name:"蒼穹龍騎士",        nameEn:"Shark Scale",         tier:"S+",  type:"attack",  buy:"yes", combo:"固鎖：5-60 / 7-60<br>軸心：E / L"},
-  {cat:"blade",id:"BX-23",           name:"鳳凰飛翼",         nameEn:"Aero Pegasus",        tier:"S+",  type:"stamina",  buy:"yes", combo:"固鎖：3-60 / 7-60 / 9-60<br>軸心：R / LR"},
-  {cat:"blade",id:"CX-13",           name:"龍王閃擊BK",       nameEn:"Phoenix Wing CX",     tier:"S+",  type:"stamina",  buy:"yes"},
-  {cat:"blade",id:"UX-18-01",           name:"古屍詛咒",         nameEn:"Tyranno Beat UX",     tier:"S+",  type:"attack",  buy:"yes", source:"UX-18 古屍詛咒 Vol.8"},
-  {cat:"blade",id:"A賞飛龍",            name:"A賞飛龍",         nameEn:"A賞飛龍",                tier:"S+",  type:"special",  buy:"yes"},
-  {cat:"blade",id:"UX-16-01",        name:"時鐘幻象",         nameEn:"Wyvern Hover",        tier:"S",  type:"stamina",  buy:"yes"},
-  {cat:"blade",id:"UX-08",           name:"霜輝銀狼",         nameEn:"Silver Wolf",         tier:"S",  type:"balance",  buy:"yes", combo:"固鎖：3-60(B) / 5-60 / 7-70 / 9-60(FB)<br>軸心：FB / H"},
-  {cat:"blade",id:"CX-14",           name:"騎士堡壘GV",       nameEn:"Blast CX",            tier:"S",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"UX-14",           name:"天蠍長矛",         nameEn:"Blitz Belial",        tier:"S",  type:"attack",  buy:"yes", combo:"固鎖：7-60(T/U) / 3-60(LR)"},
-  {cat:"blade",id:"八岐大蛇",            name:"八岐大蛇",         nameEn:"",                    tier:"S",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"UX-19",           name:"子彈獅鷲",         nameEn:"UX-19",               tier:"S",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"CX-11-01",           name:"帝王威能",         nameEn:"Rage CX",             tier:"A+",  type:"attack",  buy:"yes", source:"CX-11帝王威能改造組", combo:"固鎖：H 7-60 / H 4-50<br>軸心：LR<br>重量高(約55g)，迴旋扺銷，重型攻擊戰車(阿土G2冠軍配置)，發射採用拉桿方式"},
-  {cat:"blade",id:"CX-12",           name:"鳳凰閃焰Z",        nameEn:"Leon Claw CX",        tier:"A+",  type:"attack",  buy:"yes"},
-  {cat:"blade",id:"UX-01",           name:"蒼龍爆刃",         nameEn:"Dran Dagger UX",      tier:"A+",  type:"attack",  buy:"yes", combo:"固鎖：1-60 / 3-60 / 9-60<br>軸心：R / LR / K / T"},
-  {cat:"blade",id:"UX-11",           name:"衝擊龍神",         nameEn:"Knight Mail UX",      tier:"A+",  type:"defense",  buy:"yes", combo:"固鎖：1-60 / 5-60(Z) / 7-80<br>軸心：T / U"},
-  {cat:"blade",id:"CX-17-01",        name:"獨角極變(藍)",         nameEn:"Meteor Dragoon CX",   tier:"A+",  type:"attack",  buy:"yes", source:"CX-17 獨角極變Vol.10", combo:"固鎖：1-60(E) / 3-60(P) / 9-60(LR)"},
-  {cat:"blade",id:"CX-15",           name:"邪神狂怒FE",       nameEn:"Hells Chain CX",      tier:"A",  type:"balance",  buy:"yes"},
-  {cat:"blade",id:"S4-70V",          name:"戰神伏特",       nameEn:"S4-70V",              tier:"A",  type:"stamina",  buy:"yes"},
-  {cat:"blade",id:"UX-09",           name:"武士星劍",         nameEn:"Weiss Tiger UX",      tier:"A",  type:"attack",  buy:"yes", combo:"固鎖：1-60(E) / 3-60(P) / 9-60(LR)"},
-  {cat:"blade",id:"BX-31-01",           name:"暴龍霸擊(紅)",        nameEn:"Phoenix Wing",        tier:"A",  type:"stamina",  buy:"yes", source:"BX-31 隨機強化組Vol.03", combo:"固鎖：1-60 / 5-60<br>軸心：R / LR / T / HT<br>R軸可快速發動突襲攻擊"},
-  {cat:"blade",id:"UX-10-01",           name:"騎士圓甲",         nameEn:"Viper Tail UX",       tier:"A",  type:"attack",  buy:"yes", source:"UX-10 騎士圓甲改造組", combo:"固鎖：3-60 / 7-70(GB) / 9-60(W)<br>軸心：R<br>R軸快速攻擊"},
-  {cat:"blade",id:"BX-45",           name:"武士魂斬",         nameEn:"Drill Eagle",         tier:"A",  type:"stamina",  buy:"yes", combo:"固鎖：7-70<br>軸心：T<br>本身平衡不錯，搭T軸能穩定打擊，有尾速"},
-  {cat:"blade",id:"BX-36-01",        name:"巨鯨怒濤(綠)",         nameEn:"Rhino Horn",          tier:"B+",  type:"defense",  buy:"maybe", source:"BX-36 巨鯨怒濤隨機強化組", combo:"固鎖：5-60 / 1-60<br>軸心：F / L<br>主動攻擊/斜射下壓"},
-  {cat:"blade",id:"CX-09",           name:"焰神滅世D",        nameEn:"Hell Scythe CX",      tier:"B+",  type:"stamina",  buy:"maybe"},
-  {cat:"blade",id:"CX-08-01",        name:"魔犬烈焰",       nameEn:"CX-08-01",            tier:"B+",  type:"attack",  buy:"maybe", source:"CX-08 魔犬烈焰 Vol.07"},
-  {cat:"blade",id:"CX-08-02",        name:"巨鯨烈焰",       nameEn:"CX-08-02",            tier:"B+",  type:"attack",  buy:"maybe", source:"CX-08 魔犬烈焰 Vol.07"},
-  {cat:"blade",id:"CX-01",           name:"蒼龍勇氣",       nameEn:"Dran Sword CX",       tier:"B+",  type:"attack",  buy:"maybe", combo:"固鎖：B 1-60 / S 1-60 / S 7-60 / J 3-60(LR)<br>軸心：R / LR / K / A<br>有拉到萬轉以上，可使用A軸"},
-  {cat:"blade",id:"CX-02",           name:"魔導至尊R",        nameEn:"Hells Hammer CX",     tier:"B+",  type:"attack",  buy:"maybe"},
-  {cat:"blade",id:"BX-14-01",        name:"鮫鯊鋒鰭(紫)",         nameEn:"Dran Buster BX",      tier:"B",  type:"attack",  buy:"maybe", source:"BX-14 隨機強化組Vol.01", combo:"固鎖：9-60(W) / 4-55(UN) / 1-60<br>軸心：LF / UF"},
-  {cat:"blade",id:"4-60F",           name:"蒼穹龍神",        nameEn:"4-60F",               tier:"B",  type:"attack",  buy:"maybe"},
-  {cat:"blade",id:"UX-13",           name:"魔像奇岩",         nameEn:"Tyranno Beat",        tier:"B",  type:"attack",  buy:"maybe", combo:"固鎖：1-60 / 6-60 / 9-60(LO)<br>軸心：Q / LR"},
-  {cat:"blade",id:"CX-05-01",        name:"惡魔獵魂",       nameEn:"CX-05-01",            tier:"B",  type:"stamina",  buy:"maybe", source:"CX-05 惡魔獵魂抽抽包 Vol.06", combo:"固鎖：S 9-60<br>軸心：E"},
-  {cat:"blade",id:"CX-05-02",        name:"戰犀獵魂",       nameEn:"CX-05-02",            tier:"B",  type:"stamina",  buy:"maybe", source:"CX-05 惡魔獵魂抽抽包 Vol.06"},
-  {cat:"blade",id:"CX-06-01",           name:"極狐九尾(白)",       nameEn:"Hell Scythe CX6",     tier:"C+",  type:"stamina",  buy:"no", source:"CX-06 極狐九尾 抽抽包", combo:"固鎖：J 1-60(LR) / J 6-60(H)"},
-  {cat:"blade",id:"CX-10",           name:"銀狼狩獵F",        nameEn:"Leon Claw CX10",      tier:"C+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"T4-60A",          name:"雄獅獠牙",       nameEn:"T4-60A",              tier:"C+",  type:"balance",  buy:"no"},
-  {cat:"blade",id:"CX-03",           name:"英仙幽冥",        nameEn:"Dran Dagger CX",      tier:"C+",  type:"attack",  buy:"no", combo:"固鎖：S 7-60 / S 9-60<br>軸心：T / H / L"},
-  {cat:"blade",id:"2-60Q",           name:"鱷魚粉碎",        nameEn:"2-60Q",               tier:"C+",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"BX-44",           name:"三角強襲",         nameEn:"BX-44",               tier:"C+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-02",           name:"惡魔紅鐮",         nameEn:"Hells Hammer",        tier:"C",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-04",           name:"騎士重盾",         nameEn:"Knight Shield BX",    tier:"C",  type:"defense",  buy:"no"},
-  {cat:"blade",id:"UX-07-01",           name:"鳳凰尾翼",         nameEn:"Dran Buster UX7",     tier:"C",  type:"attack",  buy:"no", source:"UX-07 鳳凰尾翼改造組"},
-  {cat:"blade",id:"BX-01",           name:"蒼龍神劍",         nameEn:"Dran Sword BX",       tier:"C",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-21-01",           name:"惡魔鎖鏈",         nameEn:"Hells Chain BX",      tier:"C",  type:"balance",  buy:"no", source:"BX-21 惡魔鎖鏈改造組"},
-  {cat:"blade",id:"BX-26",           name:"幻獸刺心",        nameEn:"Blast BX",            tier:"C",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-20-01",        name:"蒼龍利刃",         nameEn:"Leon Claw BX20",      tier:"D+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"UX-06",           name:"雄獅巔峰",         nameEn:"Cobalt Dragoon UX6",  tier:"D+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-38",           name:"赫燃天鳳",         nameEn:"Weiss Tiger BX38",    tier:"D+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-48-03",           name:"黑猛獁獠牙",        nameEn:"BX-48",               tier:"D+",  type:"balance",  buy:"no", source:"BX-48 豪華版抽包 Vol.9", combo:"固鎖：5-60 / 7-60<br>軸心：E / L"},
-  {cat:"blade",id:"UX-02",           name:"惡魔重錘",         nameEn:"Unicorn Sting UX",    tier:"D+",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"BX-03",           name:"魔導幻箭",         nameEn:"Hell Scythe BX",      tier:"D+",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"UX-12-01",           name:"籤王 幽靈元魂(紫)",         nameEn:"Rhino Horn UX",       tier:"D",  type:"defense",  buy:"no", source:"UX-12 幽靈元魂抽抽包Vol.05"},
-  {cat:"blade",id:"BX-39-01",           name:"飛龍庇護(紅色)",         nameEn:"BX-39",               tier:"D",  type:"attack",  buy:"no", source:"BX-39 飛龍庇護抽抽包"},
-  {cat:"blade",id:"BX-33",           name:"皓戰猛虎",         nameEn:"Wizard Rod BX33",     tier:"D",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"BX-16-01",           name:"王蛇鞭尾",         nameEn:"Viper Tail BX16",     tier:"D",  type:"attack",  buy:"no", source:"BX-16 王蛇鞭尾隨機強化組"},
-  {cat:"blade",id:"BX-35-01",           name:"玄冥戰甲 籤王",         nameEn:"Meteor Dragoon BX",   tier:"D",  type:"attack",  buy:"no", source:"BX-35 隨機強化組Vol.04"},
-  {cat:"blade",id:"BX-24-01",           name:"飛龍旋翼(綠)",         nameEn:"BX-24",               tier:"E+",  type:"balance",  buy:"no", source:"BX-24 隨機強化組Vol.02"},
-  {cat:"blade",id:"BX-46",           name:"蒼穹龍神",         nameEn:"BX-46",               tier:"E+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"BX-13",           name:"騎士長槍",         nameEn:"BX-13",               tier:"E+",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"BX-27",           name:"魔獸護甲",         nameEn:"BX-27",               tier:"E+",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"5-70GF",          name:"武士鋼鐵",       nameEn:"5-70GF",              tier:"E",  type:"stamina",  buy:"no"},
-  {cat:"blade",id:"BX-15",           name:"雄獅獵爪",         nameEn:"BX-15",               tier:"E",  type:"attack",  buy:"no"},
-  {cat:"blade",id:"UX-05-01",           name:"忍者闇影",         nameEn:"Dran Dagger UX5",     tier:"E",  type:"attack",  buy:"no", source:"UX-05 忍者闇影隨機強化組"},
-  {cat:"blade",id:"BX-19",           name:"戰犀重角",         nameEn:"BX-19",               tier:"E",  type:"defense",  buy:"no"},
-  {cat:"blade",id:"4-60LF",          name:"忍者刺刀",       nameEn:"4-60LF",              tier:"E",  type:"balance",  buy:"no"},
-  {cat:"blade",id:"BX-37",           name:"悍熊猛爪",         nameEn:"BX-37",               tier:"E",  type:"attack",  buy:"no"},
-  {cat:"ratchet",id:"UX-15 4-50",      name:"鮫鯊狂鱗 4-50",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-17 3-70",      name:"隕星龍騎士 3-70",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-23 9-60",      name:"鳳凰飛翼 9-60",    tier:"X", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-01 1-60",      name:"蒼龍爆刃 1-60",    tier:"X", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"CX-07 天馬爆擊A",     name:"天馬爆擊 天馬爆擊A",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-13 1-50",      name:"龍王閃擊BK 1-50",  tier:"X", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-00 3-70",      name:"空力天馬 3-70",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-06 7-60",      name:"雄獅巔峰 7-60",    tier:"X", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-15-02 1-70",   name:"鮫鯊狂鱗 1-70",    tier:"X", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-18 7-55",      name:"古屍詛咒 7-55",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-08 3-80",      name:"霜輝銀狼 3-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-16-01 9-65",   name:"時鐘幻象 9-65",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-15 5-60",      name:"雄獅獵爪 5-60",    tier:"S", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"CX-01 6-60",      name:"蒼龍勇氣 6-60",  tier:"S", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"CX-10 0-60",      name:"銀狼狩獵F 0-60",   tier:"S", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-11 9-60",      name:"衝擊龍神 9-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-11 帝王威能H",     name:"帝王威能 帝王威能H",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-12 9-80",      name:"鳳凰閃焰Z 9-80",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-14 8-70",      name:"騎士堡壘GV 8-70",  tier:"A", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"CX-15 4-55",      name:"邪神狂怒FE 4-55",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-10 3-85",      name:"騎士圓甲 3-85",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-36-01 5-80",   name:"巨鯨怒濤 5-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-09 5-70",      name:"焰神滅世D 5-70",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-08-01 5-80",   name:"魔犬烈焰 W 5-80",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-08-02 3-85",   name:"巨鯨烈焰 M 3-85",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-14 0-70",      name:"天蠍長矛 0-70",    tier:"B", type:"ratchet",buy:"maybe"},
-  {cat:"ratchet",id:"BX-14-01 3-60",   name:"鮫鯊鋒鰭 3-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-13 1-60",      name:"魔像奇岩 1-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-05-01 4-70",   name:"惡魔獵魂 4-70",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-05-02 4-55",   name:"戰犀獵魂 C 4-55",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-02 3-70",      name:"惡魔重錘 3-70",    tier:"B", type:"ratchet",buy:"maybe"},
-  {cat:"ratchet",id:"CX-06 9-70",      name:"極狐九尾 9-70",  tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-03 5-70",      name:"魔導神杖 5-70",    tier:"C", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-45 6-70",      name:"武士魂斬 6-70",    tier:"C", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-01 3-60",      name:"蒼龍神劍 3-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-02 4-60",      name:"惡魔紅鐮 4-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-17-03 9-65",   name:"武士星劍 9-65",    tier:"C", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-02 4-55",      name:"魔導至尊R 4-55",   tier:"C", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-44 M-85",      name:"三角強襲 M-85",    tier:"C", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-07 9-70",      name:"鳳凰尾翼 9-70",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-21 5-60",      name:"惡魔鎖鏈 5-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-20-01 4-60",   name:"蒼龍利刃 4-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-48 9-80",      name:"蒼穹龍騎士 9-80",   tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-04 3-80",      name:"騎士重盾 3-80",    tier:"D", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-10-01 3-85",   name:"騎士圓甲 3-85",    tier:"D", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"CX-03 6-80",      name:"英仙幽冥 6-80",   tier:"D", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-38 4-70",      name:"赫燃天鳳 4-70",    tier:"D", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-12 0-80",      name:"幽靈元魂 0-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-39 7-80",      name:"護城龍神 7-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-16 5-80",      name:"王蛇鞭尾 5-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-33 3-60",      name:"皓戰猛虎 3-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-35 4-60",      name:"玄冥戰甲 4-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-13 4-80",      name:"騎士長槍 4-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-24 5-80",      name:"飛龍旋翼 5-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-46 9-60",      name:"蒼穹龍神 9-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-27 9-80",      name:"魔獸護甲 9-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-34 2-60",      name:"蒼穹龍騎士 2-60",   tier:"E", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-03 4-80",      name:"魔導幻箭 4-80",    tier:"E", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-09 2-70",      name:"武士星劍 2-70",    tier:"E", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"UX-05 1-80",      name:"忍者闇影 1-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-19 3-80",      name:"戰犀重角 3-80",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-37 5-60",      name:"悍熊猛爪 5-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"bit",id:"UX-08 FB",        name:"霜輝銀狼 FB",      tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-15 UF",        name:"鮫鯊狂鱗 UF",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-19 H",         name:"子彈獅鷲 H",       tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-36-01 E",      name:"巨鯨怒濤 E",       tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-20-01 R",      name:"蒼龍利刃 R",       tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-11 LR",        name:"衝擊龍神 LR",      tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-07 TR",        name:"天馬爆擊 TR",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-00 A",         name:"空力天馬 A",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-05-01 K",      name:"惡魔獵魂 K",     tier:"X", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-18 W",         name:"古屍詛咒 W",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-17 J",         name:"隕星龍騎士 J",      tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-02 T",         name:"惡魔紅鐮 T",       tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-16-01 B",      name:"時鐘幻象 B",       tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-14 UN",        name:"騎士堡壘GV UN",    tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-09 L",         name:"武士星劍 L",       tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-02 LO",        name:"魔導至尊R LO",     tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-13 UN",        name:"魔像奇岩 UN",      tier:"S", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-01 A",         name:"蒼龍爆刃 A",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-11 OP",        name:"帝王威能 OP",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-17-03 LO",     name:"武士星劍 LO",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-14-01 LF",     name:"鮫鯊鋒鰭 LF",      tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-15 Y",         name:"邪神狂怒FE Y",     tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-15 P",         name:"雄獅獵爪 P",       tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-33 U",         name:"皓戰猛虎 U",       tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"UX-10 BS",        name:"騎士圓甲 BS",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-08-02 HT",     name:"巨鯨烈焰 M HT",    tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-09 TK",        name:"焰神滅世D TK",     tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"CX-08-01 WB",     name:"魔犬烈焰 W WB",    tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"CX-05-02 D",      name:"戰犀獵魂 C D",     tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-03 W",         name:"英仙幽冥 W",      tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"CX-06 GR",        name:"極狐九尾 GR",    tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-10 DB",        name:"銀狼狩獵F DB",     tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-44 BS",        name:"三角強襲 BS",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-14 Z",         name:"天蠍長矛 Z",       tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-34 C",         name:"蒼穹龍騎士 C",      tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-01 F",         name:"蒼龍神劍 F",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-12 WW",        name:"鳳凰閃焰Z WW",     tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-13 I",         name:"龍王閃擊BK I",     tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-13 HN",        name:"騎士長槍 HN",      tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-07 G",         name:"鳳凰尾翼 G",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-21 HT",        name:"惡魔鎖鏈 HT",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-38 TP",        name:"赫燃天鳳 TP",      tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-03 B",         name:"魔導幻箭 B",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-06 GN",        name:"雄獅巔峰 GN",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-48 F",         name:"蒼穹龍騎士 F",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-02 H",         name:"惡魔重錘 H",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-03 DB",        name:"魔導神杖 DB",      tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-23 GF",        name:"鳳凰飛翼 GF",      tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-01 V",         name:"蒼龍勇氣 V",     tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-12 GB",        name:"幽靈元魂 GB",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-39 GP",        name:"護城龍神 GP",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-16 O",         name:"王蛇鞭尾 O",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-35 D",         name:"玄冥戰甲 D",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-19 S",         name:"戰犀重角 S",       tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-24 GB",        name:"飛龍旋翼 GB",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-46 R",         name:"蒼穹龍神 R",       tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-27 GN",        name:"魔獸護甲 GN",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-45 M",         name:"武士魂斬 M",       tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-04 N",         name:"騎士重盾 N",       tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-10-01 BS",     name:"騎士圓甲 BS",      tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-05 MN",        name:"忍者闇影 MN",      tier:"-", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-37 F",         name:"悍熊猛爪 F",       tier:"-", type:"bit",buy:"no"},
-  {cat:"ratchet",id:"BX-22 3-60",      name:"3-60",    tier:"S", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-07-01 9-70",      name:"鳳凰尾翼 9-70",    tier:"S", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-15-01 4-50",      name:"鮫鯊狂鱗 4-50",    tier:"A", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-18-01 7-55",      name:"古屍詛咒 7-55",    tier:"A", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"UX-10-03 7-70",      name:"騎士圓甲 7-70",    tier:"A", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"BX-00-01 4-60",      name:"4-60",    tier:"A", type:"ratchet",buy:"yes"},
-  {cat:"ratchet",id:"BX-27-01 9-80",      name:"魔獸護甲 9-80",    tier:"B", type:"ratchet",buy:"maybe"},
-  {cat:"ratchet",id:"UX-12-01 0-80",      name:"幽靈元魂 0-80",    tier:"B", type:"ratchet",buy:"maybe"},
-  {cat:"ratchet",id:"BX-39-01 7-80",      name:"護城龍神 7-80",    tier:"B", type:"ratchet",buy:"maybe"},
-  {cat:"ratchet",id:"UX-05-01 1-80",      name:"忍者闇影 1-80",    tier:"D", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BX-16-01 5-80",      name:"王蛇鞭尾 5-80",    tier:"E", type:"ratchet",buy:"no"},
-  {cat:"ratchet",id:"BXG-14 2-80",      name:"2-80",    tier:"E", type:"ratchet",buy:"no"},
-  {cat:"bit",id:"BX-16-01 O",      name:"王蛇鞭尾 O",    tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-11-01 OP",      name:"帝王威能 OP",    tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"CX-15-01 UF",      name:"邪神狂怒FE UF",    tier:"A", type:"bit",buy:"yes"},
-  {cat:"bit",id:"BX-22 F",      name:"F",    tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"CX-17-01 GU",      name:"GU",    tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"CX-06-01 GR",      name:"極狐九尾 GR",    tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"BX-35-01 D",      name:"玄冥戰甲 D",    tier:"B", type:"bit",buy:"maybe"},
-  {cat:"bit",id:"BX-26 GP",      name:"GP",    tier:"C", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-21-01 HT",      name:"惡魔鎖鏈 HT",    tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-04-01 A",      name:"A",    tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-24-01 GB",      name:"飛龍旋翼 GB",    tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-07-01 Q",      name:"鳳凰尾翼 Q",    tier:"D", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-27-01 GN",      name:"魔獸護甲 GN",    tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"CX-07 Tr",      name:"天馬爆擊 Tr",    tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-05-01 MN",      name:"忍者闇影 MN",    tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"UX-10-02 RA",      name:"騎士圓甲 RA",    tier:"E", type:"bit",buy:"no"},
-  {cat:"bit",id:"BX-31-01 Q",      name:"暴龍霸擊 Q",    tier:"E", type:"bit",buy:"no"},
-  {cat:"blade",id:"BX-22",         name:"蒼龍神劍",         nameEn:"",                     tier:"-",  type:"attack",  buy:"no"},
-  {cat:"ratchet",id:"BX-26 5-60",      name:"幻獸刺心 5-60",    tier:"-", type:"ratchet",buy:"no"},
-  {cat:"blade",id:"UX-10-02", name:"暴龍霸擊(紅)", tier:"E+", type:"attack", buy:"maybe", source:"UX-10 騎士圓甲改造組"},
-  {cat:"blade",id:"UX-10-03", name:"翼龍神翼", tier:"E+", type:"attack", buy:"maybe", source:"UX-10 騎士圓甲改造組"},];
+
+let DB = [];
+let IMG = {};
+
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
+
+function parseCSV(str) {
+  const arr = [];
+  let quote = false;
+  let col, c;
+  for (let row = col = c = 0; c < str.length; c++) {
+    const cc = str[c], nc = str[c+1];
+    arr[row] = arr[row] || [];
+    arr[row][col] = arr[row][col] || '';
+    if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+    if (cc == '"') { quote = !quote; continue; }
+    if (cc == ',' && !quote) { ++col; continue; }
+    if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
+    if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+    if (cc == '\r' && !quote) { ++row; col = 0; continue; }
+    arr[row][col] += cc;
+  }
+  return arr;
+}
+
+async function loadData() {
+  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:var(--accent); font-weight:bold; font-size:1.2rem;">📡 載入最新天梯資料中...</div>`;
+  try {
+    const res = await fetch(sheetUrl);
+    const csvText = await res.text();
+    const data = parseCSV(csvText);
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row || row.length < 5 || !row[0]) continue;
+      
+      const id = row[0].trim();
+      const name = row[1].trim();
+      const cat = row[2].trim() || "blade";
+      const type = row[3].trim() || "attack";
+      const tier = row[4].trim() || "-";
+      const buy = row[5].trim() || "no";
+      const ratchet = row[6] ? row[6].trim() : "";
+      const ratchetTier = row[7] ? row[7].trim() : "";
+      const bit = row[8] ? row[8].trim() : "";
+      const bitTier = row[9] ? row[9].trim() : "";
+      const source = row[10] ? row[10].trim() : "";
+      const imgUrl = row[11] ? row[11].trim() : "";
+      const comboText = row[12] ? row[12].trim() : "";
+      const noteText = row[13] ? row[13].trim() : "";
+      
+      let comboHtml = "";
+      if (ratchet || bit) {
+        comboHtml += `固鎖：${ratchet}${ratchetTier ? ` (${ratchetTier}級)` : ''}<br>`;
+        comboHtml += `軸心：${bit}${bitTier ? ` (${bitTier}級)` : ''}<br>`;
+      }
+      if (comboText) {
+        comboHtml += comboText.replace(/\|/g, "<br>") + "<br>";
+      }
+      if (noteText) {
+        comboHtml += noteText;
+      }
+      if (ratchet || bit) {
+          if (!comboHtml.includes("原裝配置") && !noteText) {
+               comboHtml += "原裝配置";
+          }
+      }
+
+      DB.push({
+        id: id,
+        name: name,
+        cat: cat,
+        type: type,
+        tier: tier,
+        buy: buy,
+        source: source,
+        combo: comboHtml.trim()
+      });
+      
+      if (imgUrl) {
+         IMG[id.split(" ")[0]] = imgUrl; 
+      }
+    }
+    
+    render();
+    
+  } catch(e) {
+    console.error(e);
+    document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold; font-size:1.1rem;">❌ 讀取資料失敗<br><br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認您已開啟 Local Server 測試環境<br>並確保 Google Sheets 的權限設定為「知道連結的人皆可檢視」。</span></div>`;
+  }
+}
+
 
 const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E"];
 const RATCHET_TIERS = ["X","S","A","B","C","D","E","-"];
@@ -576,11 +361,7 @@ let activeBuy  = "all";
 // 搜尋正規化：移除 - 和空格
 function norm(s) {
   if (!s) return "";
-  // 移除英文與數字之間的橫槓 (例如 BX-36 -> BX36)
-  // 但保留數字與數字之間的橫槓 (例如 3-60)
-  return s.toLowerCase()
-    .replace(/([a-z])-(\d)/g, '$1$2')
-    .replace(/\s+/g, '');
+  return s.toLowerCase().replace(/([a-z])-(\d)/g, '$1$2').replace(/\s+/g, '');
 }
 
 function matchSearch(d, q) {
@@ -589,7 +370,8 @@ function matchSearch(d, q) {
   return norm(d.id).includes(nq)
     || norm(d.name).includes(nq)
     || d.id.toLowerCase().includes(q.toLowerCase())
-    || d.name.toLowerCase().includes(q.toLowerCase());
+    || d.name.toLowerCase().includes(q.toLowerCase())
+    || (d.combo && norm(d.combo).includes(nq));
 }
 
 function tiersFor(cat) {
@@ -816,7 +598,7 @@ document.addEventListener("keydown", e => {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
-render();
+loadData();
 
 document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
