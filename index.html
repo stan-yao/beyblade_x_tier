@@ -217,7 +217,7 @@ main { padding: 1.2rem 2rem 4rem; }
 <header>
   <div class="header-top">
     <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
-    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0506 更新</span></span>
+    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date" id="updateDateDisplay">0506 更新</span></span>
   </div>
   <div class="controls">
     <div style="position: relative; display: inline-block; width: 100%; max-width: 400px;">
@@ -269,11 +269,20 @@ function parseCSV(str) {
 }
 
 async function loadData() {
-  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:var(--accent); font-weight:bold; font-size:1.2rem;">📡 載入最新天梯資料中...</div>`;
+  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 載入最新天梯資料中...</div>`;
   try {
     const res = await fetch(sheetUrl);
     const csvText = await res.text();
     const data = parseCSV(csvText);
+
+    // 讀取 O1 儲存格的更新日期 (第 1 列，第 15 欄)
+    if (data[0] && data[0][14]) {
+        const updateText = data[0][14].trim();
+        if (updateText) {
+            document.getElementById("updateDateDisplay").textContent = updateText + " 更新";
+        }
+    }
+
     
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
