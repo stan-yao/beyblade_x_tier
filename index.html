@@ -269,7 +269,7 @@ function parseCSV(str) {
 }
 
 async function loadData() {
-  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#cccccc; font-weight:bold; font-size:1.0rem;">⚙️載入最新天梯資料中...</div>`;
+  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 載入最新天梯資料中...</div>`;
   try {
     const res = await fetch(sheetUrl);
     const csvText = await res.text();
