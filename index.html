@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <title>Beyblade X 陀螺天梯表</title>
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -420,7 +421,7 @@ function buildTierFilter() {
   const el = document.getElementById("tierFilter");
   el.innerHTML = "";
   const tiers = tiersFor(activeCategory);
-  [["all","全部"],...tiers.map(t=>[t, t==="-" ? "未評級" : t])].forEach(([val,label]) => {
+  [["all","全部"],...tiers.map(t=>[t, t])].forEach(([val,label]) => {
     const btn = document.createElement("button");
     btn.className = "tfbtn" + (val===activeTier?" active":"");
     const c = TIER_COLORS[val] || "var(--accent)";
@@ -501,7 +502,7 @@ function render() {
 
     const label = document.createElement("div");
     label.className = "tier-label";
-    label.textContent = tier === "-" ? "未評級" : tier;
+    label.textContent = tier;
     label.style.cssText = `background:${color}20;color:${color};min-width:54px;`;
 
     const cards = document.createElement("div");
@@ -624,7 +625,7 @@ function openModal(d) {
       <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
       ${imgHtml}
       <div style="text-align:center; margin-bottom:1.5rem">
-        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier === "-" ? "未評級" : d.tier + " 級"}</span>
+        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier === "-" ? "-" : d.tier + " 級"}</span>
         <div class="modal-name">${modalName}</div>
         <div class="modal-id">${d.id}</div>
       </div>
