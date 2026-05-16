@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <title>Beyblade X 陀螺天梯表</title>
-<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -217,7 +216,7 @@ main { padding: 1.2rem 2rem 4rem; }
 <header>
   <div class="header-top">
     <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
-    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0516 更新</span></span>
+    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date">0506 更新</span></span>
   </div>
   <div class="controls">
     <div style="position: relative; display: inline-block; width: 100%; max-width: 400px;">
@@ -233,7 +232,7 @@ main { padding: 1.2rem 2rem 4rem; }
     <div class="legend-item"><div class="ldot" style="background:#ffb830"></div>視情況</div>
     <div class="legend-item"><div class="ldot" style="background:#445566"></div>不推薦</div>
   </div>
-  <p class="source-note">網站整理建立 @stan_yao　資料來源 @RENLIgames / @anguzyao_</p>
+  <p class="source-note">網站建立 @stan_yao　資料來源 @RENLIgames / @anguzyao_</p>
 </header>
 
 <main id="main"></main>
@@ -269,7 +268,7 @@ function parseCSV(str) {
 }
 
 async function loadData() {
-  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 載入最新天梯資料中...</div>`;
+  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:var(--accent); font-weight:bold; font-size:1.2rem;">📡 載入最新天梯資料中...</div>`;
   try {
     const res = await fetch(sheetUrl);
     const csvText = await res.text();
@@ -297,12 +296,12 @@ async function loadData() {
       if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
 
       // 1. 戰刃主資料
-      if (tier && tier !== "-") {
+      if (tier) {
           DB.push({ id, name, cat, type, tier, buy, source, ratchet, ratchetTier, bit, bitTier, comboText, noteText });
       }
 
       // 2. 自動生成固鎖資料 (自動繼承戰刃的 source)
-      if (ratchet && ratchetTier && ratchetTier !== "-") {
+      if (ratchet && ratchetTier) {
           let rBuy = "no";
           if (["X", "S+", "S", "A+", "A"].includes(ratchetTier)) rBuy = "yes";
           else if (["B+", "B", "C+", "C"].includes(ratchetTier)) rBuy = "maybe";
@@ -319,7 +318,7 @@ async function loadData() {
       }
 
       // 3. 自動生成軸心資料 (自動繼承戰刃的 source)
-      if (bit && bitTier && bitTier !== "-") {
+      if (bit && bitTier) {
           let bBuy = "no";
           if (["X", "S+", "S", "A+", "A"].includes(bitTier)) bBuy = "yes";
           else if (["B+", "B", "C+", "C"].includes(bitTier)) bBuy = "maybe";
@@ -344,7 +343,7 @@ async function loadData() {
 }
 
 
-const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E"];
+const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E","-"];
 const RATCHET_TIERS = ["X","S","A","B","C","D","E","-"];
 const BIT_TIERS     = ["X","S","A","B","C","D","E","-"];
 
@@ -355,7 +354,7 @@ const TIER_COLORS = {
   "C+":"#8870ff","C":"#b060e0",
   "D+":"#cc5566","D":"#886688",
   "E+":"#556677","E":"#445566"
-};
+, "-":"#555"};
 
 const TYPE_LABELS = {attack:"攻擊",stamina:"耐久",defense:"防禦",balance:"均衡",special:"特殊",ratchet:"固鎖",bit:"軸心"};
 const TYPE_CLASSES = {attack:"tp-attack",stamina:"tp-stamina",defense:"tp-defense",balance:"tp-balance",special:"tp-special",ratchet:"tp-ratchet",bit:"tp-bit"};
@@ -421,7 +420,7 @@ function buildTierFilter() {
   const el = document.getElementById("tierFilter");
   el.innerHTML = "";
   const tiers = tiersFor(activeCategory);
-  [["all","全部"],...tiers.map(t=>[t,t])].forEach(([val,label]) => {
+  [["all","全部"],...tiers.map(t=>[t, t==="-" ? "未評級" : t])].forEach(([val,label]) => {
     const btn = document.createElement("button");
     btn.className = "tfbtn" + (val===activeTier?" active":"");
     const c = TIER_COLORS[val] || "var(--accent)";
@@ -502,7 +501,7 @@ function render() {
 
     const label = document.createElement("div");
     label.className = "tier-label";
-    label.textContent = tier;
+    label.textContent = tier === "-" ? "未評級" : tier;
     label.style.cssText = `background:${color}20;color:${color};min-width:54px;`;
 
     const cards = document.createElement("div");
@@ -625,7 +624,7 @@ function openModal(d) {
       <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
       ${imgHtml}
       <div style="text-align:center; margin-bottom:1.5rem">
-        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier} 級</span>
+        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier === "-" ? "未評級" : d.tier + " 級"}</span>
         <div class="modal-name">${modalName}</div>
         <div class="modal-id">${d.id}</div>
       </div>
