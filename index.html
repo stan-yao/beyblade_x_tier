@@ -215,7 +215,7 @@ main { padding: 1.2rem 2rem 4rem; }
 
 <header>
   <div class="header-top">
-    <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
+    <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
     <span class="subtitle">
       <span class="st-main">天梯表</span>
       <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
