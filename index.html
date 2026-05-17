@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <title>Beyblade X 陀螺天梯表</title>
-<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -217,7 +216,12 @@ main { padding: 1.2rem 2rem 4rem; }
 <header>
   <div class="header-top">
     <h1 onclick="resetHome()" style="cursor:pointer;" title="返回首頁並清空搜尋">Beyblade X</h1>
-    <span class="subtitle"><span class="st-main">天梯表</span><span class="st-date" id="updateDateDisplay">2026 更新</span></span>
+    <span class="subtitle">
+      <span class="st-main">天梯表</span>
+      <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
+        <span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 發現最新資料，點擊更新
+      </span>
+    </span>
   </div>
   <div class="controls">
     <div style="position: relative; display: inline-block; width: 100%; max-width: 400px;">
@@ -268,23 +272,90 @@ function parseCSV(str) {
   return arr;
 }
 
+
 async function loadData() {
-  document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 載入最新天梯資料中...</div>`;
+  // 1. 嘗試從本地快取讀取
+  const cachedDB = localStorage.getItem('bey_db');
+  const cachedIMG = localStorage.getItem('bey_img');
+  const cachedDate = localStorage.getItem('bey_date');
+
+  if (cachedDB && cachedIMG && cachedDate) {
+      // 有暫存 -> 瞬間秒開！
+      DB = JSON.parse(cachedDB);
+      IMG = JSON.parse(cachedIMG);
+      
+      const dateEl = document.getElementById('updateDateDisplay');
+      dateEl.textContent = cachedDate;
+      dateEl.style.cursor = "default";
+      dateEl.onclick = null;
+      
+      render(); 
+      
+      // 2. 偷偷在背景檢查是否有新版本
+      backgroundCheck(cachedDate);
+  } else {
+      // 第一次載入，沒有暫存
+      document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 初次載入天梯資料中...</div>`;
+      await fetchAndProcess(true);
+  }
+}
+
+async function backgroundCheck(currentCachedDate) {
   try {
-    const res = await fetch(sheetUrl);
-    const csvText = await res.text();
-    const data = parseCSV(csvText);
+      // 背景悄悄抓取最新資料
+      const res = await fetch(sheetUrl + "&_=" + new Date().getTime());
+      const csvText = await res.text();
+      const data = parseCSV(csvText);
+      
+      let latestDate = "未知日期 更新";
+      if (data[0] && data[0][14]) {
+          latestDate = data[0][14].trim() + " 更新";
+      }
+      
+      // 比對日期！如果網路上的比較新，就跳出提示按鈕
+      if (latestDate && latestDate !== currentCachedDate) {
+          const dateEl = document.getElementById("updateDateDisplay");
+          dateEl.innerHTML = `<span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 發現最新資料，點擊更新`;
+          dateEl.style.cursor = "pointer";
+          
+          // 綁定點擊事件 -> 更新畫面
+          dateEl.onclick = () => {
+              const rIcon = document.getElementById("refreshIcon");
+              if (rIcon) rIcon.style.transform = "rotate(360deg)";
+              
+              setTimeout(() => {
+                  processData(data, latestDate);
+              }, 400); // 等旋轉動畫跑完再重新渲染
+          };
+      }
+  } catch (e) {
+      console.log("背景檢查更新失敗 (可能處於離線狀態)", e);
+  }
+}
 
-    // 讀取 O1 儲存格的更新日期 (第 1 列，第 15 欄)
-    if (data[0] && data[0][14]) {
-        const updateText = data[0][14].trim();
-        if (updateText) {
-            document.getElementById("updateDateDisplay").textContent = updateText + " 更新";
-        }
-    }
+async function fetchAndProcess() {
+  try {
+      const res = await fetch(sheetUrl + "&_=" + new Date().getTime());
+      const csvText = await res.text();
+      const data = parseCSV(csvText);
+      
+      let latestDate = "未知日期 更新";
+      if (data[0] && data[0][14]) {
+          latestDate = data[0][14].trim() + " 更新";
+      }
+      
+      processData(data, latestDate);
+  } catch (e) {
+      document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold;">❌ 讀取資料失敗<br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認網路連線。</span></div>`;
+  }
+}
 
-    
-    for (let i = 1; i < data.length; i++) {
+function processData(data, latestDate) {
+  DB = [];
+  IMG = {};
+  
+  // -- START PARSING LOOP --
+  for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (!row || row.length < 5 || !row[0]) continue;
       
@@ -305,52 +376,42 @@ async function loadData() {
       
       if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
 
-      // 1. 戰刃主資料
       if (tier) {
           DB.push({ id, name, cat, type, tier, buy, source, ratchet, ratchetTier, bit, bitTier, comboText, noteText });
       }
 
-      // 2. 自動生成固鎖資料 (自動繼承戰刃的 source)
       if (ratchet && ratchetTier) {
           let rBuy = "no";
           if (["X", "S+", "S", "A+", "A"].includes(ratchetTier)) rBuy = "yes";
           else if (["B+", "B", "C+", "C"].includes(ratchetTier)) rBuy = "maybe";
           
-          DB.push({
-              id: `${id} ${ratchet}`,
-              name: `${name} ${ratchet}`,
-              cat: "ratchet",
-              type: "ratchet",
-              tier: ratchetTier,
-              buy: rBuy,
-              source: source 
-          });
+          DB.push({ id: `${id} ${ratchet}`, name: `${name} ${ratchet}`, cat: "ratchet", type: "ratchet", tier: ratchetTier, buy: rBuy, source: source });
       }
 
-      // 3. 自動生成軸心資料 (自動繼承戰刃的 source)
       if (bit && bitTier) {
           let bBuy = "no";
           if (["X", "S+", "S", "A+", "A"].includes(bitTier)) bBuy = "yes";
           else if (["B+", "B", "C+", "C"].includes(bitTier)) bBuy = "maybe";
           
-          DB.push({
-              id: `${id} ${bit}`,
-              name: `${name} ${bit}`,
-              cat: "bit",
-              type: "bit",
-              tier: bitTier,
-              buy: bBuy,
-              source: source
-          });
+          DB.push({ id: `${id} ${bit}`, name: `${name} ${bit}`, cat: "bit", type: "bit", tier: bitTier, buy: bBuy, source: source });
       }
-    }
-    
-    render();
-  } catch(e) {
-    console.error(e);
-    document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold; font-size:1.1rem;">❌ 讀取資料失敗<br><br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認您已開啟 Local Server 測試環境<br>並確保 Google Sheets 的權限設定為「知道連結的人皆可檢視」。</span></div>`;
   }
+  // -- END PARSING LOOP --
+
+  // 將最新資料存入手機瀏覽器的快取中
+  localStorage.setItem('bey_db', JSON.stringify(DB));
+  localStorage.setItem('bey_img', JSON.stringify(IMG));
+  localStorage.setItem('bey_date', latestDate);
+  
+  // 更新右上角文字為最新日期，並取消按鈕狀態
+  const dateEl = document.getElementById("updateDateDisplay");
+  dateEl.textContent = latestDate;
+  dateEl.style.cursor = "default";
+  dateEl.onclick = null;
+  
+  render();
 }
+
 
 
 const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E","-"];
