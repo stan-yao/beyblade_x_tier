@@ -96,10 +96,10 @@ h1 {
 .tfbtn:hover { color: var(--text); }
 .tfbtn.active { color: #0a0a0f !important; }
 
-.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); margin-top: 6px; justify-content: center; }
+.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); margin-top: 6px; justify-content: flex-start; width: 100%; box-sizing: border-box; }
 .legend-item { display: flex; align-items: center; gap: 5px; }
 .ldot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 8px; opacity: 0.7; text-align: center; }
+.source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 8px; opacity: 0.7; text-align: left; width: 100%; box-sizing: border-box; }
 .source-note a { color: #5588bb; text-decoration: none; }
 
 main { padding: 1.2rem 2rem 4rem; }
@@ -262,8 +262,27 @@ main { padding: 1.2rem 2rem 4rem; }
     text-align: center !important;
   }
 
-  .legend { justify-content: center !important; }
-  .source-note { text-align: center !important; }
+  
+  
+
+  .tier-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+  .bey-card {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .legend {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  .source-note {
+    text-align: center !important;
+  }
 }
 </style>
 </head>
