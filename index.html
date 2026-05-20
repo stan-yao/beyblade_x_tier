@@ -294,7 +294,7 @@ main { padding: 1.2rem 2rem 4rem; }
     <span class="subtitle">
       <span class="st-main">天梯表</span>
       <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
-        <span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料
+        <span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>
       </span>
     </span>
   </div>
@@ -410,7 +410,7 @@ async function backgroundCheck(currentCachedDate) {
       // 比對日期！如果網路上的比較新，就跳出提示按鈕
       if (latestDate && latestDate !== currentCachedDate) {
           const dateEl = document.getElementById("updateDateDisplay");
-          dateEl.innerHTML = `<span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料`;
+          dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
           dateEl.style.cursor = "pointer";
           
           // 綁定點擊事件 -> 更新畫面
