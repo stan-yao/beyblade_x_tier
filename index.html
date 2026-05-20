@@ -339,6 +339,15 @@ let IMG = {};
 
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
 
+
+// 自動擷取年-月-日，過濾掉時間
+function extractDateOnly(dateStr) {
+  if (!dateStr) return "未知日期 更新";
+  // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 格式
+  const match = dateStr.match(/\d{4}[-/]\d{2}[-/]\d{2}/);
+  return match ? match[0] + " 更新" : dateStr;
+}
+
 function parseCSV(str) {
   const arr = [];
   let quote = false;
@@ -371,7 +380,7 @@ async function loadData() {
       IMG = JSON.parse(cachedIMG);
       
       const dateEl = document.getElementById('updateDateDisplay');
-      dateEl.textContent = cachedDate;
+      dateEl.textContent = extractDateOnly(cachedDate); // 只顯示日期
       dateEl.style.cursor = "default";
       dateEl.onclick = null;
       
@@ -491,7 +500,7 @@ function processData(data, latestDate) {
   
   // 更新右上角文字為最新日期，並取消按鈕狀態
   const dateEl = document.getElementById("updateDateDisplay");
-  dateEl.textContent = latestDate;
+  dateEl.textContent = extractDateOnly(latestDate); // 只顯示日期
   dateEl.style.cursor = "default";
   dateEl.onclick = null;
   
