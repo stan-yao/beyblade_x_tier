@@ -344,7 +344,7 @@ const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBI
 function extractDateOnly(dateStr) {
   if (!dateStr) return "未知日期 更新";
   // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 格式
-  const match = dateStr.match(/\d{4}[-/]\d{2}[-/]\d{2}/);
+  const match = dateStr.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
   return match ? match[0] + " 更新" : dateStr;
 }
 
