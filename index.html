@@ -162,7 +162,7 @@ main { padding: 1.2rem 2rem 4rem; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-box {
   background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px; padding: 1.5rem; max-width: 360px; width: 100%;
+  border-radius: 14px; padding: 1.5rem; max-width: 420px; width: 100%;
   position: relative; animation: slideUp 0.18s ease;
   max-height: 90vh; overflow-y: auto;
 }
@@ -409,10 +409,10 @@ function parseCSV(str) {
 
 
 async function loadData() {
-  const cachedDB = localStorage.getItem('bey_db');
-  const cachedIMG = localStorage.getItem('bey_img');
-  const cachedPartsIMG = localStorage.getItem('bey_parts_img');
-  const cachedDate = localStorage.getItem('bey_date');
+  const cachedDB = localStorage.getItem('bey_db_v2');
+  const cachedIMG = localStorage.getItem('bey_img_v2');
+  const cachedPartsIMG = localStorage.getItem('bey_parts_img_v2');
+  const cachedDate = localStorage.getItem('bey_date_v2');
 
   if (cachedDB && cachedIMG && cachedPartsIMG && cachedDate) {
       DB = JSON.parse(cachedDB);
@@ -567,10 +567,10 @@ function processData(dataMain, dataParts, latestDate) {
 
   Object.values(partAggregator).forEach(p => DB.push(p));
 
-  localStorage.setItem('bey_db', JSON.stringify(DB));
-  localStorage.setItem('bey_img', JSON.stringify(IMG));
-  localStorage.setItem('bey_parts_img', JSON.stringify(PARTS_IMG));
-  localStorage.setItem('bey_date', latestDate);
+  localStorage.setItem('bey_db_v2', JSON.stringify(DB));
+  localStorage.setItem('bey_img_v2', JSON.stringify(IMG));
+  localStorage.setItem('bey_parts_img_v2', JSON.stringify(PARTS_IMG));
+  localStorage.setItem('bey_date_v2', latestDate);
   
   const dateEl = document.getElementById("updateDateDisplay");
   dateEl.textContent = extractDateOnly(latestDate);
