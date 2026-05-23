@@ -826,6 +826,20 @@ function render() {
   });
 }
 
+
+function linkifyParts(text) {
+  if (!text) return "";
+  let processed = text.replace(/\|/g, "<br>").replace(/\n/g, "<br>");
+  const parts = DB.filter(x => x.cat === 'ratchet' || x.cat === 'bit');
+  const uniqueIds = [...new Set(parts.map(x => x.id))].sort((a, b) => b.length - a.length);
+  const escapedIds = uniqueIds.map(id => id.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
+  const pattern = new RegExp(`(${escapedIds.join('|')})`, 'g');
+  return processed.replace(pattern, (match) => {
+    const p = DB.find(x => x.id === match && (x.cat === 'ratchet' || x.cat === 'bit'));
+    return p ? `<span class="clickable-part" onclick="modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==='${p.id}'&&x.cat==='${p.cat}'))">${match}</span>` : match;
+  });
+}
+
 function openModal(d) {
   document.querySelector(".modal-overlay")?.remove();
   currentModalData = d;
@@ -852,7 +866,7 @@ function openModal(d) {
 
         detailsHtml += `
           <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
-            <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>原裝配置 (點擊查看)：</div>
+            <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>原裝配置 <span style="font-weight: 300; opacity: 0.6; font-size: 0.75rem; margin-left: 5px;">(點擊查看)</span>：</div>
             <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
               ${d.ratchet ? `固鎖：<span class="clickable-part" ${rClick}>${d.ratchet}</span>${d.ratchetTier ? ` (${d.ratchetTier}級)` : ''}<br>` : ''}
               ${d.bit ? `軸心：<span class="clickable-part" ${bClick}>${d.bit}</span>${d.bitTier ? ` (${d.bitTier}級)` : ''}` : ''}
@@ -863,14 +877,14 @@ function openModal(d) {
       
       if (d.comboText || d.noteText) {
         let suggestedContent = "";
-        if (d.comboText) suggestedContent += d.comboText.replace(/\|/g, "<br>");
+        if (d.comboText) suggestedContent += linkifyParts(d.comboText);
         if (d.noteText) {
           if (suggestedContent) suggestedContent += "<br><br>";
-          suggestedContent += d.noteText.replace(/\n/g, "<br>");
+          suggestedContent += linkifyParts(d.noteText);
         }
         detailsHtml += `
           <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
-            <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>建議配置：</div>
+            <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>建議配置 <span style="font-weight: 300; opacity: 0.6; font-size: 0.75rem; margin-left: 5px;">(點擊查看)</span>：</div>
             <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
               ${suggestedContent}
             </div>
