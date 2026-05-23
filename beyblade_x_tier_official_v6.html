@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Beyblade X 陀螺天梯表</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c27;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0f0f5;
+  --muted: #7a7a90;
+  --accent: #e8c84a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; }
+
+header {
+  padding: 1.8rem 2rem 1rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(10,10,15,0.96);
+  backdrop-filter: blur(14px);
+  z-index: 100;
+}
+.header-top { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.3rem; 
+  font-weight: 900;
+  letter-spacing: 0.05em; 
+  text-transform: uppercase; 
+  transform: skewX(-8deg);
+  background: linear-gradient(90deg, #99ff00 0%, #ffffff 50%, #55d4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  line-height: 1.1;
+  /* 移除 filter，避免 iOS Safari 渲染 Bug 導致字體失效 */
+}
+.subtitle { display: inline-flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.st-main { font-size: 1.05rem; font-weight: 900; color: var(--muted); letter-spacing: 0.1em; margin-right: 6px; }
+.st-date { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; opacity: 0.8; white-space: nowrap; }
+
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+#searchInput {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif; font-size: 0.88rem;
+  padding: 10px 14px; width: 240px; outline: none; transition: border-color 0.2s;
+}
+#searchInput:focus { border-color: var(--accent); }
+#searchInput::placeholder { color: var(--muted); }
+
+.cat-tabs { display: flex; gap: 5px; background: var(--surface2); border-radius: 7px; padding: 3px; border: 1px solid var(--border); box-sizing: border-box; }
+.cat-tab {
+  background: none; border: none; border-radius: 5px;
+  color: var(--muted); cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.04em;
+  padding: 5px 14px; transition: all 0.15s; text-transform: uppercase;
+  text-align: center;
+}
+.cat-tab:hover { color: var(--text); }
+.cat-tab.active { background: var(--surface); color: var(--accent); }
+
+.buy-filter { display: flex; gap: 5px; background: var(--surface2); border-radius: 7px; padding: 3px; border: 1px solid var(--border); box-sizing: border-box; }
+.bfbtn {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--muted); cursor: pointer;
+  font-size: 0.75rem; font-weight: 500; padding: 4px 10px; transition: all 0.15s;
+}
+.bfbtn:hover { color: var(--text); }
+.bfbtn.active { border-color: rgba(255,255,255,0.3); color: var(--text); background: var(--surface); }
+
+.tier-filter { display: flex; gap: 4px; flex-wrap: nowrap; margin-bottom: 0; width: 100%; }
+.tfbtn {
+  flex: 1;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; color: var(--muted); cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: -0.5px;
+  padding: 4px 0; transition: all 0.15s; text-transform: uppercase;
+  text-align: center;
+  min-width: 0;
+}
+.tfbtn:hover { color: var(--text); }
+.tfbtn.active { color: #0a0a0f !important; }
+
+.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); margin-top: 6px; justify-content: flex-start; width: 100%; box-sizing: border-box; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.ldot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 8px; opacity: 0.7; text-align: left; width: 100%; box-sizing: border-box; }
+.source-note a { color: #5588bb; text-decoration: none; }
+
+main { padding: 1.2rem 2rem 4rem; }
+
+.tier-section {
+  display: flex; margin-bottom: 4px;
+  border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.tier-label {
+  display: flex; align-items: center; justify-content: center;
+  min-width: 54px; flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.5rem; font-weight: 900;
+}
+.tier-cards {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px 10px; background: var(--surface);
+  flex: 1; align-items: center; min-height: 84px;
+}
+
+.bey-card {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; padding: 6px 7px 5px;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  width: 80px; text-align: center; position: relative;
+}
+.bey-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.22); box-shadow: 0 6px 18px rgba(0,0,0,0.55); }
+
+.card-img { width: 50px; height: 50px; object-fit: contain; border-radius: 4px; background: #0d0d14; }
+.card-img-ph {
+  width: 50px; height: 50px; border-radius: 4px; background: #151520;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.58rem; color: var(--muted); text-align: center; line-height: 1.3; padding: 4px;
+}
+.card-name { font-size: 0.63rem; font-weight: 700; color: var(--text); margin-top: 4px; line-height: 1.2; word-break: break-all; }
+.card-sub  { font-size: 0.57rem; color: var(--muted); margin-top: 1px; word-break: break-all; }
+
+.buy-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.buy-dot.yes   { background: #7adf60; }
+.buy-dot.maybe { background: #ffb830; }
+.buy-dot.no    { background: #445566; }
+
+.type-pill { font-size: 0.52rem; padding: 1px 5px; border-radius: 3px; margin-top: 3px; font-weight: 600; letter-spacing: 0.03em; }
+.tp-attack  { background: rgba(255,68,102,0.15);  color: #ff8899; }
+.tp-stamina { background: rgba(64,212,192,0.13);  color: #40d4c0; }
+.tp-defense { background: rgba(56,176,240,0.13);  color: #38b0f0; }
+.tp-balance { background: rgba(255,184,48,0.13);  color: #ffb830; }
+.tp-ratchet { background: rgba(136,112,255,0.13); color: #9988ff; }
+.tp-bit     { background: rgba(200,232,64,0.13);  color: #aacc44; }
+.tp-special { background: rgba(255,122,43,0.13);  color: #ff9944; }
+
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; padding: 1rem; animation: fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-box {
+  background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 1.5rem; max-width: 420px; width: 100%;
+  position: relative; animation: slideUp 0.18s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-close, .modal-back { position: absolute; top: 12px; background: none; border: none; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; transition: all 0.15s; border-radius: 6px; padding: 0; }
+.modal-close { right: 14px; }
+.modal-back { left: 14px; }
+.modal-close:hover, .modal-back:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+.modal-img { width: 110px; height: 110px; object-fit: contain; background: #0d0d14; border-radius: 8px; margin: 0 auto 1rem; display: block; }
+.modal-img-ph { width: 110px; height: 110px; border-radius: 8px; background: #151520; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.8rem; }
+.modal-tier-badge { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 900; padding: 2px 12px; border-radius: 4px; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+.modal-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.45rem; font-weight: 700; margin-bottom: 0.15rem; }
+.modal-id   { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.8rem; }
+.modal-row  { display: flex; justify-content: space-between; font-size: 0.8rem; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.modal-row:last-of-type { border-bottom: none; }
+.modal-label { color: var(--muted); }
+.modal-val   { font-weight: 500; }
+.buy-rec { margin-top: 0.8rem; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; line-height: 1.5; }
+.buy-rec.yes   { background: rgba(122,223,96,0.1);  color: #7adf60; }
+.buy-rec.maybe { background: rgba(255,184,48,0.1);  color: #ffb830; }
+.buy-rec.no    { background: rgba(68,85,102,0.18);  color: #8899aa; }
+
+/* 零件專屬：擁有該零件的產品列表橫向捲動區 */
+.parts-products-wrapper { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border); text-align: left; }
+.parts-products-title { font-size: 0.85rem; color: var(--accent); margin-bottom: 10px; font-weight: 700; }
+.parts-products-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+.parts-products-scroll::-webkit-scrollbar { height: 6px; }
+.parts-products-scroll::-webkit-scrollbar-thumb { background-color: var(--muted); border-radius: 10px; }
+.product-mini-card { flex: 0 0 70px; display: flex; flex-direction: column; align-items: center; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
+.product-mini-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+.product-mini-img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; background: #0d0d14; margin-bottom: 4px; }
+.product-mini-ph { width: 44px; height: 44px; border-radius: 4px; background: #151520; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: var(--muted); margin-bottom: 4px; text-align:center; padding:2px; }
+.product-mini-name { font-size: 0.6rem; color: var(--text); font-weight: 600; text-align: center; width:100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.product-mini-id { font-size: 0.55rem; color: var(--muted); text-align: center; margin-top: 1px; }
+
+/* 可點擊零件樣式 (原裝配置) */
+.clickable-part { color: #f0f0f5; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: color 0.15s; }
+.clickable-part:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+.empty { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 600px) {
+  main { padding: 0.5rem 0.5rem 4rem; }
+  header { padding: 0.6rem 0.8rem; }
+  .header-top { margin-bottom: 0.5rem; gap: 0.5rem; align-items: center; }
+  h1 { font-size: 1.6rem; transform: skewX(-8deg); }
+  .st-main { font-size: 0.9rem; } .st-date { font-size: 0.65rem; }
+  
+  #searchInput { 
+    width: 100%; 
+    padding: 12px 14px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  
+  /* 手機版排版堆疊邏輯 */
+  .controls-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+  }
+  
+  .top-filter-row {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  
+  /* 搜尋列 */
+  .top-filter-row > div:first-child {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  /* 第三排: 分類列 */
+  .cat-tabs {
+    width: 100% !important;
+    display: flex !important;
+    box-sizing: border-box;
+  }
+  .cat-tab {
+    flex: 1 !important;
+    padding: 6px 0 !important;
+    text-align: center !important;
+  }
+  
+  /* 第四排: 購買推薦列 */
+  .buy-filter {
+    width: 100% !important;
+    display: flex !important;
+    box-sizing: border-box;
+  }
+  .bfbtn {
+    flex: 1 !important;
+    padding: 6px 0 !important;
+    text-align: center !important;
+    font-size: 0.75rem !important;
+  }
+  
+  /* 第五排: 階級列 (單行滿版均分) */
+  .tier-filter {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 2px !important;
+    box-sizing: border-box;
+    margin-bottom: 0 !important;
+  }
+  .tfbtn {
+    flex: 1 !important;
+    padding: 6px 0 !important;
+    font-size: 0.6rem !important;
+    letter-spacing: -0.5px !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+
+  
+  
+
+  .tier-cards {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    gap: 6px !important;
+    padding: 6px !important;
+  }
+  .bey-card {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .legend {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+  .source-note {
+    text-align: center !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
+    <span class="subtitle">
+      <span class="st-main">天梯表</span>
+      <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
+        <span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>
+      </span>
+    </span>
+  </div>
+  <div class="controls-container" style="display: inline-flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-width: 100%;">
+    
+    <!-- 第一行：搜尋框 + 分類列 + 推薦列 -->
+    <div class="top-filter-row" style="display: flex; gap: 10px; align-items: center; width: 100%; flex-wrap: wrap;">
+      <!-- 搜尋框 -->
+      <div style="position: relative; flex: 1; min-width: 250px; max-width: 400px;">
+        <input type="text" id="searchInput" placeholder="搜尋型號或名稱（CX07 或 CX-07）…" autocomplete="off" style="width: 100%; padding-right: 45px; box-sizing: border-box;">
+        <button id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; document.getElementById('clearSearchBtn').style.display='none'; render();" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; display: none; padding: 5px; line-height: 1;">&times;</button>
+      </div>
+      <!-- 分類列 -->
+      <div class="cat-tabs" id="catTabs"></div>
+      <!-- 購買建議篩選 (本來隱藏，現在顯示) -->
+      <div class="buy-filter" id="buyFilter"></div>
+    </div>
+    
+    <!-- 第二行：階級列 -->
+    <div class="tier-filter" id="tierFilter" style="width: 100%;"></div>
+    
+  </div>
+  
+  <div class="legend">
+    <div class="legend-item"><div class="ldot" style="background:#7adf60"></div>推薦購買</div>
+    <div class="legend-item"><div class="ldot" style="background:#ffb830"></div>視情況</div>
+    <div class="legend-item"><div class="ldot" style="background:#445566"></div>不推薦</div>
+  </div>
+  <p class="source-note">網站建立 @stan_yao　資料來源 @RENLIgames / @anguzyao_</p>
+</header>
+
+<main id="main"></main>
+
+<script>
+// 圖片對照表（來源：東海模型 img.91app.com CDN）
+// 未填寫的型號顯示文字佔位，待後續補充
+
+
+
+let DB = [];
+let modalHistory = [];
+let currentModalData = null;
+let IMG = {};
+let PARTS_IMG = {};
+
+const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
+const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
+
+
+// 自動擷取年-月-日，過濾掉時間
+function extractDateOnly(dateStr) {
+  if (!dateStr) return "未知日期 更新";
+  // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 格式
+  const match = dateStr.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
+  return match ? match[0] + " 更新" : dateStr;
+}
+
+
+async function fetchBothSheets() {
+  const t = new Date().getTime();
+  const [resMain, resParts] = await Promise.all([
+    fetch(sheetUrl + "&_=" + t),
+    fetch(partsSheetUrl + "&_=" + t)
+  ]);
+  const [csvMain, csvParts] = await Promise.all([
+    resMain.text(),
+    resParts.text()
+  ]);
+  return { dataMain: parseCSV(csvMain), dataParts: parseCSV(csvParts) };
+}
+
+function parseCSV(str) {
+  const arr = [];
+  let quote = false;
+  let col, c;
+  for (let row = col = c = 0; c < str.length; c++) {
+    const cc = str[c], nc = str[c+1];
+    arr[row] = arr[row] || [];
+    arr[row][col] = arr[row][col] || '';
+    if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+    if (cc == '"') { quote = !quote; continue; }
+    if (cc == ',' && !quote) { ++col; continue; }
+    if (cc == '\r' && nc == '\n' && !quote) { ++row; col = 0; ++c; continue; }
+    if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+    if (cc == '\r' && !quote) { ++row; col = 0; continue; }
+    arr[row][col] += cc;
+  }
+  return arr;
+}
+
+
+async function loadData() {
+  const cachedDB = localStorage.getItem('bey_db_v2');
+  const cachedIMG = localStorage.getItem('bey_img_v2');
+  const cachedPartsIMG = localStorage.getItem('bey_parts_img_v2');
+  const cachedDate = localStorage.getItem('bey_date_v2');
+
+  if (cachedDB && cachedIMG && cachedPartsIMG && cachedDate) {
+      DB = JSON.parse(cachedDB);
+      IMG = JSON.parse(cachedIMG);
+      PARTS_IMG = JSON.parse(cachedPartsIMG);
+      
+      const dateEl = document.getElementById('updateDateDisplay');
+      dateEl.textContent = extractDateOnly(cachedDate);
+      dateEl.style.cursor = "default";
+      dateEl.onclick = null;
+      
+      render(); 
+      backgroundCheck(cachedDate);
+  } else {
+      document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 初次載入天梯資料中...</div>`;
+      await fetchAndProcess();
+  }
+}
+
+async function backgroundCheck(currentCachedDate) {
+  try {
+      const res = await fetch(sheetUrl + "&_=" + new Date().getTime());
+      const csvText = await res.text();
+      const data = parseCSV(csvText);
+      
+      let latestDate = "未知日期 更新";
+      if (data[0] && data[0][14]) {
+          latestDate = data[0][14].trim() + " 更新";
+      }
+      
+      if (latestDate && latestDate !== currentCachedDate) {
+          const dateEl = document.getElementById("updateDateDisplay");
+          dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
+          dateEl.style.cursor = "pointer";
+          
+          dateEl.onclick = () => {
+              const rIcon = document.getElementById("refreshIcon");
+              if (rIcon) rIcon.style.transform = "rotate(360deg)";
+              
+              setTimeout(async () => {
+                  const fullData = await fetchBothSheets();
+                  processData(fullData.dataMain, fullData.dataParts, latestDate);
+              }, 400);
+          };
+      }
+  } catch (e) {
+      console.log("背景檢查更新失敗 (可能處於離線狀態)", e);
+  }
+}
+
+async function fetchAndProcess() {
+  try {
+      const fullData = await fetchBothSheets();
+      
+      let latestDate = "未知日期 更新";
+      if (fullData.dataMain[0] && fullData.dataMain[0][14]) {
+          latestDate = fullData.dataMain[0][14].trim() + " 更新";
+      }
+      
+      processData(fullData.dataMain, fullData.dataParts, latestDate);
+  } catch (e) {
+      document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold;">❌ 讀取資料失敗<br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認網路連線。</span></div>`;
+  }
+}
+
+function processData(dataMain, dataParts, latestDate) {
+  DB = [];
+  IMG = {};
+  PARTS_IMG = {};
+  
+  if (dataParts && dataParts.length > 0) {
+      let headRow = dataParts[0].map(h => (h||"").trim().toLowerCase());
+      let idxId = headRow.findIndex(h => h.includes("型號") || h.includes("名稱") || h.includes("name"));
+      let idxImg = headRow.findIndex(h => h.includes("圖片") || h.includes("img") || h.includes("url"));
+      
+      if(idxId === -1) idxId = 0;
+      if(idxImg === -1) idxImg = 2;
+
+      for (let i = 1; i < dataParts.length; i++) {
+          const row = dataParts[i];
+          if (!row || !row[idxId]) continue;
+          const pid = row[idxId].trim();
+          const pImg = row[idxImg] ? row[idxImg].trim() : "";
+          if (pid && pImg) {
+              PARTS_IMG[pid] = pImg;
+          }
+      }
+  }
+  
+  const partAggregator = {};
+
+  for (let i = 1; i < dataMain.length; i++) {
+      const row = dataMain[i];
+      if (!row || row.length < 5 || !row[0]) continue;
+      
+      const id = row[0].trim();
+      const name = row[1].trim();
+      const cat = row[2].trim() || "blade";
+      const type = row[3].trim() || "attack";
+      const tier = row[4].trim() || "-";
+      const manualBuy = row[5] ? row[5].trim().toLowerCase() : "";
+      const ratchet = row[6] ? row[6].trim() : "";
+      const ratchetTier = row[7] ? row[7].trim() : "";
+      const bit = row[8] ? row[8].trim() : "";
+      const bitTier = row[9] ? row[9].trim() : "";
+      const source = row[10] ? row[10].trim() : "";
+      const imgUrl = row[11] ? row[11].trim() : "";
+      const comboText = row[12] ? row[12].trim() : "";
+      const noteText = row[13] ? row[13].trim() : "";
+      
+      if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
+
+      let finalBuy = "no";
+      if (["yes", "maybe", "no"].includes(manualBuy)) {
+          finalBuy = manualBuy;
+      } else {
+          finalBuy = calculateBuyRec(tier, ratchetTier, bitTier);
+      }
+      
+      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, comboText, noteText };
+
+      if (tier) {
+          DB.push(bladeObj);
+      }
+
+      if (ratchet && ratchetTier) {
+          if (!partAggregator[ratchet]) {
+              partAggregator[ratchet] = {
+                  id: ratchet, name: ratchet, cat: "ratchet", type: "ratchet",
+                  tier: ratchetTier,
+                  buy: getBuyRec(ratchetTier),
+                  source: "獨立零件",
+                  products: []
+              };
+          }
+          partAggregator[ratchet].products.push(bladeObj);
+      }
+
+      if (bit && bitTier) {
+          if (!partAggregator[bit]) {
+              partAggregator[bit] = {
+                  id: bit, name: bit, cat: "bit", type: "bit",
+                  tier: bitTier,
+                  buy: getBuyRec(bitTier),
+                  source: "獨立零件",
+                  products: []
+              };
+          }
+          partAggregator[bit].products.push(bladeObj);
+      }
+  }
+
+  Object.values(partAggregator).forEach(p => DB.push(p));
+
+  localStorage.setItem('bey_db_v2', JSON.stringify(DB));
+  localStorage.setItem('bey_img_v2', JSON.stringify(IMG));
+  localStorage.setItem('bey_parts_img_v2', JSON.stringify(PARTS_IMG));
+  localStorage.setItem('bey_date_v2', latestDate);
+  
+  const dateEl = document.getElementById("updateDateDisplay");
+  dateEl.textContent = extractDateOnly(latestDate);
+  dateEl.style.cursor = "default";
+  dateEl.onclick = null;
+  
+  render();
+}
+
+function getBuyRec(t) {
+    if (["X", "S+", "S", "A+", "A"].includes(t)) return "yes";
+    if (["B+", "B"].includes(t)) return "maybe";
+    return "no";
+}
+
+function calculateBuyRec(bladeT, ratchetT, bitT) {
+    // 定義階級對應的分數
+    const scores = {
+        "X": 100, "S+": 90, "S": 80, "A+": 70, "A": 60,
+        "B+": 50, "B": 40, "C+": 30, "C": 20, "D+": 15, "D": 10, "E+": 5, "E": 0
+    };
+    
+    let bScore = scores[bladeT];
+    let rScore = scores[ratchetT];
+    let bitScore = scores[bitT];
+
+    let totalWeight = 0;
+    let totalScore = 0;
+
+    // 戰刃權重 x2 (優先)
+    if (bScore !== undefined) {
+        totalScore += bScore * 2;
+        totalWeight += 2;
+    }
+    // 固鎖權重 x1 (其次)
+    if (rScore !== undefined) {
+        totalScore += rScore * 1;
+        totalWeight += 1;
+    }
+    // 軸心權重 x1 (其次)
+    if (bitScore !== undefined) {
+        totalScore += bitScore * 1;
+        totalWeight += 1;
+    }
+
+    if (totalWeight === 0) return "no";
+
+    let avg = totalScore / totalWeight;
+
+    // A (60) 以上為 yes
+    if (avg >= 60) return "yes";
+    // B (40) 到 B+ (50) 為 maybe (40 <= avg < 60)
+    if (avg >= 40) return "maybe";
+    // C+ (30) 以下為 no
+    return "no";
+}
+
+const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E","-"];
+const RATCHET_TIERS = ["X","S","A","B","C","D","E","-"];
+const BIT_TIERS     = ["X","S","A","B","C","D","E","-"];
+
+const TIER_COLORS = {
+  "X":"#ff4466","S+":"#ff7a2b","S":"#ffb830",
+  "A+":"#c8e840","A":"#7adf60",
+  "B+":"#40d4c0","B":"#38b0f0",
+  "C+":"#8870ff","C":"#b060e0",
+  "D+":"#cc5566","D":"#886688",
+  "E+":"#556677","E":"#445566"
+, "-":"#555"};
+
+const TYPE_LABELS = {attack:"攻擊",stamina:"耐久",defense:"防禦",balance:"均衡",special:"特殊",ratchet:"固鎖",bit:"軸心"};
+const TYPE_CLASSES = {attack:"tp-attack",stamina:"tp-stamina",defense:"tp-defense",balance:"tp-balance",special:"tp-special",ratchet:"tp-ratchet",bit:"tp-bit"};
+const BUY_LABELS = {yes:"✅ 推薦購買",maybe:"⚠️ 視情況",no:"❌ 不推薦"};
+const BUY_DESCS  = {yes:"競技表現優秀，值得投資",maybe:"有一定實用性，視預算考慮",no:"競技環境中表現偏弱，建議跳過"};
+const CAT_LABELS = {all:"全部 All",blade:"戰刃 Blade",ratchet:"固鎖 Ratchet",bit:"軸心 Bit"};
+
+let activeCategory = "all";
+let activeTier = "all";
+let activeBuy  = "all";
+
+// 搜尋正規化：移除 - 和空格
+function norm(s) {
+  if (!s) return "";
+  return s.toLowerCase().replace(/([a-z])-(\d)/g, '$1$2').replace(/\s+/g, '');
+}
+
+function matchSearch(d, q) {
+  if (!q) return true;
+  const nq = norm(q);
+  return norm(d.id).includes(nq)
+    || norm(d.name).includes(nq)
+    || d.id.toLowerCase().includes(q.toLowerCase())
+    || d.name.toLowerCase().includes(q.toLowerCase())
+    || (d.ratchet && norm(d.ratchet).includes(nq))
+    || (d.bit && norm(d.bit).includes(nq))
+    || (d.comboText && norm(d.comboText).includes(nq))
+    || (d.noteText && norm(d.noteText).includes(nq));
+}
+
+function tiersFor(cat) {
+  return (cat==="all" || cat==="blade") ? BLADE_TIERS : cat==="ratchet" ? RATCHET_TIERS : BIT_TIERS;
+}
+
+function getImgUrl(d) {
+  if ((d.cat === "ratchet" || d.cat === "bit") && PARTS_IMG[d.id]) {
+      return PARTS_IMG[d.id];
+  }
+  const key = d.id.split(" ")[0];
+  if (IMG[key]) return IMG[key];
+  const base = key.replace(/-\d+$/, "");
+  if (IMG[base]) return IMG[base];
+  return "";
+}
+
+function buildCatTabs() {
+  const el = document.getElementById("catTabs");
+  el.innerHTML = "";
+  ["all","blade","ratchet","bit"].forEach(cat => {
+    const btn = document.createElement("button");
+    btn.className = "cat-tab" + (cat===activeCategory?" active":"");
+    btn.textContent = CAT_LABELS[cat];
+    btn.onclick = () => {
+      activeCategory = cat; activeTier = "all";
+      document.querySelectorAll(".cat-tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      buildTierFilter(); render();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function buildTierFilter() {
+  const el = document.getElementById("tierFilter");
+  el.innerHTML = "";
+  const tiers = tiersFor(activeCategory);
+  [["all","全部"],...tiers.map(t=>[t, t])].forEach(([val,label]) => {
+    const btn = document.createElement("button");
+    btn.className = "tfbtn" + (val===activeTier?" active":"");
+    const c = TIER_COLORS[val] || "var(--accent)";
+    if (val!=="all"){ btn.style.borderColor=c+"55"; btn.style.color=c; }
+    btn.textContent = label;
+    btn.dataset.tier = val;
+    btn.onclick = () => {
+      activeTier = val;
+      document.querySelectorAll(".tfbtn").forEach(b => {
+        b.classList.remove("active"); b.style.background="";
+        if (b.dataset.tier!=="all") b.style.color = TIER_COLORS[b.dataset.tier]||"";
+        else b.style.color="";
+      });
+      btn.classList.add("active");
+      btn.style.background = val==="all" ? "var(--accent)" : c;
+      btn.style.color = "#0a0a0f";
+      render();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function buildBuyFilter() {
+  const el = document.getElementById("buyFilter");
+  el.innerHTML = "";
+  [["all","全部"],["yes","推薦"],["maybe","視情況"],["no","不推薦"]].forEach(([val,label]) => {
+    const btn = document.createElement("button");
+    btn.className = "bfbtn"+(val===activeBuy?" active":"");
+    btn.textContent = label;
+    btn.onclick = () => {
+      activeBuy = val;
+      document.querySelectorAll(".bfbtn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active"); render();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function resetHome() {
+  document.getElementById("searchInput").value = "";
+  activeCategory = "all";
+  activeTier = "all";
+  activeBuy = "all";
+  buildCatTabs();
+  buildTierFilter();
+  buildBuyFilter();
+  render();
+}
+
+function render() {
+  const q = document.getElementById("searchInput").value.trim();
+  const tiers = tiersFor(activeCategory);
+
+  const filtered = DB.filter(d =>
+    (activeCategory==="all" || d.cat===activeCategory) &&
+    matchSearch(d,q) &&
+    (activeTier==="all" || d.tier===activeTier) &&
+    (activeBuy==="all"  || d.buy===activeBuy)
+  );
+
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  if (!filtered.length) {
+    main.innerHTML = `<div class="empty">找不到符合的零件</div>`; return;
+  }
+
+  const byTier = {};
+  tiers.forEach(t => { byTier[t] = filtered.filter(d=>d.tier===t); });
+
+  tiers.forEach(tier => {
+    const items = byTier[tier];
+    if (!items || !items.length) return;
+    const color = TIER_COLORS[tier]||"#666";
+
+    const sec = document.createElement("div");
+    sec.className = "tier-section";
+
+    const label = document.createElement("div");
+    label.className = "tier-label";
+    label.textContent = tier;
+    label.style.cssText = `background:${color}20;color:${color};min-width:54px;`;
+
+    const cards = document.createElement("div");
+    cards.className = "tier-cards";
+
+    items.forEach(d => {
+      const card = document.createElement("div");
+      card.className = "bey-card";
+      const imgUrl = getImgUrl(d);
+
+      let displayName = d.name;
+      let displaySub = (d.cat === "blade") ? d.id : (d.cat === "ratchet" ? "固鎖 Ratchet" : "軸心 Bit");
+
+      const imgHtml = imgUrl
+        ? `<img class="card-img" src="${imgUrl}" alt="${d.name}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+           <div class="card-img-ph" style="display:none">${displayName}</div>`
+        : `<div class="card-img-ph">${displayName}</div>`;
+
+      card.innerHTML = `
+        <div class="buy-dot ${d.buy}"></div>
+        ${imgHtml}
+        <div class="card-name">${displayName}</div>
+        <div class="card-sub">${displaySub}</div>
+        <span class="type-pill ${TYPE_CLASSES[d.type]}">${TYPE_LABELS[d.type]}</span>
+      `;
+      card.onclick = () => { modalHistory = []; openModal(d); };
+      cards.appendChild(card);
+    });
+
+    sec.appendChild(label);
+    sec.appendChild(cards);
+    main.appendChild(sec);
+  });
+}
+
+function openModal(d) {
+  document.querySelector(".modal-overlay")?.remove();
+  currentModalData = d;
+  const color = TIER_COLORS[d.tier]||"#888";
+  const imgUrl = getImgUrl(d);
+  
+  const imgHtml = imgUrl
+    ? `<img class="modal-img" src="${imgUrl}" alt="${d.name}"
+         onerror="this.outerHTML='<div class=modal-img-ph>${d.name}</div>'">`
+    : `<div class="modal-img-ph">${d.name}</div>`;
+
+  let detailsHtml = "";
+  let sourceRowHtml = "";
+
+  if (d.cat === "blade") {
+      sourceRowHtml = `<div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val" style="text-align:right;">${d.source || d.id}</span></div>`;
+      
+      if (d.ratchet || d.bit) {
+        const rTarget = DB.find(x => x.cat === 'ratchet' && x.id === d.ratchet);
+        const bTarget = DB.find(x => x.cat === 'bit' && x.id === d.bit);
+        
+        const rClick = rTarget ? `onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${d.ratchet}"&&x.cat==="ratchet"))'` : '';
+        const bClick = bTarget ? `onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${d.bit}"&&x.cat==="bit"))'` : '';
+
+        detailsHtml += `
+          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
+            <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">原裝配置 (點擊查看)：</div>
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
+              ${d.ratchet ? `固鎖：<span class="clickable-part" ${rClick}>${d.ratchet}</span>${d.ratchetTier ? ` (${d.ratchetTier}級)` : ''}<br>` : ''}
+              ${d.bit ? `軸心：<span class="clickable-part" ${bClick}>${d.bit}</span>${d.bitTier ? ` (${d.bitTier}級)` : ''}` : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (d.comboText || d.noteText) {
+        let suggestedContent = "";
+        if (d.comboText) suggestedContent += d.comboText.replace(/\|/g, "<br>");
+        if (d.noteText) {
+          if (suggestedContent) suggestedContent += "<br><br>";
+          suggestedContent += d.noteText.replace(/\n/g, "<br>");
+        }
+        detailsHtml += `
+          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
+            <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">建議配置：</div>
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
+              ${suggestedContent}
+            </div>
+          </div>
+        `;
+      }
+  } 
+  else {
+      if (d.products && d.products.length > 0) {
+          let productsHtml = "";
+          d.products.forEach(prod => {
+              const pImg = getImgUrl(prod);
+              const pImgHtml = pImg 
+                ? `<img class="product-mini-img" src="${pImg}">` 
+                : `<div class="product-mini-ph">${prod.name}</div>`;
+                
+              productsHtml += `
+                <div class="product-mini-card" onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${prod.id}"&&x.cat==="blade"))'>
+                   ${pImgHtml}
+                   <div class="product-mini-name">${prod.name}</div>
+                   <div class="product-mini-id">${prod.id}</div>
+                </div>
+              `;
+          });
+          
+          detailsHtml += `
+            <div class="parts-products-wrapper">
+              <div class="parts-products-title">包含此零件的產品 (${d.products.length})：</div>
+              <div class="parts-products-scroll">
+                ${productsHtml}
+              </div>
+            </div>
+          `;
+      }
+  }
+
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-box">
+      ${modalHistory.length > 0 ? `<button class="modal-back" onclick="goBackModal()" title="返回上一個"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>` : ""}
+      <button class="modal-close" onclick="closeModal()" title="關閉"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      ${imgHtml}
+      <div style="text-align:center; margin-bottom:1.5rem">
+        <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier === "-" ? "-" : d.tier + " 級"}</span>
+        <div class="modal-name">${d.name}</div>
+        <div class="modal-id">${d.cat === "blade" ? d.id : "獨立零件"}</div>
+      </div>
+      <div class="modal-row"><span class="modal-label">分類</span><span class="modal-val">${CAT_LABELS[d.cat]}</span></div>
+      <div class="modal-row"><span class="modal-label">類型</span><span class="modal-val">${TYPE_LABELS[d.type]}</span></div>
+      ${sourceRowHtml}
+      
+      <div class="buy-rec ${d.buy}" style="margin-top:1.5rem; padding:12px; border-radius:10px; font-weight:700; text-align:center;">
+        ${BUY_LABELS[d.buy]}　<span style="font-weight:400;opacity:0.8">${BUY_DESCS[d.buy]}</span>
+      </div>
+      ${detailsHtml}
+    </div>
+  `;
+  overlay.onclick = e => { if(e.target===overlay) closeModal(); };
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  document.querySelector(".modal-overlay")?.remove();
+  modalHistory = [];
+  currentModalData = null;
+}
+
+function goBackModal() {
+  if (modalHistory.length > 0) {
+      const prev = modalHistory.pop();
+      openModal(prev);
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key==="Escape") closeModal();
+});
+
+buildCatTabs();
+buildTierFilter();
+buildBuyFilter();
+loadData();
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
+  render();
+});
+
+</script>
+</body>
+</html>
