@@ -153,6 +153,7 @@ main { padding: 1.2rem 2rem 4rem; }
 .tp-bit     { background: rgba(200,232,64,0.13);  color: #aacc44; }
 .tp-special { background: rgba(255,122,43,0.13);  color: #ff9944; }
 
+
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.78);
   display: flex; align-items: center; justify-content: center;
@@ -161,11 +162,15 @@ main { padding: 1.2rem 2rem 4rem; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-box {
   background: var(--surface); border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px; padding: 1.5rem; max-width: 340px; width: 100%;
+  border-radius: 14px; padding: 1.5rem; max-width: 360px; width: 100%;
   position: relative; animation: slideUp 0.18s ease;
+  max-height: 90vh; overflow-y: auto;
 }
 @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
-.modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+.modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; transition: color 0.15s; border-radius: 4px; }
+.modal-close:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.modal-back { position: absolute; top: 12px; left: 14px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; transition: color 0.15s; font-weight: bold; border-radius: 4px; }
+.modal-back:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 .modal-img { width: 110px; height: 110px; object-fit: contain; background: #0d0d14; border-radius: 8px; margin: 0 auto 1rem; display: block; }
 .modal-img-ph { width: 110px; height: 110px; border-radius: 8px; background: #151520; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.8rem; }
 .modal-tier-badge { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 900; padding: 2px 12px; border-radius: 4px; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
@@ -179,6 +184,23 @@ main { padding: 1.2rem 2rem 4rem; }
 .buy-rec.yes   { background: rgba(122,223,96,0.1);  color: #7adf60; }
 .buy-rec.maybe { background: rgba(255,184,48,0.1);  color: #ffb830; }
 .buy-rec.no    { background: rgba(68,85,102,0.18);  color: #8899aa; }
+
+/* 零件專屬：擁有該零件的產品列表橫向捲動區 */
+.parts-products-wrapper { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border); text-align: left; }
+.parts-products-title { font-size: 0.85rem; color: var(--accent); margin-bottom: 10px; font-weight: 700; }
+.parts-products-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+.parts-products-scroll::-webkit-scrollbar { height: 6px; }
+.parts-products-scroll::-webkit-scrollbar-thumb { background-color: var(--muted); border-radius: 10px; }
+.product-mini-card { flex: 0 0 70px; display: flex; flex-direction: column; align-items: center; background: var(--surface2); padding: 6px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.1s, border-color 0.1s; }
+.product-mini-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+.product-mini-img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; background: #0d0d14; margin-bottom: 4px; }
+.product-mini-ph { width: 44px; height: 44px; border-radius: 4px; background: #151520; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: var(--muted); margin-bottom: 4px; text-align:center; padding:2px; }
+.product-mini-name { font-size: 0.6rem; color: var(--text); font-weight: 600; text-align: center; width:100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
+.product-mini-id { font-size: 0.55rem; color: var(--muted); text-align: center; margin-top: 1px; }
+
+/* 可點擊零件樣式 (原裝配置) */
+.clickable-part { color: #f0f0f5; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: color 0.15s; }
+.clickable-part:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
 .empty { text-align: center; padding: 3rem; color: var(--muted); font-size: 0.9rem; }
 
@@ -335,9 +357,13 @@ main { padding: 1.2rem 2rem 4rem; }
 
 
 let DB = [];
+let modalHistory = [];
+let currentModalData = null;
 let IMG = {};
+let PARTS_IMG = {};
 
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
+const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
 
 
 // 自動擷取年-月-日，過濾掉時間
@@ -346,6 +372,20 @@ function extractDateOnly(dateStr) {
   // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 格式
   const match = dateStr.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
   return match ? match[0] + " 更新" : dateStr;
+}
+
+
+async function fetchBothSheets() {
+  const t = new Date().getTime();
+  const [resMain, resParts] = await Promise.all([
+    fetch(sheetUrl + "&_=" + t),
+    fetch(partsSheetUrl + "&_=" + t)
+  ]);
+  const [csvMain, csvParts] = await Promise.all([
+    resMain.text(),
+    resParts.text()
+  ]);
+  return { dataMain: parseCSV(csvMain), dataParts: parseCSV(csvParts) };
 }
 
 function parseCSV(str) {
@@ -369,35 +409,31 @@ function parseCSV(str) {
 
 
 async function loadData() {
-  // 1. 嘗試從本地快取讀取
   const cachedDB = localStorage.getItem('bey_db');
   const cachedIMG = localStorage.getItem('bey_img');
+  const cachedPartsIMG = localStorage.getItem('bey_parts_img');
   const cachedDate = localStorage.getItem('bey_date');
 
-  if (cachedDB && cachedIMG && cachedDate) {
-      // 有暫存 -> 瞬間秒開！
+  if (cachedDB && cachedIMG && cachedPartsIMG && cachedDate) {
       DB = JSON.parse(cachedDB);
       IMG = JSON.parse(cachedIMG);
+      PARTS_IMG = JSON.parse(cachedPartsIMG);
       
       const dateEl = document.getElementById('updateDateDisplay');
-      dateEl.textContent = extractDateOnly(cachedDate); // 只顯示日期
+      dateEl.textContent = extractDateOnly(cachedDate);
       dateEl.style.cursor = "default";
       dateEl.onclick = null;
       
       render(); 
-      
-      // 2. 偷偷在背景檢查是否有新版本
       backgroundCheck(cachedDate);
   } else {
-      // 第一次載入，沒有暫存
       document.getElementById("main").innerHTML = `<div style="text-align:center; padding:80px; color:#99ff00; font-weight:bold; font-size:1.0rem;">⚙️ 初次載入天梯資料中...</div>`;
-      await fetchAndProcess(true);
+      await fetchAndProcess();
   }
 }
 
 async function backgroundCheck(currentCachedDate) {
   try {
-      // 背景悄悄抓取最新資料
       const res = await fetch(sheetUrl + "&_=" + new Date().getTime());
       const csvText = await res.text();
       const data = parseCSV(csvText);
@@ -407,20 +443,19 @@ async function backgroundCheck(currentCachedDate) {
           latestDate = data[0][14].trim() + " 更新";
       }
       
-      // 比對日期！如果網路上的比較新，就跳出提示按鈕
       if (latestDate && latestDate !== currentCachedDate) {
           const dateEl = document.getElementById("updateDateDisplay");
           dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
           dateEl.style.cursor = "pointer";
           
-          // 綁定點擊事件 -> 更新畫面
           dateEl.onclick = () => {
               const rIcon = document.getElementById("refreshIcon");
               if (rIcon) rIcon.style.transform = "rotate(360deg)";
               
-              setTimeout(() => {
-                  processData(data, latestDate);
-              }, 400); // 等旋轉動畫跑完再重新渲染
+              setTimeout(async () => {
+                  const fullData = await fetchBothSheets();
+                  processData(fullData.dataMain, fullData.dataParts, latestDate);
+              }, 400);
           };
       }
   } catch (e) {
@@ -430,28 +465,47 @@ async function backgroundCheck(currentCachedDate) {
 
 async function fetchAndProcess() {
   try {
-      const res = await fetch(sheetUrl + "&_=" + new Date().getTime());
-      const csvText = await res.text();
-      const data = parseCSV(csvText);
+      const fullData = await fetchBothSheets();
       
       let latestDate = "未知日期 更新";
-      if (data[0] && data[0][14]) {
-          latestDate = data[0][14].trim() + " 更新";
+      if (fullData.dataMain[0] && fullData.dataMain[0][14]) {
+          latestDate = fullData.dataMain[0][14].trim() + " 更新";
       }
       
-      processData(data, latestDate);
+      processData(fullData.dataMain, fullData.dataParts, latestDate);
   } catch (e) {
       document.getElementById("main").innerHTML = `<div style="text-align:center; padding:50px; color:#ff4d4d; font-weight:bold;">❌ 讀取資料失敗<br><span style="font-size:0.9rem;color:var(--muted); font-weight:normal;">請確認網路連線。</span></div>`;
   }
 }
 
-function processData(data, latestDate) {
+function processData(dataMain, dataParts, latestDate) {
   DB = [];
   IMG = {};
+  PARTS_IMG = {};
   
-  // -- START PARSING LOOP --
-  for (let i = 1; i < data.length; i++) {
-      const row = data[i];
+  if (dataParts && dataParts.length > 0) {
+      let headRow = dataParts[0].map(h => (h||"").trim().toLowerCase());
+      let idxId = headRow.findIndex(h => h.includes("型號") || h.includes("名稱") || h.includes("name"));
+      let idxImg = headRow.findIndex(h => h.includes("圖片") || h.includes("img") || h.includes("url"));
+      
+      if(idxId === -1) idxId = 0;
+      if(idxImg === -1) idxImg = 2;
+
+      for (let i = 1; i < dataParts.length; i++) {
+          const row = dataParts[i];
+          if (!row || !row[idxId]) continue;
+          const pid = row[idxId].trim();
+          const pImg = row[idxImg] ? row[idxImg].trim() : "";
+          if (pid && pImg) {
+              PARTS_IMG[pid] = pImg;
+          }
+      }
+  }
+  
+  const partAggregator = {};
+
+  for (let i = 1; i < dataMain.length; i++) {
+      const row = dataMain[i];
       if (!row || row.length < 5 || !row[0]) continue;
       
       const id = row[0].trim();
@@ -459,7 +513,7 @@ function processData(data, latestDate) {
       const cat = row[2].trim() || "blade";
       const type = row[3].trim() || "attack";
       const tier = row[4].trim() || "-";
-      const buy = row[5].trim() || "no";
+      const manualBuy = row[5] ? row[5].trim().toLowerCase() : "";
       const ratchet = row[6] ? row[6].trim() : "";
       const ratchetTier = row[7] ? row[7].trim() : "";
       const bit = row[8] ? row[8].trim() : "";
@@ -471,43 +525,108 @@ function processData(data, latestDate) {
       
       if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
 
+      let finalBuy = "no";
+      if (["yes", "maybe", "no"].includes(manualBuy)) {
+          finalBuy = manualBuy;
+      } else {
+          finalBuy = calculateBuyRec(tier, ratchetTier, bitTier);
+      }
+      
+      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, comboText, noteText };
+
       if (tier) {
-          DB.push({ id, name, cat, type, tier, buy, source, ratchet, ratchetTier, bit, bitTier, comboText, noteText });
+          DB.push(bladeObj);
       }
 
       if (ratchet && ratchetTier) {
-          let rBuy = "no";
-          if (["X", "S+", "S", "A+", "A"].includes(ratchetTier)) rBuy = "yes";
-          else if (["B+", "B", "C+", "C"].includes(ratchetTier)) rBuy = "maybe";
-          
-          DB.push({ id: `${id} ${ratchet}`, name: `${name} ${ratchet}`, cat: "ratchet", type: "ratchet", tier: ratchetTier, buy: rBuy, source: source });
+          if (!partAggregator[ratchet]) {
+              partAggregator[ratchet] = {
+                  id: ratchet, name: ratchet, cat: "ratchet", type: "ratchet",
+                  tier: ratchetTier,
+                  buy: getBuyRec(ratchetTier),
+                  source: "獨立零件",
+                  products: []
+              };
+          }
+          partAggregator[ratchet].products.push(bladeObj);
       }
 
       if (bit && bitTier) {
-          let bBuy = "no";
-          if (["X", "S+", "S", "A+", "A"].includes(bitTier)) bBuy = "yes";
-          else if (["B+", "B", "C+", "C"].includes(bitTier)) bBuy = "maybe";
-          
-          DB.push({ id: `${id} ${bit}`, name: `${name} ${bit}`, cat: "bit", type: "bit", tier: bitTier, buy: bBuy, source: source });
+          if (!partAggregator[bit]) {
+              partAggregator[bit] = {
+                  id: bit, name: bit, cat: "bit", type: "bit",
+                  tier: bitTier,
+                  buy: getBuyRec(bitTier),
+                  source: "獨立零件",
+                  products: []
+              };
+          }
+          partAggregator[bit].products.push(bladeObj);
       }
   }
-  // -- END PARSING LOOP --
 
-  // 將最新資料存入手機瀏覽器的快取中
+  Object.values(partAggregator).forEach(p => DB.push(p));
+
   localStorage.setItem('bey_db', JSON.stringify(DB));
   localStorage.setItem('bey_img', JSON.stringify(IMG));
+  localStorage.setItem('bey_parts_img', JSON.stringify(PARTS_IMG));
   localStorage.setItem('bey_date', latestDate);
   
-  // 更新右上角文字為最新日期，並取消按鈕狀態
   const dateEl = document.getElementById("updateDateDisplay");
-  dateEl.textContent = extractDateOnly(latestDate); // 只顯示日期
+  dateEl.textContent = extractDateOnly(latestDate);
   dateEl.style.cursor = "default";
   dateEl.onclick = null;
   
   render();
 }
 
+function getBuyRec(t) {
+    if (["X", "S+", "S", "A+", "A"].includes(t)) return "yes";
+    if (["B+", "B"].includes(t)) return "maybe";
+    return "no";
+}
 
+function calculateBuyRec(bladeT, ratchetT, bitT) {
+    // 定義階級對應的分數
+    const scores = {
+        "X": 100, "S+": 90, "S": 80, "A+": 70, "A": 60,
+        "B+": 50, "B": 40, "C+": 30, "C": 20, "D+": 15, "D": 10, "E+": 5, "E": 0
+    };
+    
+    let bScore = scores[bladeT];
+    let rScore = scores[ratchetT];
+    let bitScore = scores[bitT];
+
+    let totalWeight = 0;
+    let totalScore = 0;
+
+    // 戰刃權重 x2 (優先)
+    if (bScore !== undefined) {
+        totalScore += bScore * 2;
+        totalWeight += 2;
+    }
+    // 固鎖權重 x1 (其次)
+    if (rScore !== undefined) {
+        totalScore += rScore * 1;
+        totalWeight += 1;
+    }
+    // 軸心權重 x1 (其次)
+    if (bitScore !== undefined) {
+        totalScore += bitScore * 1;
+        totalWeight += 1;
+    }
+
+    if (totalWeight === 0) return "no";
+
+    let avg = totalScore / totalWeight;
+
+    // A (60) 以上為 yes
+    if (avg >= 60) return "yes";
+    // B (40) 到 B+ (50) 為 maybe (40 <= avg < 60)
+    if (avg >= 40) return "maybe";
+    // C+ (30) 以下為 no
+    return "no";
+}
 
 const BLADE_TIERS   = ["X","S+","S","A+","A","B+","B","C+","C","D+","D","E+","E","-"];
 const RATCHET_TIERS = ["X","S","A","B","C","D","E","-"];
@@ -556,10 +675,11 @@ function tiersFor(cat) {
 }
 
 function getImgUrl(d) {
-  // 用型號查 IMG 對照表；ratchet/bit 取來源產品（去掉規格後綴）
+  if ((d.cat === "ratchet" || d.cat === "bit") && PARTS_IMG[d.id]) {
+      return PARTS_IMG[d.id];
+  }
   const key = d.id.split(" ")[0];
   if (IMG[key]) return IMG[key];
-  // 嘗試去掉子型號後綴 BX-14-01 → BX-14
   const base = key.replace(/-\d+$/, "");
   if (IMG[base]) return IMG[base];
   return "";
@@ -678,18 +798,8 @@ function render() {
       card.className = "bey-card";
       const imgUrl = getImgUrl(d);
 
-      // 主顯示名：blade→名稱, ratchet→齒數-高度, bit→縮寫字母
       let displayName = d.name;
-      let displaySub = d.id;
-      if (d.cat === "ratchet" || d.cat === "bit") {
-        // 從 "魔導神杖 5-70" 中提取出 "5-70"
-        const nameParts = d.name.split(" ");
-        displayName = nameParts[nameParts.length - 1]; 
-        // 來源產品編號 UX-03 5-70 -> 取 UX-03
-        displaySub = d.id.split(" ")[0]; 
-      } else if (d.cat === "blade") {
-        displaySub = d.id;
-      }
+      let displaySub = (d.cat === "blade") ? d.id : (d.cat === "ratchet" ? "固鎖 Ratchet" : "軸心 Bit");
 
       const imgHtml = imgUrl
         ? `<img class="card-img" src="${imgUrl}" alt="${d.name}" loading="lazy"
@@ -704,7 +814,7 @@ function render() {
         <div class="card-sub">${displaySub}</div>
         <span class="type-pill ${TYPE_CLASSES[d.type]}">${TYPE_LABELS[d.type]}</span>
       `;
-      card.onclick = () => openModal(d);
+      card.onclick = () => { modalHistory = []; openModal(d); };
       cards.appendChild(card);
     });
 
@@ -716,88 +826,100 @@ function render() {
 
 function openModal(d) {
   document.querySelector(".modal-overlay")?.remove();
+  currentModalData = d;
   const color = TIER_COLORS[d.tier]||"#888";
   const imgUrl = getImgUrl(d);
-  const srcId = (d.cat==="ratchet"||d.cat==="bit")
-    ? d.id.split(" ").slice(0,-1).join(" ") : d.id;
+  
   const imgHtml = imgUrl
     ? `<img class="modal-img" src="${imgUrl}" alt="${d.name}"
          onerror="this.outerHTML='<div class=modal-img-ph>${d.name}</div>'">`
     : `<div class="modal-img-ph">${d.name}</div>`;
 
-  let modalName = d.name;
-  let productNameRow = "";
-  let displaySource = d.source;
-  
-  if (d.cat === "ratchet" || d.cat === "bit") {
-    const nameParts = d.name.split(" ");
-    if (nameParts.length > 1) {
-        modalName = nameParts[nameParts.length - 1]; 
-        const prodName = nameParts.slice(0, -1).join(" "); 
-        // 產品名稱自動補上型號 (UX-18-01 古屍詛咒)
-        productNameRow = `<div class="modal-row"><span class="modal-label">產品名稱</span><span class="modal-val" style="text-align:right;">${srcId} ${prodName}</span></div>`;
-    }
-    // 固鎖與軸心自動繼承戰刃來源
-    if (!displaySource) {
-        const parentBlade = DB.find(item => item.id === srcId && item.cat === "blade");
-        displaySource = (parentBlade && parentBlade.source) ? parentBlade.source : srcId;
-    }
-  } else {
-      if (!displaySource) displaySource = d.id;
-  }
-
-  // --- 重構版面：原裝配置 vs 建議配置 ---
   let detailsHtml = "";
-  
-  // 1. 原裝配置區塊
-  if (d.ratchet || d.bit) {
-    detailsHtml += `
-      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
-        <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">原裝配置：</div>
-        <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
-          ${d.ratchet ? `固鎖：${d.ratchet}${d.ratchetTier ? ` (${d.ratchetTier}級)` : ' (-級)'}<br>` : ''}
-          ${d.bit ? `軸心：${d.bit}${d.bitTier ? ` (${d.bitTier}級)` : ' (-級)'}` : ''}
-        </div>
-      </div>
-    `;
-  }
-  
-  // 2. 建議配置區塊 (包含備註)
-  if (d.comboText || d.noteText) {
-    let suggestedContent = "";
-    if (d.comboText) {
-      suggestedContent += d.comboText.replace(/\|/g, "<br>");
-    }
-    if (d.noteText) {
-      if (suggestedContent) suggestedContent += "<br><br>";
-      suggestedContent += d.noteText.replace(/\n/g, "<br>");
-    }
-    
-    detailsHtml += `
-      <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
-        <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">建議配置：</div>
-        <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
-          ${suggestedContent}
-        </div>
-      </div>
-    `;
+  let sourceRowHtml = "";
+
+  if (d.cat === "blade") {
+      sourceRowHtml = `<div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val" style="text-align:right;">${d.source || d.id}</span></div>`;
+      
+      if (d.ratchet || d.bit) {
+        const rTarget = DB.find(x => x.cat === 'ratchet' && x.id === d.ratchet);
+        const bTarget = DB.find(x => x.cat === 'bit' && x.id === d.bit);
+        
+        const rClick = rTarget ? `onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${d.ratchet}"&&x.cat==="ratchet"))'` : '';
+        const bClick = bTarget ? `onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${d.bit}"&&x.cat==="bit"))'` : '';
+
+        detailsHtml += `
+          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
+            <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">原裝配置 (點擊查看)：</div>
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
+              ${d.ratchet ? `固鎖：<span class="clickable-part" ${rClick}>${d.ratchet}</span>${d.ratchetTier ? ` (${d.ratchetTier}級)` : ''}<br>` : ''}
+              ${d.bit ? `軸心：<span class="clickable-part" ${bClick}>${d.bit}</span>${d.bitTier ? ` (${d.bitTier}級)` : ''}` : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (d.comboText || d.noteText) {
+        let suggestedContent = "";
+        if (d.comboText) suggestedContent += d.comboText.replace(/\|/g, "<br>");
+        if (d.noteText) {
+          if (suggestedContent) suggestedContent += "<br><br>";
+          suggestedContent += d.noteText.replace(/\n/g, "<br>");
+        }
+        detailsHtml += `
+          <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
+            <div style="font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;">建議配置：</div>
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
+              ${suggestedContent}
+            </div>
+          </div>
+        `;
+      }
+  } 
+  else {
+      if (d.products && d.products.length > 0) {
+          let productsHtml = "";
+          d.products.forEach(prod => {
+              const pImg = getImgUrl(prod);
+              const pImgHtml = pImg 
+                ? `<img class="product-mini-img" src="${pImg}">` 
+                : `<div class="product-mini-ph">${prod.name}</div>`;
+                
+              productsHtml += `
+                <div class="product-mini-card" onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${prod.id}"&&x.cat==="blade"))'>
+                   ${pImgHtml}
+                   <div class="product-mini-name">${prod.name}</div>
+                   <div class="product-mini-id">${prod.id}</div>
+                </div>
+              `;
+          });
+          
+          detailsHtml += `
+            <div class="parts-products-wrapper">
+              <div class="parts-products-title">包含此零件的產品 (${d.products.length})：</div>
+              <div class="parts-products-scroll">
+                ${productsHtml}
+              </div>
+            </div>
+          `;
+      }
   }
 
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
     <div class="modal-box">
-      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      ${modalHistory.length > 0 ? `<button class="modal-back" onclick="goBackModal()" title="返回上一個">＜</button>` : ""}
+      <button class="modal-close" onclick="closeModal()" title="關閉">✕</button>
       ${imgHtml}
       <div style="text-align:center; margin-bottom:1.5rem">
         <span style="color:${color}; font-weight:900; font-size:1.2rem; display:inline-block; padding: 4px 12px; background:${color}22; border-radius: 8px; margin-bottom: 8px;">${d.tier === "-" ? "-" : d.tier + " 級"}</span>
-        <div class="modal-name">${modalName}</div>
-        <div class="modal-id">${d.id}</div>
+        <div class="modal-name">${d.name}</div>
+        <div class="modal-id">${d.cat === "blade" ? d.id : "獨立零件"}</div>
       </div>
       <div class="modal-row"><span class="modal-label">分類</span><span class="modal-val">${CAT_LABELS[d.cat]}</span></div>
       <div class="modal-row"><span class="modal-label">類型</span><span class="modal-val">${TYPE_LABELS[d.type]}</span></div>
-      <div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val" style="text-align:right;">${displaySource}</span></div>
-      ${productNameRow}
+      ${sourceRowHtml}
       
       <div class="buy-rec ${d.buy}" style="margin-top:1.5rem; padding:12px; border-radius:10px; font-weight:700; text-align:center;">
         ${BUY_LABELS[d.buy]}　<span style="font-weight:400;opacity:0.8">${BUY_DESCS[d.buy]}</span>
@@ -805,12 +927,25 @@ function openModal(d) {
       ${detailsHtml}
     </div>
   `;
-  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  overlay.onclick = e => { if(e.target===overlay) closeModal(); };
   document.body.appendChild(overlay);
 }
 
+function closeModal() {
+  document.querySelector(".modal-overlay")?.remove();
+  modalHistory = [];
+  currentModalData = null;
+}
+
+function goBackModal() {
+  if (modalHistory.length > 0) {
+      const prev = modalHistory.pop();
+      openModal(prev);
+  }
+}
+
 document.addEventListener("keydown", e => {
-  if (e.key==="Escape") document.querySelector(".modal-overlay")?.remove();
+  if (e.key==="Escape") closeModal();
 });
 
 buildCatTabs();
