@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0b10">
 <meta name="referrer" content="no-referrer">
 <title>Beyblade X Tier｜台灣天梯情報站</title>
 
@@ -74,6 +76,10 @@
   --radius-pill: 999px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  background: #0a0b10 !important;
+  color-scheme: dark;
+}
 body {
   background: var(--bg);
   color: var(--text);
@@ -444,7 +450,294 @@ main { padding: 1.2rem 2rem 4rem; }
     text-align: center !important;
   }
 }
-</style>
+
+/* ── 右下角懸浮島 ── */
+.float-island {
+  position: fixed;
+  bottom: 28px; right: 20px;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 0 0 0.5px rgba(255,255,255,0.05);
+}
+/* 頂部高光線 */
+.float-island::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  border-radius: 999px;
+}
+
+.fi-btn {
+  position: relative;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.18s, background 0.18s;
+}
+.fi-btn:hover {
+  color: rgba(255,255,255,0.85);
+  background: rgba(255,255,255,0.07);
+}
+.fi-btn--active {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.fi-btn--locked {
+  cursor: default;
+  color: rgba(255,255,255,0.18);
+}
+.fi-btn--locked:hover {
+  color: rgba(255,255,255,0.25);
+  background: none;
+}
+/* 鎖定小點 */
+.fi-lock-dot {
+  position: absolute;
+  bottom: 7px; right: 7px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 全站隱藏捲動條 */
+html, body { scrollbar-width: none; background: #0a0b10; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
+/* ── 倉庫全頁面 ── */
+.vault-page {
+  position: fixed; inset: 0; z-index: 300;
+  background: var(--bg); overflow-y: auto; scrollbar-width: none;
+  animation: fadeIn 0.2s ease; display: none;
+}
+.vault-page.active { display: block; }
+.vault-page::-webkit-scrollbar { display: none; }
+.vault-page::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at top left,  rgba(18,239,206,0.13), transparent 45%),
+    radial-gradient(circle at top right, rgba(105,167,255,0.11), transparent 40%);
+}
+.vault-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 16px 80px; }
+.vault-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0 14px; gap: 12px; position: sticky; top: 0; z-index: 5;
+  margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.vault-title-wrap { display: flex; flex-direction: column; gap: 1px; }
+.vault-title {
+  font-family: 'Orbitron', sans-serif; font-size: 1.5rem;
+  font-weight: 900; letter-spacing: 0.06em; line-height: 1;
+  background: linear-gradient(90deg, #9dfd65, #fff 50%, #69d9ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  transform: skewX(-8deg); display: inline-block;
+}
+.vault-subtitle { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; font-weight: 400; }
+.vault-close {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--muted); cursor: pointer; border-radius: 999px;
+  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s;
+}
+.vault-close:hover { color: var(--text); background: rgba(255,255,255,0.12); }
+
+/* 密碼畫面 */
+.vault-lock {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 75vh; gap: 16px; text-align: center;
+}
+.vault-lock-icon { font-size: 3rem; }
+.vault-lock h2 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.vault-lock p { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.vault-pw-input {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 999px; color: var(--text); font-size: 1rem;
+  padding: 12px 20px; width: 220px; outline: none; text-align: center; letter-spacing: 0.2em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.vault-pw-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(18,239,206,0.1); }
+.vault-pw-btn {
+  background: linear-gradient(135deg, rgba(18,239,206,0.18), rgba(105,167,255,0.12));
+  border: 1px solid rgba(18,239,206,0.3); border-radius: 999px;
+  color: var(--accent); font-weight: 700; font-size: 0.9rem;
+  padding: 10px 28px; cursor: pointer; transition: all 0.18s;
+}
+.vault-pw-btn:hover { box-shadow: 0 0 16px rgba(18,239,206,0.2); }
+.vault-pw-error { color: var(--danger); font-size: 0.8rem; min-height: 1.2em; }
+
+/* 倉庫分頁 */
+.vault-tabs {
+  display: flex; gap: 4px; background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-pill); padding: 4px; border: 1px solid var(--border);
+  backdrop-filter: blur(8px); margin-bottom: 16px;
+}
+.vault-tab {
+  flex: 1; background: none; border: none; border-radius: var(--radius-pill);
+  color: var(--muted); cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 7px 0; transition: all 0.18s; text-align: center;
+}
+.vault-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.vault-tab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* 零件區塊 */
+.vault-section {
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  margin-bottom: 10px; backdrop-filter: blur(8px);
+}
+.vault-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 10px;
+}
+.vault-section-title { font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #d5def1; }
+.vault-section-count { font-size: 0.75rem; color: var(--muted); }
+.vault-parts-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 12px; }
+.vault-part-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: var(--radius-pill); font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04); color: var(--muted); transition: all 0.15s;
+}
+.vault-part-chip:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.vault-part-chip.owned { background: rgba(18,239,206,0.1); border-color: rgba(18,239,206,0.3); color: var(--accent); }
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; }
+.vault-part-chip.owned .chip-dot { background: var(--accent); }
+
+/* 配置分析 */
+.analysis-summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+}
+.summary-card {
+  padding: 14px 16px; border-radius: var(--radius-card); border: 1px solid var(--border);
+  text-align: center; backdrop-filter: blur(8px);
+}
+.summary-card.complete { background: rgba(122,223,96,0.07); border-color: rgba(122,223,96,0.2); }
+.summary-card.near    { background: rgba(255,184,48,0.07);  border-color: rgba(255,184,48,0.2); }
+.summary-num { font-size: 2rem; font-weight: 900; line-height: 1; }
+.summary-card.complete .summary-num { color: var(--success); }
+.summary-card.near    .summary-num { color: var(--warn); }
+.summary-label { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+.analysis-item {
+  background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s; backdrop-filter: blur(6px);
+}
+.analysis-item:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+.analysis-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.analysis-name { font-size: 0.9rem; font-weight: 700; }
+.analysis-id { font-size: 0.72rem; color: var(--muted); }
+.analysis-combo { font-size: 0.78rem; color: var(--muted); line-height: 1.8; }
+.analysis-combo .have { color: var(--success); }
+.analysis-combo .missing { color: var(--warn); font-weight: 700; }
+.analysis-empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.85rem; }
+
+/* 倉庫公告 */
+.vault-notice {
+  position: relative;
+  margin-bottom: 14px;
+  padding: 12px 40px 12px 14px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  font-size: 0.82rem; color: var(--text); line-height: 1.5;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  animation: fadeIn 0.3s ease;
+}
+.vault-notice-close {
+  position: absolute; top: 8px; right: 8px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; transition: all 0.15s; line-height: 1;
+}
+.vault-notice-close:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+
+/* 原裝陀螺 grid — 對齊天梯 tier-cards */
+.owned-blades-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 4px 0;
+}
+
+/* 倉庫子分頁 */
+.vault-subtabs {
+  display: flex; gap: 3px; margin-bottom: 14px;
+  background: rgba(255,255,255,0.03); border-radius: var(--radius-pill);
+  padding: 3px; border: 1px solid var(--border);
+}
+.vault-subtab {
+  flex: 1; background: none; border: none; border-radius: var(--radius-pill);
+  color: var(--muted); cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.78rem; font-weight: 600; padding: 6px 0; transition: all 0.18s; text-align: center;
+}
+.vault-subtab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.vault-subtab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+/* 原裝陀螺卡片 */
+.owned-blade-card {
+  display: flex; flex-direction: column; align-items: center;
+  background: linear-gradient(160deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px; cursor: pointer; padding: 8px 7px 6px;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  width: 80px; text-align: center; position: relative;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 16px rgba(0,0,0,0.2);
+}
+.owned-blade-card::before {
+  content: ""; position: absolute; top: 0; left: 10%; right: 10%;
+  height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  border-radius: 999px; pointer-events: none;
+}
+.owned-blade-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.22); box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06); }
+.owned-blade-card.owned { border-color: rgba(18,239,206,0.45); background: linear-gradient(160deg, rgba(18,239,206,0.12), rgba(18,239,206,0.04)); }
+.owned-blade-thumb { width: 50px; height: 50px; flex-shrink: 0; object-fit: contain; background: transparent; }
+.owned-blade-thumb-ph { width: 50px; height: 50px; flex-shrink: 0; background: rgba(255,255,255,0.04); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.55rem; color: var(--muted); text-align: center; }
+.owned-blade-info { width: 100%; }
+.owned-blade-name { font-size: 0.63rem; font-weight: 700; color: var(--text); line-height: 1.2; margin-top: 4px; word-break: break-all; }
+.owned-blade-id { font-size: 0.57rem; color: var(--muted); margin-top: 1px; word-break: break-all; }
+.owned-blade-parts { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; justify-content: center; }
+.part-tag { display: inline-block; padding: 1px 5px; border-radius: 999px; font-size: 0.55rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: var(--muted); }
+.owned-blade-card.owned .part-tag { background: rgba(18,239,206,0.08); border-color: rgba(18,239,206,0.2); color: rgba(18,239,206,0.8); }
+.owned-blade-check {
+  position: absolute; top: 5px; right: 5px;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; background: rgba(0,0,0,0.2);
+}
+.owned-blade-card.owned .owned-blade-check { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(18,239,206,0.4); }
+
+/* 散件：來源標示 */
+.vault-part-chip.from-blade { background: rgba(18,239,206,0.04); border-color: rgba(18,239,206,0.12); color: rgba(18,239,206,0.55); cursor: default; }
+.vault-part-chip.from-blade:hover { border-color: rgba(18,239,206,0.12); transform: none; color: rgba(18,239,206,0.55); }
+.chip-source { font-size: 0.58rem; opacity: 0.65; margin-left: 2px; }</style>
 </head>
 <body>
 
@@ -487,6 +780,47 @@ main { padding: 1.2rem 2rem 4rem; }
 </header>
 
 <main id="main"></main>
+
+<!-- 右下角懸浮島 -->
+<div class="float-island">
+  <button class="fi-btn fi-btn--active" onclick="closeVault()" title="天梯表">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+  </button>
+  <button class="fi-btn" onclick="openVault()" title="我的倉庫" id="vaultFiBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+      <line x1="12" y1="22.08" x2="12" y2="12"/>
+    </svg>
+  </button>
+  <button class="fi-btn fi-btn--locked" title="分享功能（開發中）" onclick="showShareHint()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+    <span class="fi-lock-dot"></span>
+  </button>
+</div>
+
+<!-- 倉庫頁面 -->
+<div class="vault-page" id="vaultPage">
+  <div class="vault-inner">
+    <div class="vault-header">
+      <div class="vault-title-wrap">
+        <div class="vault-title">Warehouse</div>
+        <div class="vault-subtitle">我的倉庫</div>
+      </div>
+      <button class="vault-close" onclick="closeVault()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="vaultContent"></div>
+  </div>
+</div>
 
 <script>
 // 圖片對照表（來源：東海模型 img.91app.com CDN）
@@ -1170,6 +1504,613 @@ function goBackModal() {
 document.addEventListener("keydown", e => {
   if (e.key==="Escape") closeModal();
 });
+
+// ════════════════════════════════
+//  倉庫系統
+// ════════════════════════════════
+
+const VAULT_PASSWORD = "stan2026";
+const VAULT_SESSION_KEY = "bey_vault_unlocked";
+const VAULT_INVENTORY_KEY = "bey_inventory_v1";
+
+let currentUser = null; // 預留：未來接上登入系統時填入 userId
+
+function saveInventory(data) {
+  // 未來：if (currentUser) { 存雲端 } else { ... }
+  localStorage.setItem(VAULT_INVENTORY_KEY, JSON.stringify(data));
+}
+function loadInventory() {
+  // 未來：if (currentUser) { 讀雲端 } else { ... }
+  try { return JSON.parse(localStorage.getItem(VAULT_INVENTORY_KEY) || '{"blade":[],"ratchet":[],"bit":[],"assist":[]}'); }
+  catch { return { blade:[], ratchet:[], bit:[], assist:[] }; }
+}
+
+let vaultTab = "inventory";
+
+function setIslandActive(which) {
+  document.querySelectorAll('.fi-btn').forEach((b,i) => {
+    b.classList.toggle('fi-btn--active', i === which);
+  });
+}
+
+function openVault() {
+  document.getElementById("vaultPage").classList.add("active");
+  document.body.style.overflow = "hidden";
+  setIslandActive(1);
+  renderVaultMain();
+}
+function closeVault() {
+  document.getElementById("vaultPage").classList.remove("active");
+  document.body.style.overflow = "";
+  setIslandActive(0);
+}
+function showShareHint() {
+  // 預留：截圖分享功能
+}
+function renderVaultLock() {
+  document.getElementById("vaultContent").innerHTML = `
+    <div class="vault-lock">
+      <div class="vault-lock-icon">🔒</div>
+      <h2>倉庫已鎖定</h2>
+      <p>此功能目前僅供管理員使用<br>請輸入密碼繼續</p>
+      <input class="vault-pw-input" id="vaultPwInput" type="password" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter') vaultUnlock()">
+      <button class="vault-pw-btn" onclick="vaultUnlock()">解鎖</button>
+      <div class="vault-pw-error" id="vaultPwError"></div>
+    </div>`;
+  setTimeout(() => document.getElementById("vaultPwInput")?.focus(), 100);
+}
+function vaultUnlock() {
+  const val = document.getElementById("vaultPwInput")?.value || "";
+  if (val === VAULT_PASSWORD) {
+    sessionStorage.setItem(VAULT_SESSION_KEY, "1");
+    renderVaultMain();
+  } else {
+    const err = document.getElementById("vaultPwError");
+    err.textContent = "密碼錯誤，請再試一次";
+    document.getElementById("vaultPwInput").value = "";
+    document.getElementById("vaultPwInput").focus();
+    setTimeout(() => { err.textContent = ""; }, 2500);
+  }
+}
+function renderVaultMain() {
+  const noticeDismissed = sessionStorage.getItem('vault_notice_dismissed');
+  const noticeHtml = noticeDismissed ? '' : `
+    <div class="vault-notice" id="vaultNotice">
+      <button class="vault-notice-close" onclick="document.getElementById('vaultNotice').remove(); sessionStorage.setItem('vault_notice_dismissed','1')">✕</button>
+      📣 此功能公開測試中<br>
+      <span style="font-size:0.75rem;color:var(--muted);">資料儲存於本機裝置，換裝置需重新設定。</span>
+    </div>`;
+  document.getElementById("vaultContent").innerHTML = `
+    ${noticeHtml}
+    <div class="vault-tabs">
+      <button class="vault-tab ${vaultTab==='inventory'?'active':''}" onclick="switchVaultTab('inventory')">零件倉庫 PARTS</button>
+      <button class="vault-tab ${vaultTab==='analysis'?'active':''}" onclick="switchVaultTab('analysis')">配置分析 COMBO</button>
+      <button class="vault-tab ${vaultTab==='transfer'?'active':''}" onclick="switchVaultTab('transfer')">資料轉移 SYNC</button>
+    </div>
+    <div id="vaultTabContent"></div>`;
+  renderVaultTab();
+}
+function switchVaultTab(tab) {
+  vaultTab = tab;
+  document.querySelectorAll(".vault-tab").forEach((b,i) => {
+    b.classList.toggle("active", (tab==='inventory'&&i===0)||(tab==='analysis'&&i===1)||(tab==='transfer'&&i===2));
+  });
+  renderVaultTab();
+}
+function renderVaultTab() {
+  if (vaultTab === "inventory") renderInventory();
+  else if (vaultTab === "analysis") renderAnalysis();
+  else renderTransfer();
+}
+
+let invSubTab = "owned"; // "owned" | "loose"
+
+function getPartsFromOwnedBlades(inv) {
+  // 計算所有原裝陀螺帶入的零件，回傳 { ratchet: Set, bit: Set, assist: Set, blade: Set }
+  const rSet = new Set(), bSet = new Set(), aSet = new Set(), bladeSet = new Set();
+  (inv.ownedBlades || []).forEach(bladeId => {
+    bladeSet.add(bladeId);
+    const blade = DB.find(x => x.cat === 'blade' && x.id === bladeId);
+    if (!blade) return;
+    if (blade.ratchet) rSet.add(blade.ratchet);
+    if (blade.bit) bSet.add(blade.bit);
+    if (blade.assistBlade) aSet.add("輔助" + blade.assistBlade);
+  });
+  return { ratchet: rSet, bit: bSet, assist: aSet, blade: bladeSet };
+}
+
+function renderTransfer() {
+  document.getElementById("vaultTabContent").innerHTML = `
+    <div class="vault-section" style="padding: 16px;">
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:0.8rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#d5def1;margin-bottom:6px;">匯出資料 EXPORT</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">將目前的倉庫資料轉成代碼，複製後到新裝置貼上匯入。</div>
+        <button onclick="exportData()" style="width:100%;padding:11px;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:999px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.22),rgba(105,167,255,0.15))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1))'">
+          匯出並複製代碼
+        </button>
+        <div id="exportResult" style="margin-top:10px;min-height:20px;"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:20px;">
+        <div style="font-size:0.8rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#d5def1;margin-bottom:6px;">匯入資料 IMPORT</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">貼上從其他裝置匯出的代碼，載入倉庫資料。<br><span style="color:var(--warn);">⚠ 匯入將覆蓋目前的倉庫資料。</span></div>
+        <div style="position:relative;">
+          <textarea id="importInput" placeholder="在此貼上匯入代碼…" style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:14px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:12px;resize:none;outline:none;box-sizing:border-box;line-height:1.5;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+        </div>
+        <button onclick="importData()" style="width:100%;margin-top:10px;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:999px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+          匯入資料
+        </button>
+        <div id="importResult" style="margin-top:10px;min-height:20px;"></div>
+      </div>
+
+    </div>`;
+}
+
+function exportData() {
+  const inv = loadInventory();
+  const json = JSON.stringify(inv);
+  const code = btoa(unescape(encodeURIComponent(json)));
+  navigator.clipboard.writeText(code).then(() => {
+    const el = document.getElementById("exportResult");
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(122,223,96,0.1);border:1px solid rgba(122,223,96,0.25);border-radius:10px;font-size:0.8rem;color:var(--success);">✅ 代碼已複製成功！請儲存至新裝置使用。</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 4000);
+  }).catch(() => {
+    // 剪貼簿失敗時直接顯示代碼讓使用者手動複製
+    const el = document.getElementById("exportResult");
+    el.innerHTML = `<div style="margin-bottom:6px;font-size:0.75rem;color:var(--muted);">請手動複製以下代碼：</div>
+      <textarea readonly onclick="this.select()" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:0.7rem;padding:10px;resize:none;outline:none;box-sizing:border-box;word-break:break-all;">${code}</textarea>`;
+  });
+}
+
+function importData() {
+  const raw = (document.getElementById("importInput")?.value || "").trim();
+  if (!raw) {
+    showTransferMsg("importResult", "⚠ 請先貼上代碼", "warn"); return;
+  }
+  try {
+    const json = decodeURIComponent(escape(atob(raw)));
+    const data = JSON.parse(json);
+    if (typeof data !== 'object' || data === null) throw new Error();
+    saveInventory(data);
+    showTransferMsg("importResult", "✅ 匯入成功！倉庫資料已更新。", "success");
+    document.getElementById("importInput").value = "";
+  } catch {
+    showTransferMsg("importResult", "❌ 代碼無效，請確認是否完整複製。", "danger");
+  }
+}
+
+function showTransferMsg(id, msg, type) {
+  const colors = { success:"rgba(122,223,96,0.1)|rgba(122,223,96,0.25)|var(--success)", warn:"rgba(255,184,48,0.1)|rgba(255,184,48,0.25)|var(--warn)", danger:"rgba(255,94,122,0.1)|rgba(255,94,122,0.25)|var(--danger)" };
+  const [bg, border, color] = colors[type].split("|");
+  const el = document.getElementById(id);
+  if (el) {
+    el.innerHTML = `<div style="padding:10px 14px;background:${bg};border:1px solid ${border};border-radius:10px;font-size:0.8rem;color:${color};">${msg}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 4000);
+  }
+}
+function renderInventory() {
+  const inv = loadInventory();
+  const fromBlades = getPartsFromOwnedBlades(inv);
+
+  document.getElementById("vaultTabContent").innerHTML = `
+    <div class="vault-subtabs">
+      <button class="vault-subtab ${invSubTab==='owned'?'active':''}" onclick="switchInvSubTab('owned')">原裝陀螺 BEYBLADE</button>
+      <button class="vault-subtab ${invSubTab==='loose'?'active':''}" onclick="switchInvSubTab('loose')">散件零件 PARTS</button>
+      <button class="vault-subtab ${invSubTab==='overview'?'active':''}" onclick="switchInvSubTab('overview')">已有總覽 ALL</button>
+    </div>
+    <div id="invSubContent"></div>`;
+  renderInvSubTab(inv, fromBlades);
+}
+
+function switchInvSubTab(tab) {
+  invSubTab = tab;
+  document.querySelectorAll(".vault-subtab").forEach((b,i) => b.classList.toggle("active",
+    (tab==='owned'&&i===0)||(tab==='loose'&&i===1)||(tab==='overview'&&i===2)));
+  const inv = loadInventory();
+  renderInvSubTab(inv, getPartsFromOwnedBlades(inv));
+}
+
+function renderInvSubTab(inv, fromBlades) {
+  if (invSubTab === 'owned') renderOwnedBlades(inv, fromBlades);
+  else if (invSubTab === 'loose') renderLooseParts(inv, fromBlades);
+  else renderOverview(inv, fromBlades);
+}
+
+function renderOverview(inv, fromBlades) {
+  const ownedBladeIds = new Set(inv.ownedBlades || []);
+  const looseBlades  = new Set(inv.blade || []);
+  const ownedR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]);
+  const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
+  const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
+
+  const total = ownedBladeIds.size + looseBlades.size + ownedR.size + ownedB.size + ownedA.size;
+
+  if (total === 0) {
+    document.getElementById("invSubContent").innerHTML =
+      `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:0.85rem;">📦 還沒有收藏任何零件</div>`;
+    return;
+  }
+
+  function makeCards(ids, cat) {
+    return [...ids].sort().map(id => {
+      const item = DB.find(x => x.id === id && x.cat === cat)
+                || DB.find(x => x.id === id); // fallback
+      const imgUrl = item ? getImgUrl(item) : '';
+      const thumb = imgUrl
+        ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${id}" loading="lazy">`
+        : `<div class="owned-blade-thumb-ph">${id}</div>`;
+      const fromB = (cat==='ratchet'&&fromBlades.ratchet.has(id))
+                 || (cat==='bit'&&fromBlades.bit.has(id))
+                 || (cat==='assist'&&fromBlades.assist.has(id));
+      return `<div class="owned-blade-card owned" style="cursor:default;${fromB?'opacity:0.75':''}">
+        ${thumb}
+        <div class="owned-blade-info">
+          <div class="owned-blade-name">${item?.name || id}</div>
+          <div class="owned-blade-id">${item?.id || ''}</div>
+          ${fromB ? `<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // 戰刃（原裝+散件合併去重）
+  const allBladeIds = new Set([...ownedBladeIds, ...looseBlades]);
+
+  const sections = [
+    { label:'戰刃 BLADE',       ids: allBladeIds, cat:'blade' },
+    { label:'固鎖 RATCHET',     ids: ownedR,      cat:'ratchet' },
+    { label:'軸心 BIT',         ids: ownedB,      cat:'bit' },
+    { label:'輔助戰刃 ASSIST',  ids: ownedA,      cat:'assist' },
+  ].filter(s => s.ids.size > 0);
+
+  document.getElementById("invSubContent").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:0.8rem;color:var(--muted);">所有已收藏的零件</div>
+      <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個</div>
+    </div>
+    ${sections.map(s => `
+      <div class="vault-section" style="margin-bottom:10px;">
+        <div class="vault-section-head">
+          <span class="vault-section-title">${s.label}</span>
+          <span class="vault-section-count">${s.ids.size} 個</span>
+        </div>
+        <div class="owned-blades-grid" style="padding:0 10px 12px;">${makeCards(s.ids, s.cat)}</div>
+      </div>
+    `).join('')}`;
+}
+
+function renderOwnedBlades(inv, fromBlades, searchVal = '') {
+  const allBlades = DB.filter(x => x.cat === 'blade');
+  const ownedSet = new Set(inv.ownedBlades || []);
+  const ownedCount = ownedSet.size;
+  const q = searchVal.trim().toLowerCase();
+
+  const filtered = q
+    ? allBlades.filter(b => b.name.toLowerCase().includes(q) || b.id.toLowerCase().includes(q))
+    : allBlades;
+
+  const html = filtered.map(blade => {
+    const owned = ownedSet.has(blade.id);
+    const imgUrl = getImgUrl(blade);
+    const thumb = imgUrl
+      ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${blade.name}">`
+      : `<div class="owned-blade-thumb-ph">${blade.name}</div>`;
+
+    const partTags = [
+      blade.assistBlade ? `<span class="part-tag">輔助${blade.assistBlade}</span>` : '',
+      blade.ratchet ? `<span class="part-tag">${blade.ratchet}</span>` : '',
+      blade.bit ? `<span class="part-tag">${blade.bit}</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `<div class="owned-blade-card${owned?' owned':''}" onclick="toggleOwnedBlade('${blade.id}')">
+      <div class="owned-blade-check">
+        ${owned ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0b10" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+      </div>
+      ${thumb}
+      <div class="owned-blade-info">
+        <div class="owned-blade-name">${blade.name}</div>
+        <div class="owned-blade-id">${blade.id}</div>
+        ${partTags ? `<div class="owned-blade-parts">${partTags}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById("invSubContent").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-size:0.8rem;color:var(--muted);">勾選整顆陀螺，自動帶入原裝零件</div>
+      <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">已收藏 ${ownedCount} 顆</div>
+    </div>
+    <div style="position:relative;margin-bottom:12px;">
+      <input id="bladeSearchInput" type="text" value="${searchVal}"
+        placeholder="搜尋陀螺名稱或型號…"
+        oninput="filterOwnedBlades(this.value)"
+        style="width:100%;padding:9px 16px 9px 36px;background:var(--surface2);border:1px solid var(--border2);border-radius:999px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:16px;outline:none;box-sizing:border-box;transition:border-color 0.2s;-webkit-appearance:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.4;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    ${filtered.length===0 ? `<div id="bladeNoResult" style="text-align:center;color:var(--muted);padding:30px 0;font-size:0.85rem;">找不到「${q}」</div>` : `<div id="bladeNoResult" style="display:none"></div>`}
+    <div class="owned-blades-grid" id="bladeGrid">${html}</div>`;
+}
+
+function filterOwnedBlades(val) {
+  // 用 requestAnimationFrame 避免重繪時輸入框失焦
+  const inv = loadInventory();
+  const grid = document.getElementById('bladeGrid');
+  if (!grid) { renderOwnedBlades(inv, getPartsFromOwnedBlades(inv), val); return; }
+  const q = val.trim().toLowerCase();
+  const allBlades = DB.filter(x => x.cat === 'blade');
+  const ownedSet = new Set(inv.ownedBlades || []);
+  const filtered = q ? allBlades.filter(b => b.name.toLowerCase().includes(q) || b.id.toLowerCase().includes(q)) : allBlades;
+  const noResult = document.getElementById('bladeNoResult');
+  if (noResult) noResult.style.display = filtered.length === 0 ? 'block' : 'none';
+  grid.innerHTML = filtered.map(blade => {
+    const owned = ownedSet.has(blade.id);
+    const imgUrl = getImgUrl(blade);
+    const thumb = imgUrl ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${blade.name}">` : `<div class="owned-blade-thumb-ph">${blade.name}</div>`;
+    const partTags = [blade.assistBlade?`<span class="part-tag">輔助${blade.assistBlade}</span>`:'', blade.ratchet?`<span class="part-tag">${blade.ratchet}</span>`:'', blade.bit?`<span class="part-tag">${blade.bit}</span>`:''].filter(Boolean).join('');
+    return `<div class="owned-blade-card${owned?' owned':''}" onclick="toggleOwnedBlade('${blade.id}')">
+      <div class="owned-blade-check">${owned?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0a0b10" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}</div>
+      ${thumb}
+      <div class="owned-blade-info">
+        <div class="owned-blade-name">${blade.name}</div>
+        <div class="owned-blade-id">${blade.id}</div>
+        ${partTags?`<div class="owned-blade-parts">${partTags}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleOwnedBlade(bladeId) {
+  const inv = loadInventory();
+  if (!inv.ownedBlades) inv.ownedBlades = [];
+  const idx = inv.ownedBlades.indexOf(bladeId);
+  if (idx === -1) inv.ownedBlades.push(bladeId);
+  else inv.ownedBlades.splice(idx, 1);
+  saveInventory(inv);
+  const fromBlades = getPartsFromOwnedBlades(inv);
+  renderInvSubTab(inv, fromBlades);
+}
+
+function renderLooseParts(inv, fromBlades) {
+  // 散件：手動勾選，但顯示哪些已由原裝陀螺帶入
+  const ratchets = [...new Set(DB.filter(x=>x.cat==='ratchet').map(x=>x.id))].sort();
+  const bits     = [...new Set(DB.filter(x=>x.cat==='bit').map(x=>x.id))].sort();
+  const assists  = [...new Set(DB.filter(x=>x.cat==='assist').map(x=>x.id))].sort();
+
+  function chipsHtml(list, cat) {
+    return list.map(id => {
+      const manualOwned = (inv[cat]||[]).includes(id);
+      const autoOwned = fromBlades[cat]?.has(id);
+      if (autoOwned) {
+        // 由原裝陀螺自動帶入，顯示來源，不可手動取消
+        const srcBlades = (inv.ownedBlades||[]).filter(bid => {
+          const b = DB.find(x=>x.cat==='blade'&&x.id===bid);
+          if (!b) return false;
+          if (cat==='ratchet') return b.ratchet === id;
+          if (cat==='bit') return b.bit === id;
+          if (cat==='assist') return "輔助"+b.assistBlade === id;
+          return false;
+        });
+        const srcName = srcBlades.length > 0 ? DB.find(x=>x.cat==='blade'&&x.id===srcBlades[0])?.name || srcBlades[0] : '';
+        return `<span class="vault-part-chip from-blade" title="來自原裝陀螺：${srcName}"><span class="chip-dot"></span>${id}<span class="chip-source">原裝</span></span>`;
+      }
+      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="togglePart('${cat}','${id}')"><span class="chip-dot"></span>${id}</span>`;
+    }).join('');
+  }
+
+  const sections = [
+    { cat:'ratchet', label:'固鎖 Ratchet', list:ratchets },
+    { cat:'bit',     label:'軸心 Bit',     list:bits },
+    { cat:'assist',  label:'輔助戰刃 Assist', list:assists },
+  ].filter(s=>s.list.length>0);
+
+  // 總擁有數：散件 + 原裝帶入（去重）
+  const totalR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]).size;
+  const totalB = new Set([...(inv.bit||[]), ...fromBlades.bit]).size;
+  const totalA = new Set([...(inv.assist||[]), ...fromBlades.assist]).size;
+  const total = totalR + totalB + totalA;
+
+  document.getElementById("invSubContent").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:0.8rem;color:var(--muted);">點擊標記散件；<span style="color:rgba(18,239,206,0.6)">淡色</span>為原裝自動帶入</div>
+      <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個零件</div>
+    </div>
+    ${sections.map(s=>`
+      <div class="vault-section">
+        <div class="vault-section-head">
+          <span class="vault-section-title">${s.label}</span>
+          <span class="vault-section-count">${
+            s.cat==='ratchet' ? totalR :
+            s.cat==='bit' ? totalB : totalA
+          } / ${s.list.length}</span>
+        </div>
+        <div class="vault-parts-grid">${chipsHtml(s.list, s.cat)}</div>
+      </div>`).join('')}
+    <div style="text-align:center;margin-top:16px;">
+      <button onclick="clearInventory()" style="background:none;border:1px solid rgba(255,94,122,0.25);color:var(--danger);border-radius:999px;padding:6px 18px;font-size:0.75rem;cursor:pointer;" onmouseover="this.style.background='rgba(255,94,122,0.08)'" onmouseout="this.style.background='none'">清除所有收藏</button>
+    </div>`;
+}
+function togglePart(cat, id) {
+  const inv = loadInventory();
+  if (!inv[cat]) inv[cat]=[];
+  const idx = inv[cat].indexOf(id);
+  if (idx===-1) inv[cat].push(id); else inv[cat].splice(idx,1);
+  saveInventory(inv);
+  renderInventory();
+}
+function clearInventory() {
+  if (!confirm("確定要清除所有收藏的零件嗎？")) return;
+  saveInventory({ownedBlades:[],blade:[],ratchet:[],bit:[],assist:[]});
+  renderInventory();
+}
+/**
+ * parseComboNeed — 依新格式解析建議配置文字
+ *
+ * 格式說明：
+ *   |  →  分隔「固鎖（含輔助戰刃）」與「軸心」兩欄
+ *   /  →  OR：同一欄中任意一個符合即可
+ *   ,  →  AND：同一方案內必須同時具備
+ *
+ * 每一行（以 <br> 或換行分隔）代表一個獨立方案。
+ * 範例行：  "3-60,輔助Phoenix / 4-70 | FT / HT"
+ *   → 固鎖 & 配件：(3-60 AND 輔助Phoenix) OR (4-70)
+ *   → 軸心：FT OR HT
+ *   → 展開成四個組合方案
+ */
+function parseComboNeed(blade) {
+  const combos = [];
+  const rawText = [blade.comboText, blade.noteText].filter(Boolean).join("\n");
+  if (!rawText) return combos;
+
+  // 先把 <br> 統一成換行，再按行拆分
+  const lines = rawText.replace(/<br\s*\/?>\s*/gi, "\n").split(/\n/);
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    // 用 | 切分左右欄
+    const pipeIdx = trimmed.indexOf("|");
+    const leftRaw  = pipeIdx !== -1 ? trimmed.slice(0, pipeIdx) : trimmed;
+    const rightRaw = pipeIdx !== -1 ? trimmed.slice(pipeIdx + 1) : "";
+
+    // 解析一欄的 OR 群組（/ 分隔），每群組再用 , 拆 AND 元素
+    function parseColumn(raw) {
+      if (!raw.trim()) return [[]]; // 空欄 → 一個空群組
+      return raw.split("/").map(group =>
+        group.split(",").map(s => s.trim()).filter(Boolean)
+      );
+    }
+
+    const leftGroups  = parseColumn(leftRaw);   // OR of AND-groups for 固鎖+配件
+    const rightGroups = parseColumn(rightRaw);  // OR of AND-groups for 軸心
+
+    // 笛卡兒積：左 × 右，展開所有組合方案
+    leftGroups.forEach(leftItems => {
+      rightGroups.forEach(rightItems => {
+        const ratchets = [], bits = [], assists = [];
+
+        // 分類左欄元素（固鎖 vs 輔助戰刃）
+        leftItems.forEach(token => {
+          if (token.startsWith("輔助")) {
+            assists.push(token);
+          } else if (DB.find(x => x.cat === "ratchet" && x.id === token)) {
+            ratchets.push(token);
+          } else if (DB.find(x => x.cat === "bit" && x.id === token)) {
+            bits.push(token);
+          }
+        });
+
+        // 分類右欄元素（軸心）
+        rightItems.forEach(token => {
+          if (token.startsWith("輔助")) {
+            assists.push(token);
+          } else if (DB.find(x => x.cat === "bit" && x.id === token)) {
+            bits.push(token);
+          } else if (DB.find(x => x.cat === "ratchet" && x.id === token)) {
+            ratchets.push(token);
+          }
+        });
+
+        if (ratchets.length || bits.length || assists.length) {
+          combos.push({ ratchets, bits, assists });
+        }
+      });
+    });
+  });
+
+  return combos;
+}
+function renderAnalysis() {
+  const inv = loadInventory();
+  const fromBlades = getPartsFromOwnedBlades(inv);
+
+  // 合併散件 + 原裝帶入
+  const ownedR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]);
+  const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
+  const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
+  const ownedBladeSet = new Set(inv.ownedBlades||[]);
+
+  const blades = DB.filter(x=>x.cat==='blade'&&(x.comboText||x.noteText));
+  const complete=[], nearMiss=[];
+
+  blades.forEach(blade=>{
+    // 必須擁有這個戰刃（原裝或散件）才納入分析
+    const hasThisBlade = ownedBladeSet.has(blade.id) || (inv.blade||[]).includes(blade.id);
+    if (!hasThisBlade) return;
+
+    parseComboNeed(blade).forEach(combo=>{
+      // 有效組合必須包含至少一個固鎖 + 一個軸心（戰刃已由外層 hasThisBlade 保證）
+      const isValidCombo = combo.ratchets.length >= 1 && combo.bits.length >= 1;
+      if (!isValidCombo) return;
+
+      const nR=combo.ratchets.filter(r=>!ownedR.has(r));
+      const nB=combo.bits.filter(b=>!ownedB.has(b));
+      const nA=combo.assists.filter(a=>!ownedA.has(a));
+      const miss=nR.length+nB.length+nA.length;
+      const entry={blade,combo,neededR:nR,neededB:nB,neededA:nA,totalMissing:miss};
+      if(miss===0) complete.push(entry);
+      else if(miss===1) nearMiss.push(entry);
+    });
+  });
+
+  function partSource(id, cat) {
+    // 顯示零件來源標註
+    if (cat==='ratchet' && fromBlades.ratchet.has(id)) {
+      const src = (inv.ownedBlades||[]).find(bid => DB.find(x=>x.cat==='blade'&&x.id===bid)?.ratchet===id);
+      return src ? `<span style="font-size:0.65rem;color:var(--muted);margin-left:3px;">(${DB.find(x=>x.cat==='blade'&&x.id===src)?.name||src})</span>` : '';
+    }
+    if (cat==='bit' && fromBlades.bit.has(id)) {
+      const src = (inv.ownedBlades||[]).find(bid => DB.find(x=>x.cat==='blade'&&x.id===bid)?.bit===id);
+      return src ? `<span style="font-size:0.65rem;color:var(--muted);margin-left:3px;">(${DB.find(x=>x.cat==='blade'&&x.id===src)?.name||src})</span>` : '';
+    }
+    return '';
+  }
+
+  function comboHtml(e) {
+    // 左欄：輔助戰刃 + 固鎖（AND 關係用「+」連接）
+    const leftParts = [
+      ...e.combo.assists.map(a=>`<span class="${e.neededA.includes(a)?'missing':'have'}">${a}</span>`),
+      ...e.combo.ratchets.map(r=>`<span class="${e.neededR.includes(r)?'missing':'have'}">${r}${partSource(r,'ratchet')}</span>`),
+    ];
+    // 右欄：軸心（AND 關係用「+」連接）
+    const rightParts = [
+      ...e.combo.bits.map(b=>`<span class="${e.neededB.includes(b)?'missing':'have'}">${b}${partSource(b,'bit')}</span>`),
+    ];
+    const sep = ' <span style="opacity:0.25;font-size:0.85em;">+</span> ';
+    const pipe = ' <span style="opacity:0.4;margin:0 3px;">｜</span> ';
+    const leftHtml  = leftParts.length  ? leftParts.join(sep)  : '';
+    const rightHtml = rightParts.length ? rightParts.join(sep) : '';
+    if (leftHtml && rightHtml) return leftHtml + pipe + rightHtml;
+    return leftHtml || rightHtml;
+  }
+
+  function itemHtml(e) {
+    return `<div class="analysis-item" onclick="closeVault();openModal(DB.find(x=>x.id=='${e.blade.id}'&&x.cat=='blade'))">
+      <div class="analysis-item-head">
+        <span class="analysis-status">${e.totalMissing===0?'✅':'🔧'}</span>
+        <div><div class="analysis-name">${e.blade.name}</div><div class="analysis-id">${e.blade.id}</div></div>
+      </div>
+      <div class="analysis-combo">${comboHtml(e)}</div>
+      ${e.totalMissing===1?`<div style="margin-top:5px;font-size:0.72rem;color:var(--warn);">缺少：${[...e.neededR,...e.neededB,...e.neededA].join('、')}</div>`:''}
+    </div>`;
+  }
+
+  const totalOwned = ownedR.size+ownedB.size+ownedA.size;
+  const hasAny = (inv.ownedBlades||[]).length>0 || totalOwned>0;
+
+  document.getElementById("vaultTabContent").innerHTML = `
+    <div class="analysis-summary">
+      <div class="summary-card complete"><div class="summary-num">${complete.length}</div><div class="summary-label">✅ 可完整組合</div></div>
+      <div class="summary-card near"><div class="summary-num">${nearMiss.length}</div><div class="summary-label">🔧 接近達成組合</div></div>
+    </div>
+    ${!hasAny?'<div class="analysis-empty">📦 請先在「零件倉庫」勾選原裝陀螺或散件零件</div>':''}
+    ${complete.length>0?`<div style="font-size:0.75rem;color:var(--success);font-weight:700;margin-bottom:8px;">✅ 可完整組合</div>${complete.map(itemHtml).join('')}`:''}
+    ${nearMiss.length>0?`<div style="font-size:0.75rem;color:var(--warn);font-weight:700;margin:14px 0 8px;">🔧 接近達成組合</div>${nearMiss.map(itemHtml).join('')}`:''}
+    ${complete.length===0&&nearMiss.length===0&&hasAny?'<div class="analysis-empty">目前收藏的零件還無法湊成任何建議配置<br>繼續收集吧！</div>':''}`;
+}
 
 buildCatTabs();
 buildTierFilter();
