@@ -87,7 +87,6 @@ body {
   min-height: 100vh;
   position: relative;
 }
-/* 用偽元素固定背景漸層，iOS Safari 相容 */
 body::before {
   content: "";
   position: fixed;
@@ -98,7 +97,6 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-/* 手機版漸層加強，讓層次明顯 */
 @media (max-width: 600px) {
   body::before {
     background:
@@ -106,7 +104,6 @@ body::before {
       radial-gradient(circle at top right, rgba(105,167,255,0.15), transparent 50%);
   }
 }
-/* 確保所有內容層疊在偽元素上方 */
 header, #main, .modal-overlay { position: relative; z-index: 1; }
 
 header {
@@ -131,7 +128,6 @@ h1 {
   -webkit-text-fill-color: transparent;
   margin: 0;
   line-height: 1.1;
-  /* 移除 filter，避免 iOS Safari 渲染 Bug 導致字體失效 */
 }
 .subtitle { display: inline-flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
 .st-main { font-size: 1.05rem; font-weight: 900; color: var(--muted); letter-spacing: 0.1em; margin-right: 6px; }
@@ -225,7 +221,6 @@ main { padding: 1.2rem 2rem 4rem; }
 }
 .bey-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.22); box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.06); }
 
-/* 玻璃光澤高光線 */
 .bey-card::before {
   content: "";
   position: absolute;
@@ -282,7 +277,6 @@ main { padding: 1.2rem 2rem 4rem; }
 }
 .modal-box::-webkit-scrollbar { display: none; }
 
-/* 桌面版卡片高度放寬 */
 @media (min-width: 768px) {
   .modal-box { max-height: 88vh; }
 }
@@ -291,7 +285,6 @@ main { padding: 1.2rem 2rem 4rem; }
 .modal-close { right: 14px; }
 .modal-back { left: 14px; }
 .modal-close:hover, .modal-back:hover { color: var(--text); background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
-/* Modal 圖片：輻射漸層光暈背景 + PNG 置中 */
 .modal-img-wrap {
   width: 154px; height: 154px;
   margin: 0 auto 1rem;
@@ -328,7 +321,6 @@ main { padding: 1.2rem 2rem 4rem; }
 .buy-rec.maybe { background: rgba(255,184,48,0.08);  color: var(--warn);    border: 1px solid rgba(255,184,48,0.2); }
 .buy-rec.no    { background: rgba(68,85,102,0.12);   color: #8899aa;        border: 1px solid rgba(68,85,102,0.22); }
 
-/* 零件專屬：擁有該零件的產品列表橫向捲動區 */
 .parts-products-wrapper { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border); text-align: left; }
 .parts-products-title { display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 10px; font-weight: 700; }
 .parts-products-title::before { content: ""; display: block; width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px; }
@@ -342,7 +334,6 @@ main { padding: 1.2rem 2rem 4rem; }
 .product-mini-name { font-size: 0.6rem; color: var(--text); font-weight: 600; text-align: center; width:100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
 .product-mini-id { font-size: 0.55rem; color: var(--muted); text-align: center; margin-top: 1px; }
 
-/* 可點擊零件樣式 (原裝配置) */
 .clickable-part { color: #f0f0f5; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); transition: color 0.15s; }
 .clickable-part:hover { color: var(--accent); text-decoration-color: var(--accent); }
 
@@ -362,7 +353,6 @@ main { padding: 1.2rem 2rem 4rem; }
     border-radius: 999px;
   }
   
-  /* 手機版排版堆疊邏輯 */
   .controls-container {
     display: flex !important;
     flex-direction: column !important;
@@ -379,13 +369,11 @@ main { padding: 1.2rem 2rem 4rem; }
     gap: 8px !important;
   }
   
-  /* 搜尋列 */
   .top-filter-row > div:first-child {
     max-width: 100% !important;
     width: 100% !important;
   }
   
-  /* 第三排: 分類列 */
   .cat-tabs {
     width: 100% !important;
     display: flex !important;
@@ -397,7 +385,6 @@ main { padding: 1.2rem 2rem 4rem; }
     text-align: center !important;
   }
   
-  /* 第四排: 購買推薦列 */
   .buy-filter {
     width: 100% !important;
     display: flex !important;
@@ -410,7 +397,6 @@ main { padding: 1.2rem 2rem 4rem; }
     font-size: 0.75rem !important;
   }
   
-  /* 第五排: 階級列 (單行滿版均分) */
   .tier-filter {
     width: 100% !important;
     display: flex !important;
@@ -428,9 +414,6 @@ main { padding: 1.2rem 2rem 4rem; }
     text-align: center !important;
   }
 
-  
-  
-
   .tier-cards {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
@@ -438,6 +421,17 @@ main { padding: 1.2rem 2rem 4rem; }
     padding: 6px !important;
   }
   .bey-card {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* ── PATCH 3: 原裝陀螺卡片手機版填滿 4 欄 ── */
+  .owned-blades-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+  .owned-blade-card {
     width: 100% !important;
     box-sizing: border-box;
   }
@@ -471,7 +465,6 @@ main { padding: 1.2rem 2rem 4rem; }
     inset 0 1px 0 rgba(255,255,255,0.1),
     0 0 0 0.5px rgba(255,255,255,0.05);
 }
-/* 頂部高光線 */
 .float-island::before {
   content: "";
   position: absolute;
@@ -509,7 +502,6 @@ main { padding: 1.2rem 2rem 4rem; }
   color: rgba(255,255,255,0.25);
   background: none;
 }
-/* 鎖定小點 */
 .fi-lock-dot {
   position: absolute;
   bottom: 7px; right: 7px;
@@ -519,7 +511,6 @@ main { padding: 1.2rem 2rem 4rem; }
   border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* 全站隱藏捲動條 */
 html, body { scrollbar-width: none; background: #0a0b10; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
@@ -563,7 +554,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .vault-close:hover { color: var(--text); background: rgba(255,255,255,0.12); }
 
-/* 密碼畫面 */
 .vault-lock {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   min-height: 75vh; gap: 16px; text-align: center;
@@ -587,7 +577,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-pw-btn:hover { box-shadow: 0 0 16px rgba(18,239,206,0.2); }
 .vault-pw-error { color: var(--danger); font-size: 0.8rem; min-height: 1.2em; }
 
-/* 倉庫分頁 */
 .vault-tabs {
   display: flex; gap: 4px; background: rgba(255,255,255,0.04);
   border-radius: var(--radius-pill); padding: 4px; border: 1px solid var(--border);
@@ -603,7 +592,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 .vault-tab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-/* 零件區塊 */
 .vault-section {
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
   border: 1px solid var(--border); border-radius: var(--radius-card);
@@ -627,7 +615,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; }
 .vault-part-chip.owned .chip-dot { background: var(--accent); }
 
-/* 配置分析 */
 .analysis-summary {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
 }
@@ -656,7 +643,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .analysis-combo .missing { color: var(--warn); font-weight: 700; }
 .analysis-empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.85rem; }
 
-/* 倉庫公告 */
 .vault-notice {
   position: relative;
   margin-bottom: 14px;
@@ -679,13 +665,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .vault-notice-close:hover { background: rgba(255,255,255,0.15); color: var(--text); }
 
-/* 原裝陀螺 grid — 對齊天梯 tier-cards */
 .owned-blades-grid {
   display: flex; flex-wrap: wrap; gap: 6px;
   padding: 4px 0;
 }
 
-/* 倉庫子分頁 */
 .vault-subtabs {
   display: flex; gap: 3px; margin-bottom: 14px;
   background: rgba(255,255,255,0.03); border-radius: var(--radius-pill);
@@ -699,7 +683,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-subtab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
 .vault-subtab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-/* 原裝陀螺卡片 */
 .owned-blade-card {
   display: flex; flex-direction: column; align-items: center;
   background: linear-gradient(160deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%);
@@ -734,10 +717,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .owned-blade-card.owned .owned-blade-check { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(18,239,206,0.4); }
 
-/* 散件：來源標示 */
 .vault-part-chip.from-blade { background: rgba(18,239,206,0.04); border-color: rgba(18,239,206,0.12); color: rgba(18,239,206,0.55); cursor: default; }
 .vault-part-chip.from-blade:hover { border-color: rgba(18,239,206,0.12); transform: none; color: rgba(18,239,206,0.55); }
-.chip-source { font-size: 0.58rem; opacity: 0.65; margin-left: 2px; }</style>
+.chip-source { font-size: 0.58rem; opacity: 0.65; margin-left: 2px; }
+</style>
 </head>
 <body>
 
@@ -753,20 +736,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   </div>
   <div class="controls-container" style="display: inline-flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-width: 100%;">
     
-    <!-- 第一行：搜尋框 + 分類列 + 推薦列 -->
     <div class="top-filter-row" style="display: flex; gap: 10px; align-items: center; width: 100%; flex-wrap: wrap;">
-      <!-- 搜尋框 -->
       <div style="position: relative; flex: 1; min-width: 250px; max-width: 400px;">
         <input type="text" id="searchInput" placeholder="搜尋型號或名稱（CX07 或 CX-07）…" autocomplete="off" style="width: 100%; padding-right: 45px; box-sizing: border-box;">
         <button id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; document.getElementById('clearSearchBtn').style.display='none'; render();" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; display: none; padding: 5px; line-height: 1;">&times;</button>
       </div>
-      <!-- 分類列 -->
       <div class="cat-tabs" id="catTabs"></div>
-      <!-- 購買建議篩選 (本來隱藏，現在顯示) -->
       <div class="buy-filter" id="buyFilter"></div>
     </div>
     
-    <!-- 第二行：階級列 -->
     <div class="tier-filter" id="tierFilter" style="width: 100%;"></div>
     
   </div>
@@ -781,7 +759,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
 <main id="main"></main>
 
-<!-- 右下角懸浮島 -->
 <div class="float-island">
   <button class="fi-btn fi-btn--active" onclick="closeVault()" title="天梯表">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -806,7 +783,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   </button>
 </div>
 
-<!-- 倉庫頁面 -->
 <div class="vault-page" id="vaultPage">
   <div class="vault-inner">
     <div class="vault-header">
@@ -823,11 +799,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </div>
 
 <script>
-// 圖片對照表（來源：東海模型 img.91app.com CDN）
-// 未填寫的型號顯示文字佔位，待後續補充
-
-
-
 let DB = [];
 let modalHistory = [];
 let currentModalData = null;
@@ -837,15 +808,11 @@ let PARTS_IMG = {};
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
 const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
 
-
-// 自動擷取年-月-日，過濾掉時間
 function extractDateOnly(dateStr) {
   if (!dateStr) return "未知日期 更新";
-  // 匹配 YYYY-MM-DD 或 YYYY/MM/DD 格式
   const match = dateStr.match(/\d{4}[-/]\d{1,2}[-/]\d{1,2}/);
   return match ? match[0] + " 更新" : dateStr;
 }
-
 
 async function fetchBothSheets() {
   const t = new Date().getTime();
@@ -878,7 +845,6 @@ function parseCSV(str) {
   }
   return arr;
 }
-
 
 async function loadData(force = false) {
   const cachedDB = localStorage.getItem('bey_db_v2');
@@ -1044,7 +1010,6 @@ function processData(dataMain, dataParts, latestDate) {
           partAggregator[bit].products.push(bladeObj);
       }
 
-      // 輔助戰刃：無階級，僅作跳轉用途，id 用「輔助X」格式避免與軸心撞名
       if (assistBlade) {
           const assistId = "輔助" + assistBlade;
           const assistKey = "assist_" + assistBlade;
@@ -1083,7 +1048,6 @@ function getBuyRec(t) {
 }
 
 function calculateBuyRec(bladeT, ratchetT, bitT) {
-    // 定義階級對應的分數
     const scores = {
         "X": 100, "S+": 90, "S": 80, "A+": 70, "A": 60,
         "B+": 50, "B": 40, "C+": 30, "C": 20, "D+": 15, "D": 10, "E+": 5, "E": 0
@@ -1096,31 +1060,15 @@ function calculateBuyRec(bladeT, ratchetT, bitT) {
     let totalWeight = 0;
     let totalScore = 0;
 
-    // 戰刃權重 x2 (優先)
-    if (bScore !== undefined) {
-        totalScore += bScore * 2;
-        totalWeight += 2;
-    }
-    // 固鎖權重 x1 (其次)
-    if (rScore !== undefined) {
-        totalScore += rScore * 1;
-        totalWeight += 1;
-    }
-    // 軸心權重 x1 (其次)
-    if (bitScore !== undefined) {
-        totalScore += bitScore * 1;
-        totalWeight += 1;
-    }
+    if (bScore !== undefined) { totalScore += bScore * 2; totalWeight += 2; }
+    if (rScore !== undefined) { totalScore += rScore * 1; totalWeight += 1; }
+    if (bitScore !== undefined) { totalScore += bitScore * 1; totalWeight += 1; }
 
     if (totalWeight === 0) return "no";
 
     let avg = totalScore / totalWeight;
-
-    // A (60) 以上為 yes
     if (avg >= 60) return "yes";
-    // B (40) 到 B+ (50) 為 maybe (40 <= avg < 60)
     if (avg >= 40) return "maybe";
-    // C+ (30) 以下為 no
     return "no";
 }
 
@@ -1147,7 +1095,6 @@ let activeCategory = "all";
 let activeTier = "all";
 let activeBuy  = "all";
 
-// 搜尋正規化：移除 - 和空格（通用版，不限字母-數字格式）
 function norm(s) {
   if (!s) return "";
   return s.toLowerCase().replace(/-/g, '').replace(/\s+/g, '');
@@ -1221,7 +1168,6 @@ function buildTierFilter() {
       btn.style.color = "#0a0a0f";
       render();
     };
-    // 初始 active 狀態補上樣式
     if (val === activeTier) {
       btn.style.background = val==="all" ? "var(--accent)" : c;
       btn.style.color = "#0a0a0f";
@@ -1325,12 +1271,10 @@ function render() {
   });
 }
 
-
 function linkifyParts(text) {
   if (!text) return "";
   let processed = text.replace(/\|/g, "<br>").replace(/\n/g, "<br>");
   
-  // 建立輔助戰刃和固鎖/軸心的查找表
   const assistParts = DB.filter(x => x.cat === 'assist');
   const ratchetBitParts = DB.filter(x => x.cat === 'ratchet' || x.cat === 'bit');
 
@@ -1339,12 +1283,10 @@ function linkifyParts(text) {
 
   if (assistIds.length === 0 && partIds.length === 0) return processed;
 
-  // 合併成單一 pattern，輔助戰刃（較長）排前面優先比對
   const allIds = [...assistIds, ...partIds];
   const escaped = allIds.map(id => id.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'));
   const combinedPattern = new RegExp(`(${escaped.join('|')})`, 'g');
 
-  // 依 HTML 標籤切分，只對純文字節點做替換
   return processed.split(/(<[^>]+>)/).map(chunk => {
     if (chunk.startsWith('<')) return chunk;
     return chunk.replace(combinedPattern, (match) => {
@@ -1513,16 +1455,14 @@ const VAULT_PASSWORD = "stan2026";
 const VAULT_SESSION_KEY = "bey_vault_unlocked";
 const VAULT_INVENTORY_KEY = "bey_inventory_v1";
 
-let currentUser = null; // 預留：未來接上登入系統時填入 userId
+let currentUser = null;
 
 function saveInventory(data) {
-  // 未來：if (currentUser) { 存雲端 } else { ... }
   localStorage.setItem(VAULT_INVENTORY_KEY, JSON.stringify(data));
 }
 function loadInventory() {
-  // 未來：if (currentUser) { 讀雲端 } else { ... }
-  try { return JSON.parse(localStorage.getItem(VAULT_INVENTORY_KEY) || '{"blade":[],"ratchet":[],"bit":[],"assist":[]}'); }
-  catch { return { blade:[], ratchet:[], bit:[], assist:[] }; }
+  try { return JSON.parse(localStorage.getItem(VAULT_INVENTORY_KEY) || '{"ownedBlades":[],"blade":[],"ratchet":[],"bit":[],"assist":[],"bladeCover":[]}'); }
+  catch { return { ownedBlades:[], blade:[], ratchet:[], bit:[], assist:[], bladeCover:[] }; }
 }
 
 let vaultTab = "inventory";
@@ -1544,35 +1484,8 @@ function closeVault() {
   document.body.style.overflow = "";
   setIslandActive(0);
 }
-function showShareHint() {
-  // 預留：截圖分享功能
-}
-function renderVaultLock() {
-  document.getElementById("vaultContent").innerHTML = `
-    <div class="vault-lock">
-      <div class="vault-lock-icon">🔒</div>
-      <h2>倉庫已鎖定</h2>
-      <p>此功能目前僅供管理員使用<br>請輸入密碼繼續</p>
-      <input class="vault-pw-input" id="vaultPwInput" type="password" placeholder="••••••••"
-        onkeydown="if(event.key==='Enter') vaultUnlock()">
-      <button class="vault-pw-btn" onclick="vaultUnlock()">解鎖</button>
-      <div class="vault-pw-error" id="vaultPwError"></div>
-    </div>`;
-  setTimeout(() => document.getElementById("vaultPwInput")?.focus(), 100);
-}
-function vaultUnlock() {
-  const val = document.getElementById("vaultPwInput")?.value || "";
-  if (val === VAULT_PASSWORD) {
-    sessionStorage.setItem(VAULT_SESSION_KEY, "1");
-    renderVaultMain();
-  } else {
-    const err = document.getElementById("vaultPwError");
-    err.textContent = "密碼錯誤，請再試一次";
-    document.getElementById("vaultPwInput").value = "";
-    document.getElementById("vaultPwInput").focus();
-    setTimeout(() => { err.textContent = ""; }, 2500);
-  }
-}
+function showShareHint() {}
+
 function renderVaultMain() {
   const noticeDismissed = sessionStorage.getItem('vault_notice_dismissed');
   const noticeHtml = noticeDismissed ? '' : `
@@ -1604,20 +1517,21 @@ function renderVaultTab() {
   else renderTransfer();
 }
 
-let invSubTab = "owned"; // "owned" | "loose"
+let invSubTab = "owned";
 
+// ── PATCH 2: 加入 bladeCover 到 fromBlades ──
 function getPartsFromOwnedBlades(inv) {
-  // 計算所有原裝陀螺帶入的零件，回傳 { ratchet: Set, bit: Set, assist: Set, blade: Set }
-  const rSet = new Set(), bSet = new Set(), aSet = new Set(), bladeSet = new Set();
+  const rSet = new Set(), bSet = new Set(), aSet = new Set(), bladeSet = new Set(), coverSet = new Set();
   (inv.ownedBlades || []).forEach(bladeId => {
     bladeSet.add(bladeId);
+    coverSet.add(bladeId); // 上蓋代號 = 陀螺產品代號
     const blade = DB.find(x => x.cat === 'blade' && x.id === bladeId);
     if (!blade) return;
     if (blade.ratchet) rSet.add(blade.ratchet);
     if (blade.bit) bSet.add(blade.bit);
     if (blade.assistBlade) aSet.add("輔助" + blade.assistBlade);
   });
-  return { ratchet: rSet, bit: bSet, assist: aSet, blade: bladeSet };
+  return { ratchet: rSet, bit: bSet, assist: aSet, blade: bladeSet, bladeCover: coverSet };
 }
 
 function renderTransfer() {
@@ -1657,7 +1571,6 @@ function exportData() {
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(122,223,96,0.1);border:1px solid rgba(122,223,96,0.25);border-radius:10px;font-size:0.8rem;color:var(--success);">✅ 代碼已複製成功！請儲存至新裝置使用。</div>`;
     setTimeout(() => { el.innerHTML = ''; }, 4000);
   }).catch(() => {
-    // 剪貼簿失敗時直接顯示代碼讓使用者手動複製
     const el = document.getElementById("exportResult");
     el.innerHTML = `<div style="margin-bottom:6px;font-size:0.75rem;color:var(--muted);">請手動複製以下代碼：</div>
       <textarea readonly onclick="this.select()" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:0.7rem;padding:10px;resize:none;outline:none;box-sizing:border-box;word-break:break-all;">${code}</textarea>`;
@@ -1690,6 +1603,7 @@ function showTransferMsg(id, msg, type) {
     setTimeout(() => { el.innerHTML = ''; }, 4000);
   }
 }
+
 function renderInventory() {
   const inv = loadInventory();
   const fromBlades = getPartsFromOwnedBlades(inv);
@@ -1724,8 +1638,9 @@ function renderOverview(inv, fromBlades) {
   const ownedR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]);
   const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
   const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
+  const ownedC = new Set([...(inv.bladeCover||[]), ...fromBlades.bladeCover]);
 
-  const total = ownedBladeIds.size + looseBlades.size + ownedR.size + ownedB.size + ownedA.size;
+  const total = ownedC.size + ownedA.size + ownedR.size + ownedB.size;
 
   if (total === 0) {
     document.getElementById("invSubContent").innerHTML =
@@ -1735,15 +1650,15 @@ function renderOverview(inv, fromBlades) {
 
   function makeCards(ids, cat) {
     return [...ids].sort().map(id => {
-      const item = DB.find(x => x.id === id && x.cat === cat)
-                || DB.find(x => x.id === id); // fallback
+      const item = DB.find(x => x.id === id && x.cat === cat) || DB.find(x => x.id === id);
       const imgUrl = item ? getImgUrl(item) : '';
       const thumb = imgUrl
         ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${id}" loading="lazy">`
         : `<div class="owned-blade-thumb-ph">${id}</div>`;
       const fromB = (cat==='ratchet'&&fromBlades.ratchet.has(id))
                  || (cat==='bit'&&fromBlades.bit.has(id))
-                 || (cat==='assist'&&fromBlades.assist.has(id));
+                 || (cat==='assist'&&fromBlades.assist.has(id))
+                 || (cat==='bladeCover'&&fromBlades.bladeCover.has(id));
       return `<div class="owned-blade-card owned" style="cursor:default;${fromB?'opacity:0.75':''}">
         ${thumb}
         <div class="owned-blade-info">
@@ -1755,14 +1670,13 @@ function renderOverview(inv, fromBlades) {
     }).join('');
   }
 
-  // 戰刃（原裝+散件合併去重）
   const allBladeIds = new Set([...ownedBladeIds, ...looseBlades]);
 
   const sections = [
-    { label:'戰刃 BLADE',       ids: allBladeIds, cat:'blade' },
-    { label:'固鎖 RATCHET',     ids: ownedR,      cat:'ratchet' },
-    { label:'軸心 BIT',         ids: ownedB,      cat:'bit' },
-    { label:'輔助戰刃 ASSIST',  ids: ownedA,      cat:'assist' },
+    { label:'戰刃上蓋 BLADE COVER',  ids: ownedC,      cat:'bladeCover' },
+    { label:'輔助戰刃 ASSIST',       ids: ownedA,      cat:'assist' },
+    { label:'固鎖 RATCHET',          ids: ownedR,      cat:'ratchet' },
+    { label:'軸心 BIT',              ids: ownedB,      cat:'bit' },
   ].filter(s => s.ids.size > 0);
 
   document.getElementById("invSubContent").innerHTML = `
@@ -1788,7 +1702,7 @@ function renderOwnedBlades(inv, fromBlades, searchVal = '') {
   const q = searchVal.trim().toLowerCase();
 
   const filtered = q
-    ? allBlades.filter(b => b.name.toLowerCase().includes(q) || b.id.toLowerCase().includes(q))
+    ? allBlades.filter(b => norm(b.name).includes(norm(q)) || norm(b.id).includes(norm(q)))
     : allBlades;
 
   const html = filtered.map(blade => {
@@ -1835,14 +1749,13 @@ function renderOwnedBlades(inv, fromBlades, searchVal = '') {
 }
 
 function filterOwnedBlades(val) {
-  // 用 requestAnimationFrame 避免重繪時輸入框失焦
   const inv = loadInventory();
   const grid = document.getElementById('bladeGrid');
   if (!grid) { renderOwnedBlades(inv, getPartsFromOwnedBlades(inv), val); return; }
   const q = val.trim().toLowerCase();
   const allBlades = DB.filter(x => x.cat === 'blade');
   const ownedSet = new Set(inv.ownedBlades || []);
-  const filtered = q ? allBlades.filter(b => b.name.toLowerCase().includes(q) || b.id.toLowerCase().includes(q)) : allBlades;
+  const filtered = q ? allBlades.filter(b => norm(b.name).includes(norm(q)) || norm(b.id).includes(norm(q))) : allBlades;
   const noResult = document.getElementById('bladeNoResult');
   if (noResult) noResult.style.display = filtered.length === 0 ? 'block' : 'none';
   grid.innerHTML = filtered.map(blade => {
@@ -1873,44 +1786,53 @@ function toggleOwnedBlade(bladeId) {
   renderInvSubTab(inv, fromBlades);
 }
 
+// ── PATCH 4: 散件新增戰刃上蓋區塊 ──
 function renderLooseParts(inv, fromBlades) {
-  // 散件：手動勾選，但顯示哪些已由原裝陀螺帶入
   const ratchets = [...new Set(DB.filter(x=>x.cat==='ratchet').map(x=>x.id))].sort();
   const bits     = [...new Set(DB.filter(x=>x.cat==='bit').map(x=>x.id))].sort();
   const assists  = [...new Set(DB.filter(x=>x.cat==='assist').map(x=>x.id))].sort();
+  // 戰刃上蓋：取所有 blade 的 id 作為上蓋代號列表
+  const covers   = [...new Set(DB.filter(x=>x.cat==='blade').map(x=>x.id))].sort();
 
   function chipsHtml(list, cat) {
     return list.map(id => {
       const manualOwned = (inv[cat]||[]).includes(id);
       const autoOwned = fromBlades[cat]?.has(id);
       if (autoOwned) {
-        // 由原裝陀螺自動帶入，顯示來源，不可手動取消
-        const srcBlades = (inv.ownedBlades||[]).filter(bid => {
-          const b = DB.find(x=>x.cat==='blade'&&x.id===bid);
-          if (!b) return false;
-          if (cat==='ratchet') return b.ratchet === id;
-          if (cat==='bit') return b.bit === id;
-          if (cat==='assist') return "輔助"+b.assistBlade === id;
-          return false;
-        });
-        const srcName = srcBlades.length > 0 ? DB.find(x=>x.cat==='blade'&&x.id===srcBlades[0])?.name || srcBlades[0] : '';
+        let srcName = '';
+        if (cat === 'bladeCover') {
+          // 上蓋來源就是同 id 的原裝陀螺
+          const src = DB.find(x=>x.cat==='blade'&&x.id===id);
+          srcName = src?.name || id;
+        } else {
+          const srcBlades = (inv.ownedBlades||[]).filter(bid => {
+            const b = DB.find(x=>x.cat==='blade'&&x.id===bid);
+            if (!b) return false;
+            if (cat==='ratchet') return b.ratchet === id;
+            if (cat==='bit') return b.bit === id;
+            if (cat==='assist') return "輔助"+b.assistBlade === id;
+            return false;
+          });
+          srcName = srcBlades.length > 0 ? DB.find(x=>x.cat==='blade'&&x.id===srcBlades[0])?.name || srcBlades[0] : '';
+        }
         return `<span class="vault-part-chip from-blade" title="來自原裝陀螺：${srcName}"><span class="chip-dot"></span>${id}<span class="chip-source">原裝</span></span>`;
       }
       return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="togglePart('${cat}','${id}')"><span class="chip-dot"></span>${id}</span>`;
     }).join('');
   }
 
-  const sections = [
-    { cat:'ratchet', label:'固鎖 Ratchet', list:ratchets },
-    { cat:'bit',     label:'軸心 Bit',     list:bits },
-    { cat:'assist',  label:'輔助戰刃 Assist', list:assists },
-  ].filter(s=>s.list.length>0);
-
-  // 總擁有數：散件 + 原裝帶入（去重）
   const totalR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]).size;
   const totalB = new Set([...(inv.bit||[]), ...fromBlades.bit]).size;
   const totalA = new Set([...(inv.assist||[]), ...fromBlades.assist]).size;
-  const total = totalR + totalB + totalA;
+  const totalC = new Set([...(inv.bladeCover||[]), ...fromBlades.bladeCover]).size;
+  const total = totalR + totalB + totalA + totalC;
+
+  const sections = [
+    { cat:'ratchet',    label:'固鎖 Ratchet',        list:ratchets, count:totalR },
+    { cat:'bit',        label:'軸心 Bit',             list:bits,     count:totalB },
+    { cat:'assist',     label:'輔助戰刃 Assist',      list:assists,  count:totalA },
+    { cat:'bladeCover', label:'戰刃上蓋 Blade Cover', list:covers,   count:totalC },
+  ].filter(s=>s.list.length>0);
 
   document.getElementById("invSubContent").innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -1921,10 +1843,7 @@ function renderLooseParts(inv, fromBlades) {
       <div class="vault-section">
         <div class="vault-section-head">
           <span class="vault-section-title">${s.label}</span>
-          <span class="vault-section-count">${
-            s.cat==='ratchet' ? totalR :
-            s.cat==='bit' ? totalB : totalA
-          } / ${s.list.length}</span>
+          <span class="vault-section-count">${s.count} / ${s.list.length}</span>
         </div>
         <div class="vault-parts-grid">${chipsHtml(s.list, s.cat)}</div>
       </div>`).join('')}
@@ -1932,6 +1851,7 @@ function renderLooseParts(inv, fromBlades) {
       <button onclick="clearInventory()" style="background:none;border:1px solid rgba(255,94,122,0.25);color:var(--danger);border-radius:999px;padding:6px 18px;font-size:0.75rem;cursor:pointer;" onmouseover="this.style.background='rgba(255,94,122,0.08)'" onmouseout="this.style.background='none'">清除所有收藏</button>
     </div>`;
 }
+
 function togglePart(cat, id) {
   const inv = loadInventory();
   if (!inv[cat]) inv[cat]=[];
@@ -1942,107 +1862,96 @@ function togglePart(cat, id) {
 }
 function clearInventory() {
   if (!confirm("確定要清除所有收藏的零件嗎？")) return;
-  saveInventory({ownedBlades:[],blade:[],ratchet:[],bit:[],assist:[]});
+  saveInventory({ownedBlades:[],blade:[],ratchet:[],bit:[],assist:[],bladeCover:[]});
   renderInventory();
 }
-/**
- * parseComboNeed — 依新格式解析建議配置文字
- *
- * 格式說明：
- *   |  →  分隔「固鎖（含輔助戰刃）」與「軸心」兩欄
- *   /  →  OR：同一欄中任意一個符合即可
- *   ,  →  AND：同一方案內必須同時具備
- *
- * 每一行（以 <br> 或換行分隔）代表一個獨立方案。
- * 範例行：  "3-60,輔助Phoenix / 4-70 | FT / HT"
- *   → 固鎖 & 配件：(3-60 AND 輔助Phoenix) OR (4-70)
- *   → 軸心：FT OR HT
- *   → 展開成四個組合方案
- */
+
 function parseComboNeed(blade) {
   const combos = [];
   const rawText = [blade.comboText, blade.noteText].filter(Boolean).join("\n");
   if (!rawText) return combos;
 
-  // 先把 <br> 統一成換行，再按行拆分
+  // 把 <br> 換成換行，再按行處理
   const lines = rawText.replace(/<br\s*\/?>\s*/gi, "\n").split(/\n/);
 
+  // 去除前綴標籤（固鎖：/ 軸心：/ 輔助戰刃：/ 冠軍配置：等）
+  function stripLabels(str) {
+    return str.replace(/[^\|\/,]+：/g, ' ').trim();
+  }
+
   lines.forEach(line => {
-    const trimmed = line.trim();
+    const trimmed = stripLabels(line.trim());
     if (!trimmed) return;
 
-    // 用 | 切分左右欄
+    // | 切成左右兩段（左=固鎖段，右=軸心段）
     const pipeIdx = trimmed.indexOf("|");
     const leftRaw  = pipeIdx !== -1 ? trimmed.slice(0, pipeIdx) : trimmed;
     const rightRaw = pipeIdx !== -1 ? trimmed.slice(pipeIdx + 1) : "";
 
-    // 解析一欄的 OR 群組（/ 分隔），每群組再用 , 拆 AND 元素
     function parseColumn(raw) {
-      if (!raw.trim()) return [[]]; // 空欄 → 一個空群組
+      if (!raw.trim()) return [[]];
       return raw.split("/").map(group =>
         group.split(",").map(s => s.trim()).filter(Boolean)
       );
     }
 
-    const leftGroups  = parseColumn(leftRaw);   // OR of AND-groups for 固鎖+配件
-    const rightGroups = parseColumn(rightRaw);  // OR of AND-groups for 軸心
+    const leftGroups  = parseColumn(leftRaw);
+    const rightGroups = parseColumn(rightRaw);
 
-    // 笛卡兒積：左 × 右，展開所有組合方案
     leftGroups.forEach(leftItems => {
+      const lRatchets = [], lBits = [], lAssists = [];
+      leftItems.forEach(token => {
+        if (token.startsWith("輔助")) lAssists.push(token);
+        else if (DB.find(x => x.cat === "ratchet" && x.id === token)) lRatchets.push(token);
+        else if (DB.find(x => x.cat === "bit"     && x.id === token)) lBits.push(token);
+      });
+
+      // 左欄已同時含固鎖+軸心 → 直接輸出
+      if (lRatchets.length >= 1 && lBits.length >= 1) {
+        combos.push({ ratchets: lRatchets, bits: lBits, assists: lAssists });
+        return;
+      }
+
+      // 否則與右欄做笛卡兒積
+      if (rightGroups.length === 0 || (rightGroups.length === 1 && rightGroups[0].length === 0)) {
+        if (lRatchets.length || lBits.length || lAssists.length)
+          combos.push({ ratchets: lRatchets, bits: lBits, assists: lAssists });
+        return;
+      }
+
       rightGroups.forEach(rightItems => {
-        const ratchets = [], bits = [], assists = [];
-
-        // 分類左欄元素（固鎖 vs 輔助戰刃）
-        leftItems.forEach(token => {
-          if (token.startsWith("輔助")) {
-            assists.push(token);
-          } else if (DB.find(x => x.cat === "ratchet" && x.id === token)) {
-            ratchets.push(token);
-          } else if (DB.find(x => x.cat === "bit" && x.id === token)) {
-            bits.push(token);
-          }
-        });
-
-        // 分類右欄元素（軸心）
+        const ratchets = [...lRatchets], bits = [...lBits], assists = [...lAssists];
         rightItems.forEach(token => {
-          if (token.startsWith("輔助")) {
-            assists.push(token);
-          } else if (DB.find(x => x.cat === "bit" && x.id === token)) {
-            bits.push(token);
-          } else if (DB.find(x => x.cat === "ratchet" && x.id === token)) {
-            ratchets.push(token);
-          }
+          if (token.startsWith("輔助")) assists.push(token);
+          else if (DB.find(x => x.cat === "bit"     && x.id === token)) bits.push(token);
+          else if (DB.find(x => x.cat === "ratchet" && x.id === token)) ratchets.push(token);
         });
-
-        if (ratchets.length || bits.length || assists.length) {
+        if (ratchets.length || bits.length || assists.length)
           combos.push({ ratchets, bits, assists });
-        }
       });
     });
   });
 
   return combos;
 }
+
 function renderAnalysis() {
   const inv = loadInventory();
   const fromBlades = getPartsFromOwnedBlades(inv);
 
-  // 合併散件 + 原裝帶入
   const ownedR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]);
   const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
   const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
-  const ownedBladeSet = new Set(inv.ownedBlades||[]);
 
   const blades = DB.filter(x=>x.cat==='blade'&&(x.comboText||x.noteText));
   const complete=[], nearMiss=[];
 
   blades.forEach(blade=>{
-    // 必須擁有這個戰刃（原裝或散件）才納入分析
-    const hasThisBlade = ownedBladeSet.has(blade.id) || (inv.blade||[]).includes(blade.id);
+    // ── PATCH 2: 用 fromBlades.blade 判斷是否擁有此戰刃 ──
+    const hasThisBlade = fromBlades.blade.has(blade.id) || (inv.blade||[]).includes(blade.id);
     if (!hasThisBlade) return;
 
     parseComboNeed(blade).forEach(combo=>{
-      // 有效組合必須包含至少一個固鎖 + 一個軸心（戰刃已由外層 hasThisBlade 保證）
       const isValidCombo = combo.ratchets.length >= 1 && combo.bits.length >= 1;
       if (!isValidCombo) return;
 
@@ -2057,7 +1966,6 @@ function renderAnalysis() {
   });
 
   function partSource(id, cat) {
-    // 顯示零件來源標註
     if (cat==='ratchet' && fromBlades.ratchet.has(id)) {
       const src = (inv.ownedBlades||[]).find(bid => DB.find(x=>x.cat==='blade'&&x.id===bid)?.ratchet===id);
       return src ? `<span style="font-size:0.65rem;color:var(--muted);margin-left:3px;">(${DB.find(x=>x.cat==='blade'&&x.id===src)?.name||src})</span>` : '';
@@ -2070,12 +1978,10 @@ function renderAnalysis() {
   }
 
   function comboHtml(e) {
-    // 左欄：輔助戰刃 + 固鎖（AND 關係用「+」連接）
     const leftParts = [
       ...e.combo.assists.map(a=>`<span class="${e.neededA.includes(a)?'missing':'have'}">${a}</span>`),
       ...e.combo.ratchets.map(r=>`<span class="${e.neededR.includes(r)?'missing':'have'}">${r}${partSource(r,'ratchet')}</span>`),
     ];
-    // 右欄：軸心（AND 關係用「+」連接）
     const rightParts = [
       ...e.combo.bits.map(b=>`<span class="${e.neededB.includes(b)?'missing':'have'}">${b}${partSource(b,'bit')}</span>`),
     ];
@@ -2087,16 +1993,40 @@ function renderAnalysis() {
     return leftHtml || rightHtml;
   }
 
-  function itemHtml(e) {
-    return `<div class="analysis-item" onclick="closeVault();openModal(DB.find(x=>x.id=='${e.blade.id}'&&x.cat=='blade'))">
+  // 依陀螺群組化
+  function groupByBlade(entries) {
+    const map = new Map();
+    entries.forEach(e => {
+      if (!map.has(e.blade.id)) map.set(e.blade.id, { blade: e.blade, combos: [] });
+      map.get(e.blade.id).combos.push(e);
+    });
+    return [...map.values()];
+  }
+
+  function groupHtml(group, isComplete) {
+    const { blade, combos } = group;
+    const comboLines = combos.map(e => {
+      const line = comboHtml(e);
+      const missing = e.totalMissing === 1
+        ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
+        : '';
+      return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;">${line}${missing}</div>`;
+    }).join('');
+
+    return `<div class="analysis-item" onclick="openModal(DB.find(x=>x.id=='${blade.id}'&&x.cat=='blade'))">
       <div class="analysis-item-head">
-        <span class="analysis-status">${e.totalMissing===0?'✅':'🔧'}</span>
-        <div><div class="analysis-name">${e.blade.name}</div><div class="analysis-id">${e.blade.id}</div></div>
+        <span class="analysis-status">${isComplete ? '✅' : '🔧'}</span>
+        <div>
+          <div class="analysis-name">${blade.name}</div>
+          <div class="analysis-id">${blade.id} <span style="color:var(--muted);font-size:0.68rem;">${combos.length} 組配置</span></div>
+        </div>
       </div>
-      <div class="analysis-combo">${comboHtml(e)}</div>
-      ${e.totalMissing===1?`<div style="margin-top:5px;font-size:0.72rem;color:var(--warn);">缺少：${[...e.neededR,...e.neededB,...e.neededA].join('、')}</div>`:''}
+      <div class="analysis-combo" style="margin-top:6px;">${comboLines}</div>
     </div>`;
   }
+
+  const completeGroups = groupByBlade(complete);
+  const nearMissGroups = groupByBlade(nearMiss);
 
   const totalOwned = ownedR.size+ownedB.size+ownedA.size;
   const hasAny = (inv.ownedBlades||[]).length>0 || totalOwned>0;
@@ -2107,9 +2037,9 @@ function renderAnalysis() {
       <div class="summary-card near"><div class="summary-num">${nearMiss.length}</div><div class="summary-label">🔧 接近達成組合</div></div>
     </div>
     ${!hasAny?'<div class="analysis-empty">📦 請先在「零件倉庫」勾選原裝陀螺或散件零件</div>':''}
-    ${complete.length>0?`<div style="font-size:0.75rem;color:var(--success);font-weight:700;margin-bottom:8px;">✅ 可完整組合</div>${complete.map(itemHtml).join('')}`:''}
-    ${nearMiss.length>0?`<div style="font-size:0.75rem;color:var(--warn);font-weight:700;margin:14px 0 8px;">🔧 接近達成組合</div>${nearMiss.map(itemHtml).join('')}`:''}
-    ${complete.length===0&&nearMiss.length===0&&hasAny?'<div class="analysis-empty">目前收藏的零件還無法湊成任何建議配置<br>繼續收集吧！</div>':''}`;
+    ${completeGroups.length>0?`<div style="font-size:0.75rem;color:var(--success);font-weight:700;margin-bottom:8px;">✅ 可完整組合</div>${completeGroups.map(g=>groupHtml(g,true)).join('')}`:''}
+    ${nearMissGroups.length>0?`<div style="font-size:0.75rem;color:var(--warn);font-weight:700;margin:14px 0 8px;">🔧 接近達成組合</div>${nearMissGroups.map(g=>groupHtml(g,false)).join('')}`:''}
+    ${completeGroups.length===0&&nearMissGroups.length===0&&hasAny?'<div class="analysis-empty">目前收藏的零件還無法湊成任何建議配置<br>繼續收集吧！</div>':''}`;
 }
 
 buildCatTabs();
@@ -2121,7 +2051,6 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
   render();
 });
-
 </script>
 </body>
 </html>
