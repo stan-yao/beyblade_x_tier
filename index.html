@@ -66,6 +66,7 @@
   --text: #f4f6fb;
   --muted: #7a8aaa;
   --accent: #12efce;
+  --accent-rgb: 18, 239, 206;
   --accent-2: #69a7ff;
   --warn: #ffb830;
   --danger: #ff5e7a;
@@ -92,16 +93,16 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(circle at top left,  rgba(18,239,206,0.18), transparent 45%),
-    radial-gradient(circle at top right, rgba(105,167,255,0.15), transparent 40%);
+    radial-gradient(circle at top left,  rgba(18,239,206,0.26), transparent 52%),
+    radial-gradient(circle at top right, rgba(105,167,255,0.22), transparent 46%);
   pointer-events: none;
   z-index: 0;
 }
 @media (max-width: 600px) {
   body::before {
     background:
-      radial-gradient(circle at top left,  rgba(18,239,206,0.18), transparent 55%),
-      radial-gradient(circle at top right, rgba(105,167,255,0.15), transparent 50%);
+      radial-gradient(circle at top left,  rgba(18,239,206,0.26), transparent 60%),
+      radial-gradient(circle at top right, rgba(105,167,255,0.22), transparent 55%);
   }
 }
 header, #main, .modal-overlay { position: relative; z-index: 1; }
@@ -525,8 +526,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-page::before {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(circle at top left,  rgba(18,239,206,0.13), transparent 45%),
-    radial-gradient(circle at top right, rgba(105,167,255,0.11), transparent 40%);
+    radial-gradient(circle at top left,  rgba(18,239,206,0.26), transparent 52%),
+    radial-gradient(circle at top right, rgba(105,167,255,0.22), transparent 46%);
 }
 .vault-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 16px 80px; }
 .vault-header {
@@ -593,9 +594,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-tab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
 .vault-section {
-  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  border: 1px solid var(--border); border-radius: var(--radius-card);
-  margin-bottom: 10px; backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-card);
+  margin-bottom: 10px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
 }
 .vault-section-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -691,7 +693,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
   width: 80px; text-align: center; position: relative;
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 16px rgba(0,0,0,0.25);
 }
 .owned-blade-card::before {
   content: ""; position: absolute; top: 0; left: 10%; right: 10%;
@@ -716,6 +718,26 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   transition: all 0.15s; background: rgba(0,0,0,0.2);
 }
 .owned-blade-card.owned .owned-blade-check { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(18,239,206,0.4); }
+
+/* 已有總覽的卡片用藍青色 #3dcbe7 區別全站青綠 */
+.owned-blade-card.overview-card {
+  border-color: rgba(61,203,231,0.4);
+  background: linear-gradient(160deg, rgba(61,203,231,0.1), rgba(61,203,231,0.03));
+  box-shadow: inset 0 1px 0 rgba(61,203,231,0.15), 0 4px 16px rgba(0,0,0,0.25);
+}
+.owned-blade-card.overview-card .part-tag {
+  background: rgba(61,203,231,0.08); border-color: rgba(61,203,231,0.22); color: #3dcbe7;
+}
+.owned-blade-card.overview-card .owned-blade-name { color: #e8f8fc; }
+.owned-blade-card.overview-card {
+  border-color: rgba(61,203,231,0.4);
+  background: linear-gradient(160deg, rgba(61,203,231,0.1), rgba(61,203,231,0.03));
+  box-shadow: inset 0 1px 0 rgba(61,203,231,0.15), 0 4px 16px rgba(0,0,0,0.25);
+}
+.owned-blade-card.overview-card .part-tag {
+  background: rgba(61,203,231,0.08); border-color: rgba(61,203,231,0.22); color: #3dcbe7;
+}
+.owned-blade-card.overview-card .owned-blade-name { color: #e8f8fc; }
 
 .vault-part-chip.from-blade { background: rgba(18,239,206,0.04); border-color: rgba(18,239,206,0.12); color: rgba(18,239,206,0.55); cursor: default; }
 .vault-part-chip.from-blade:hover { border-color: rgba(18,239,206,0.12); transform: none; color: rgba(18,239,206,0.55); }
@@ -1659,7 +1681,7 @@ function renderOverview(inv, fromBlades) {
                  || (cat==='bit'&&fromBlades.bit.has(id))
                  || (cat==='assist'&&fromBlades.assist.has(id))
                  || (cat==='bladeCover'&&fromBlades.bladeCover.has(id));
-      return `<div class="owned-blade-card owned" style="cursor:default;${fromB?'opacity:0.75':''}">
+      return `<div class="owned-blade-card owned overview-card" style="cursor:default;${fromB?'opacity:0.75':''}">
         ${thumb}
         <div class="owned-blade-info">
           <div class="owned-blade-name">${item?.name || id}</div>
