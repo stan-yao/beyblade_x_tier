@@ -579,19 +579,26 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-pw-error { color: var(--danger); font-size: 0.8rem; min-height: 1.2em; }
 
 .vault-tabs {
-  display: flex; gap: 4px; background: rgba(255,255,255,0.04);
-  border-radius: var(--radius-pill); padding: 4px; border: 1px solid var(--border);
-  backdrop-filter: blur(8px); margin-bottom: 16px;
+  display: flex; gap: 3px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-pill); padding: 3px; border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 16px;
 }
 .vault-tab {
   flex: 1; background: none; border: none; border-radius: var(--radius-pill);
-  color: var(--muted); cursor: pointer;
+  color: rgba(255,255,255,0.38); cursor: pointer;
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.88rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 7px 0; transition: all 0.18s; text-align: center;
+  padding: 7px 0; transition: all 0.2s; text-align: center;
 }
-.vault-tab:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-.vault-tab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.vault-tab:hover { color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.04); }
+.vault-tab.active {
+  background: linear-gradient(160deg, rgba(18,239,206,0.12), rgba(18,239,206,0.05));
+  border: 1px solid rgba(18,239,206,0.22);
+  color: var(--accent);
+  box-shadow: inset 0 1px 0 rgba(18,239,206,0.15), 0 2px 10px rgba(18,239,206,0.08);
+}
 
 .vault-section {
   background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
@@ -675,15 +682,23 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-subtabs {
   display: flex; gap: 3px; margin-bottom: 14px;
   background: rgba(255,255,255,0.03); border-radius: var(--radius-pill);
-  padding: 3px; border: 1px solid var(--border);
+  padding: 3px; border: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 .vault-subtab {
   flex: 1; background: none; border: none; border-radius: var(--radius-pill);
-  color: var(--muted); cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
-  font-size: 0.78rem; font-weight: 600; padding: 6px 0; transition: all 0.18s; text-align: center;
+  color: rgba(255,255,255,0.38); cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 6px 0; transition: all 0.2s; text-align: center;
 }
-.vault-subtab:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-.vault-subtab.active { background: var(--surface2); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.vault-subtab:hover { color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.04); }
+.vault-subtab.active {
+  background: linear-gradient(160deg, rgba(18,239,206,0.12), rgba(18,239,206,0.05));
+  border: 1px solid rgba(18,239,206,0.22);
+  color: var(--accent);
+  box-shadow: inset 0 1px 0 rgba(18,239,206,0.15), 0 2px 10px rgba(18,239,206,0.08);
+}
 
 .owned-blade-card {
   display: flex; flex-direction: column; align-items: center;
@@ -1514,7 +1529,7 @@ function renderVaultMain() {
     <div class="vault-notice" id="vaultNotice">
       <button class="vault-notice-close" onclick="document.getElementById('vaultNotice').remove(); sessionStorage.setItem('vault_notice_dismissed','1')">✕</button>
       📣 此功能公開測試中<br>
-      <span style="font-size:0.75rem;color:var(--muted);">資料儲存於本機裝置，換裝置需重新設定。</span>
+      <span style="font-size:0.75rem;color:var(--muted);">資料儲存於本機裝置，換裝置需重新設定，或匯出轉移代碼。</span>
     </div>`;
   document.getElementById("vaultContent").innerHTML = `
     ${noticeHtml}
