@@ -1761,8 +1761,7 @@ function renderSharePage() {
       style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
       oninput="shareState.note=this.value;renderShareCanvas()">${shareState.note||''}</textarea>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">預覽</div>
-    <div class="share-preview-wrap"><canvas id="shareCanvas" width="800" height="1080"></canvas></div>
-    <div class="share-hint">📱 手機長按圖片儲存　💻 電腦右鍵另存圖片</div>`;
+    <div class="share-preview-wrap"><canvas id="shareCanvas" width="800" height="1080"></canvas></div>`;
 
   renderShareCanvas();
 }
@@ -1930,8 +1929,19 @@ async function renderShareCanvas() {
   ctx.fillText('https://stan-yao.github.io/beyblade_x_tier/', W/2, H-24);
   ctx.textAlign='left';
 
-  // canvas 直接顯示，手機長按/右鍵另存
-  canvas.style.cssText='width:100%;display:block;border-radius:16px;';
+  // 轉成 img 讓使用者儲存
+  const dataUrl = canvas.toDataURL('image/png');
+  if (wrap) {
+    wrap.innerHTML = `
+      <img src="${dataUrl}" style="width:100%;display:block;border-radius:16px;" id="sharePreviewImg">
+      <a href="${dataUrl}" download="beyblade_combo.png"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:12px;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:999px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;transition:all 0.18s;"
+        onmouseover="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.25),rgba(105,167,255,0.18))'"
+        onmouseout="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1))'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        儲存圖片
+      </a>`;
+  }
 }
 
 function closeBladePicker() {
