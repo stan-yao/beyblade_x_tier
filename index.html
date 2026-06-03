@@ -792,13 +792,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .share-subtitle { font-size: 0.72rem; color: var(--muted); }
 
 /* 背景選色 */
-.bg-options { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.bg-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .bg-opt {
   width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
-  border: 2px solid transparent; transition: all 0.18s;
-  position: relative;
+  border: none; outline: none; transition: all 0.2s;
+  position: relative; padding: 0;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
 }
-.bg-opt.active { border-color: rgba(255,255,255,0.8); box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+.bg-opt.active {
+  box-shadow: 0 0 0 2.5px #fff, 0 0 0 5px rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+.bg-opt:hover:not(.active) { transform: scale(1.06); }
 
 /* 陀螺選擇區 */
 .combo-row {
@@ -1670,13 +1675,93 @@ function showShareHint() {}
 // ════════════════════════════════
 
 const BG_THEMES = [
-  { id:'arctic',   label:'Arctic',   colors:['#193546','#0DB8D3','#1177b8'], stops:[{cx:90,cy:10,r:85,c:'#0DB8D3',o:0.85},{cx:5,cy:92,r:80,c:'#0aaec8',o:0.78},{cx:50,cy:50,r:70,c:'#0bbdd6',o:0.38}] },
-  { id:'aurora',   label:'Aurora',   colors:['#193153','#EB96FF','#F9D4E0'], stops:[{cx:88,cy:8, r:105,c:'#EB96FF',o:0.75},{cx:8, cy:90,r:105,c:'#F9D4E0',o:0.72},{cx:48,cy:52,r:60, c:'#0B5777',o:0.28}] },
-  { id:'jade',     label:'Jade',     colors:['#1A5140','#5CA87C','#B7E5BA'], stops:[{cx:85,cy:12,r:90,c:'#5CA87C',o:0.8},{cx:8,cy:88,r:85,c:'#B7E5BA',o:0.65},{cx:50,cy:50,r:65,c:'#288760',o:0.35}] },
-  { id:'sunset',   label:'Sunset',   colors:['#1a0a2e','#ff6b6b','#ffa500'], stops:[{cx:80,cy:15,r:85,c:'#ff6b6b',o:0.7},{cx:10,cy:85,r:80,c:'#ffa500',o:0.65},{cx:50,cy:50,r:65,c:'#cc4488',o:0.3}] },
-  { id:'midnight', label:'Midnight', colors:['#0a0a1a','#3344aa','#6699ff'], stops:[{cx:75,cy:20,r:80,c:'#6699ff',o:0.65},{cx:15,cy:80,r:75,c:'#3344aa',o:0.6},{cx:50,cy:50,r:60,c:'#8855cc',o:0.25}] },
-  { id:'carbon',   label:'Carbon',   colors:['#0a0a0a','#2a2a2a','#444444'], stops:[{cx:85,cy:15,r:80,c:'#444444',o:0.7},{cx:10,cy:88,r:75,c:'#333333',o:0.6},{cx:50,cy:50,r:65,c:'#222222',o:0.3}] },
-  { id:'obsidian', label:'Obsidian', colors:['#080810','#2a1550','#5522aa'], stops:[{cx:82,cy:12,r:88,c:'#5522aa',o:0.7},{cx:8,cy:90,r:82,c:'#3311aa',o:0.55},{cx:50,cy:50,r:65,c:'#220066',o:0.35}] },
+  { id:'arctic',   label:'Arctic',
+    colors:['#0d2535','#0DB8D3','#1B7FDC'],
+    stops:[
+      {cx:80,cy:8, r:90,c:'#0DB8D3',o:0.95},
+      {cx:5, cy:90,r:88,c:'#0aaec8',o:0.85},
+      {cx:50,cy:50,r:55,c:'#065B98',o:0.3},
+    ]},
+  { id:'aurora',   label:'Aurora',
+    colors:['#12102a','#EB96FF','#F9D4E0'],
+    stops:[
+      {cx:85,cy:5, r:95,c:'#EB96FF',o:0.9},
+      {cx:5, cy:92,r:95,c:'#F9D4E0',o:0.85},
+      {cx:48,cy:52,r:55,c:'#0B5777',o:0.25},
+    ]},
+  { id:'sunset',   label:'Sunset',
+    colors:['#120818','#ff5566','#ff9900'],
+    stops:[
+      {cx:82,cy:8, r:88,c:'#ff5566',o:0.9},
+      {cx:8, cy:88,r:88,c:'#ff9900',o:0.85},
+      {cx:50,cy:50,r:55,c:'#cc2255',o:0.3},
+    ]},
+  { id:'midnight', label:'Midnight',
+    colors:['#060612','#2233cc','#5588ff'],
+    stops:[
+      {cx:80,cy:10,r:90,c:'#5588ff',o:0.85},
+      {cx:8, cy:88,r:85,c:'#2233cc',o:0.8},
+      {cx:50,cy:50,r:55,c:'#8844dd',o:0.3},
+    ]},
+  { id:'carbon',   label:'Carbon',
+    colors:['#080808','#2a2a2a','#505050'],
+    stops:[
+      {cx:80,cy:10,r:85,c:'#606060',o:0.85},
+      {cx:8, cy:88,r:80,c:'#383838',o:0.75},
+      {cx:50,cy:50,r:60,c:'#282828',o:0.4},
+    ]},
+  { id:'ember',    label:'Ember',
+    colors:['#1a0800','#cc5500','#ffaa00'],
+    stops:[
+      {cx:50,cy:5, r:90,c:'#ffaa00',o:0.95},
+      {cx:10,cy:50,r:80,c:'#cc5500',o:0.75},
+      {cx:60,cy:75,r:70,c:'#1a0800',o:0.6},
+    ]},
+  { id:'neuro',    label:'Neuro',
+    colors:['#1a0810','#ee3322','#4488ff'],
+    stops:[
+      {cx:20,cy:15,r:85,c:'#ee4422',o:0.9},
+      {cx:80,cy:85,r:85,c:'#4488ff',o:0.85},
+      {cx:85,cy:10,r:60,c:'#ffddcc',o:0.5},
+    ]},
+  { id:'coral',    label:'Coral',
+    colors:['#1a0c08','#ff6644','#aaddcc'],
+    stops:[
+      {cx:20,cy:10,r:80,c:'#aaddcc',o:0.85},
+      {cx:75,cy:80,r:85,c:'#ff6644',o:0.95},
+      {cx:85,cy:85,r:60,c:'#ff3300',o:0.5},
+    ]},
+  { id:'bronze',   label:'Bronze',
+    colors:['#0a0805','#3d2a10','#c8963c'],
+    stops:[
+      {cx:10,cy:10,r:65,c:'#e8a830',o:0.9},
+      {cx:60,cy:55,r:85,c:'#7a5520',o:0.75},
+      {cx:80,cy:90,r:60,c:'#0a0805',o:0.5},
+    ]},
+  { id:'neon',     label:'Neon',
+    colors:['#000008','#1100aa','#6644ff'],
+    stops:[
+      {cx:50,cy:100,r:75,c:'#8866ff',o:0.95},
+      {cx:20,cy:80, r:60,c:'#4422cc',o:0.8},
+      {cx:80,cy:80, r:55,c:'#6644ff',o:0.75},
+      {cx:50,cy:55, r:45,c:'#220088',o:0.5},
+    ]},
+  { id:'volt',     label:'Volt',
+    colors:['#020805','#0a2a18','#aaee00'],
+    stops:[
+      {cx:80,cy:20,r:85,c:'#ccff00',o:0.92},
+      {cx:90,cy:75,r:75,c:'#88cc00',o:0.8},
+      {cx:15,cy:50,r:80,c:'#0044aa',o:0.75},
+      {cx:10,cy:90,r:65,c:'#224400',o:0.5},
+    ]},
+  { id:'phantom',  label:'Phantom',
+    colors:['#000000','#003333','#00cccc'],
+    stops:[
+      {cx:58,cy:30,r:55,c:'#ffffff',o:0.6},
+      {cx:42,cy:55,r:60,c:'#00ddcc',o:0.9},
+      {cx:20,cy:20,r:50,c:'#003333',o:0.6},
+      {cx:78,cy:78,r:50,c:'#001a1a',o:0.5},
+    ]},
 ];
 
 let shareState = {
@@ -1732,12 +1817,14 @@ function hexToRgba(hex, alpha) {
 }
 
 function renderSharePage() {
-  const bgSwatches = BG_THEMES.map(t => `
-    <div class="bg-opt${t.id===shareState.bgId?' active':''}"
+  const bgSwatches = BG_THEMES.map(t => {
+    const [c0,c1,c2] = t.colors;
+    return `<div class="bg-opt${t.id===shareState.bgId?' active':''}"
       onclick="shareState.bgId='${t.id}';renderSharePage()"
       title="${t.label}"
-      style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]})">
-    </div>`).join('');
+      style="background:linear-gradient(135deg,${c2},${c1} 50%,${c0})">
+    </div>`;
+  }).join('');
 
   const partLabels = { assist:'輔助戰刃', blade:'戰刃', ratchet:'固鎖', bit:'軸心' };
   const partOrder  = ['assist','blade','ratchet','bit'];
@@ -1806,13 +1893,14 @@ async function renderShareCanvas() {
   ctx.fillRect(0,0,W,H);
   theme.stops.forEach(s => {
     const grd = ctx.createRadialGradient(W*s.cx/100,H*s.cy/100,0,W*s.cx/100,H*s.cy/100,Math.max(W,H)*s.r/100);
-    grd.addColorStop(0, hexToRgba(s.c,s.o));
-    grd.addColorStop(1, hexToRgba(s.c,0));
+    grd.addColorStop(0,   hexToRgba(s.c, Math.min(s.o * 1.25, 1)));
+    grd.addColorStop(0.35,hexToRgba(s.c, s.o * 0.6));
+    grd.addColorStop(1,   hexToRgba(s.c, 0));
     ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
   });
 
   // 網格 80px 間距
-  ctx.strokeStyle='rgba(255,255,255,0.09)'; ctx.lineWidth=0.6;
+  ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=0.6;
   for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
@@ -1839,7 +1927,7 @@ async function renderShareCanvas() {
 
   // 書籤放在文字左邊，底部跟文字 baseline 對齊
   const bkW = 13, bkH = 18, bkR = 2.5;
-  const bkX = W - 60 - dbW - 20;
+  const bkX = W - 45 - dbW - 20;
   const bkY = textBaselineY - bkH + 5; // 底部對齊 baseline
 
   ctx.fillStyle = 'rgba(255,255,255,0.38)';
@@ -1861,7 +1949,7 @@ async function renderShareCanvas() {
 
   ctx.textAlign='right';
   ctx.fillStyle='rgba(255,255,255,0.42)';
-  ctx.fillText(dbText, W-60, textBaselineY);
+  ctx.fillText(dbText, W-45, textBaselineY);
   ctx.textAlign='left';
 
   // ── 三行陀螺 ──
@@ -1933,7 +2021,7 @@ async function renderShareCanvas() {
     ctx.fillStyle = isPlaceholder ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.6)';
     const lineH = 32;
     const totalH = displayLines.length * lineH;
-    const startY = H - 220 + lineH;
+    const startY = H - 82 - 85 - 40; // 對齊 Beyblade 字母上緣
     displayLines.forEach((line, i) => {
       ctx.fillText(line, W - 45, startY + i * lineH);
     });
