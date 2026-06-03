@@ -520,17 +520,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 /* ── 倉庫全頁面 ── */
 .vault-page {
   position: fixed; inset: 0; z-index: 300;
-  background: var(--bg); overflow-y: auto; scrollbar-width: none;
-  animation: fadeIn 0.2s ease; display: none;
+  background:
+    radial-gradient(circle at top left,  rgba(18,239,206,0.22), transparent 48%),
+    radial-gradient(circle at top right, rgba(105,167,255,0.18), transparent 42%),
+    var(--bg);
+  overflow-y: auto; scrollbar-width: none;
+  overflow-anchor: none;
+  display: none;
 }
 .vault-page.active { display: block; }
 .vault-page::-webkit-scrollbar { display: none; }
-.vault-page::before {
-  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background:
-    radial-gradient(circle at top left,  rgba(18,239,206,0.22), transparent 48%),
-    radial-gradient(circle at top right, rgba(105,167,255,0.18), transparent 42%);
-}
+.vault-page::before { display: none; }
 .vault-inner { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 16px 80px; }
 .vault-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -759,8 +759,127 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-part-chip.from-blade { background: rgba(18,239,206,0.04); border-color: rgba(18,239,206,0.12); color: rgba(18,239,206,0.55); cursor: default; }
 .vault-part-chip.from-blade:hover { border-color: rgba(18,239,206,0.12); transform: none; color: rgba(18,239,206,0.55); }
 .chip-source { font-size: 0.58rem; opacity: 0.65; margin-left: 2px; }
+/* ── 分享頁面 ── */
+.share-page {
+  position: fixed; inset: 0; z-index: 350;
+  background:
+    radial-gradient(circle at top left,  rgba(18,239,206,0.22), transparent 48%),
+    radial-gradient(circle at top right, rgba(105,167,255,0.18), transparent 42%),
+    var(--bg);
+  overflow-y: auto; scrollbar-width: none;
+  overflow-anchor: none;
+  display: none;
+}
+.share-page.active { display: block; }
+.share-page::-webkit-scrollbar { display: none; }
+.share-page::before { display: none; }
+.share-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 0 16px 80px; }
+.share-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0 14px; position: sticky; top: 0; z-index: 5;
+  margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+  background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+.share-title-wrap { display: flex; flex-direction: column; gap: 1px; }
+.share-title {
+  font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 900;
+  letter-spacing: 0.06em; line-height: 1; text-transform: uppercase;
+  background: linear-gradient(90deg, #9dfd65, #fff 50%, #69d9ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  transform: skewX(-8deg); display: inline-block;
+}
+.share-subtitle { font-size: 0.72rem; color: var(--muted); }
+
+/* 背景選色 */
+.bg-options { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.bg-opt {
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.18s;
+  position: relative;
+}
+.bg-opt.active { border-color: rgba(255,255,255,0.8); box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+
+/* 陀螺選擇區 */
+.combo-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px;
+}
+.combo-slot {
+  background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+  padding: 12px 10px; text-align: center; cursor: pointer;
+  transition: all 0.18s; min-height: 110px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  backdrop-filter: blur(8px);
+}
+.combo-slot:hover { border-color: rgba(255,255,255,0.22); transform: translateY(-2px); }
+.combo-slot.filled { border-color: rgba(18,239,206,0.35); background: linear-gradient(160deg, rgba(18,239,206,0.08), rgba(18,239,206,0.02)); }
+.combo-slot img { width: 60px; height: 60px; object-fit: contain; }
+.combo-slot-name { font-size: 0.7rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.combo-slot-id { font-size: 0.6rem; color: var(--muted); }
+.combo-slot-empty { font-size: 0.75rem; color: var(--muted); }
+.combo-slot-num { font-size: 0.6rem; color: var(--muted); margin-bottom: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* 搜尋選陀螺 modal */
+.blade-picker {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn 0.18s ease;
+}
+.blade-picker-box {
+  background: linear-gradient(180deg, var(--surface2), var(--surface));
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 22px 22px 0 0;
+  width: 100%; max-width: 680px;
+  height: 55dvh; min-height: 200px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+  animation: slideUp 0.22s ease;
+}
+.blade-picker-head { padding: 16px 16px 10px; flex-shrink: 0; }
+.blade-picker-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.blade-picker-search {
+  width: 100%; padding: 10px 16px; background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+  color: var(--text); font-size: 16px; outline: none; box-sizing: border-box;
+  font-family: 'Noto Sans TC', sans-serif; transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.blade-picker-search:focus { border-color: var(--accent); }
+.blade-picker-list { overflow-y: auto; padding: 8px 12px 20px; flex: 1; min-height: 0; scrollbar-width: none; }
+.blade-picker-list::-webkit-scrollbar { display: none; }
+.blade-picker-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 10px; border-radius: 12px; cursor: pointer;
+  transition: background 0.15s;
+}
+.blade-picker-item:hover { background: rgba(255,255,255,0.07); }
+.blade-picker-item img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+.blade-picker-item-ph { width: 44px; height: 44px; border-radius: 8px; background: rgba(255,255,255,0.06); flex-shrink: 0; }
+.blade-picker-item-info { flex: 1; }
+.blade-picker-item-name { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+.blade-picker-item-id { font-size: 0.72rem; color: var(--muted); }
+
+/* 使用者輸入 */
+.share-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.share-input {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: var(--text); font-size: 14px;
+  padding: 10px 14px; outline: none; font-family: 'Noto Sans TC', sans-serif;
+  transition: border-color 0.2s; width: 100%; box-sizing: border-box;
+}
+.share-input:focus { border-color: var(--accent); }
+.share-input::placeholder { color: var(--muted); }
+
+/* 預覽區 */
+.share-preview-wrap {
+  border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 12px; position: relative;
+}
+.share-preview-wrap canvas { display: block; width: 100%; height: auto; }
+.share-hint { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 8px 0; }
 </style>
-</head>
 <body>
 
 <header>
@@ -799,7 +918,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 <main id="main"></main>
 
 <div class="float-island">
-  <button class="fi-btn fi-btn--active" onclick="closeVault()" title="天梯表">
+  <button class="fi-btn fi-btn--active" onclick="goHome()" title="天梯表">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
       <path d="M9 21V12h6v9"/>
@@ -812,16 +931,30 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
       <line x1="12" y1="22.08" x2="12" y2="12"/>
     </svg>
   </button>
-  <button class="fi-btn fi-btn--locked" title="分享功能（開發中）" onclick="showShareHint()">
+  <button class="fi-btn" onclick="openShare()" title="組合分享卡" id="shareFiBtn">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
     </svg>
-    <span class="fi-lock-dot"></span>
   </button>
 </div>
 
+<!-- 分享頁面 -->
+<div class="share-page" id="sharePage">
+  <div class="share-inner">
+    <div class="share-header">
+      <div class="share-title-wrap">
+        <div class="share-title">GO SHARE</div>
+        <div class="share-subtitle">組合分享卡</div>
+      </div>
+
+    </div>
+    <div id="shareContent"></div>
+  </div>
+</div>
+
+<!-- 倉庫頁面 -->
 <div class="vault-page" id="vaultPage">
   <div class="vault-inner">
     <div class="vault-header">
@@ -829,9 +962,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
         <div class="vault-title">Warehouse</div>
         <div class="vault-subtitle">我的倉庫</div>
       </div>
-      <button class="vault-close" onclick="closeVault()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+
     </div>
     <div id="vaultContent"></div>
   </div>
@@ -952,8 +1083,8 @@ async function fetchAndProcess() {
       const fullData = await fetchBothSheets();
       
       let latestDate = "未知日期 更新";
-      if (fullData.dataMain[0] && fullData.dataMain[0][15]) {
-          latestDate = fullData.dataMain[0][15].trim() + " 更新";
+      if (fullData.dataMain[0] && fullData.dataMain[0][14]) {
+          latestDate = fullData.dataMain[0][14].trim() + " 更新";
       }
       
       processData(fullData.dataMain, fullData.dataParts, latestDate);
@@ -1506,6 +1637,12 @@ function loadInventory() {
 
 let vaultTab = "inventory";
 
+function goHome() {
+  document.getElementById("vaultPage").classList.remove("active");
+  document.getElementById("sharePage").classList.remove("active");
+  document.body.style.overflow = "";
+  setIslandActive(0);
+}
 function setIslandActive(which) {
   document.querySelectorAll('.fi-btn').forEach((b,i) => {
     b.classList.toggle('fi-btn--active', i === which);
@@ -1513,7 +1650,10 @@ function setIslandActive(which) {
 }
 
 function openVault() {
-  document.getElementById("vaultPage").classList.add("active");
+  document.getElementById("sharePage").classList.remove("active");
+  const vp = document.getElementById("vaultPage");
+  vp.scrollTop = 0;
+  vp.classList.add("active");
   document.body.style.overflow = "hidden";
   setIslandActive(1);
   renderVaultMain();
@@ -1524,6 +1664,387 @@ function closeVault() {
   setIslandActive(0);
 }
 function showShareHint() {}
+
+// ════════════════════════════════
+//  分享系統
+// ════════════════════════════════
+
+const BG_THEMES = [
+  { id:'arctic',   label:'Arctic',   colors:['#193546','#0DB8D3','#1177b8'], stops:[{cx:90,cy:10,r:85,c:'#0DB8D3',o:0.85},{cx:5,cy:92,r:80,c:'#0aaec8',o:0.78},{cx:50,cy:50,r:70,c:'#0bbdd6',o:0.38}] },
+  { id:'aurora',   label:'Aurora',   colors:['#193153','#EB96FF','#F9D4E0'], stops:[{cx:88,cy:8, r:105,c:'#EB96FF',o:0.75},{cx:8, cy:90,r:105,c:'#F9D4E0',o:0.72},{cx:48,cy:52,r:60, c:'#0B5777',o:0.28}] },
+  { id:'jade',     label:'Jade',     colors:['#1A5140','#5CA87C','#B7E5BA'], stops:[{cx:85,cy:12,r:90,c:'#5CA87C',o:0.8},{cx:8,cy:88,r:85,c:'#B7E5BA',o:0.65},{cx:50,cy:50,r:65,c:'#288760',o:0.35}] },
+  { id:'sunset',   label:'Sunset',   colors:['#1a0a2e','#ff6b6b','#ffa500'], stops:[{cx:80,cy:15,r:85,c:'#ff6b6b',o:0.7},{cx:10,cy:85,r:80,c:'#ffa500',o:0.65},{cx:50,cy:50,r:65,c:'#cc4488',o:0.3}] },
+  { id:'midnight', label:'Midnight', colors:['#0a0a1a','#3344aa','#6699ff'], stops:[{cx:75,cy:20,r:80,c:'#6699ff',o:0.65},{cx:15,cy:80,r:75,c:'#3344aa',o:0.6},{cx:50,cy:50,r:60,c:'#8855cc',o:0.25}] },
+  { id:'carbon',   label:'Carbon',   colors:['#0a0a0a','#2a2a2a','#444444'], stops:[{cx:85,cy:15,r:80,c:'#444444',o:0.7},{cx:10,cy:88,r:75,c:'#333333',o:0.6},{cx:50,cy:50,r:65,c:'#222222',o:0.3}] },
+  { id:'obsidian', label:'Obsidian', colors:['#080810','#2a1550','#5522aa'], stops:[{cx:82,cy:12,r:88,c:'#5522aa',o:0.7},{cx:8,cy:90,r:82,c:'#3311aa',o:0.55},{cx:50,cy:50,r:65,c:'#220066',o:0.35}] },
+];
+
+let shareState = {
+  bgId:'arctic',
+  combos: [
+    { assist:null, blade:null, ratchet:null, bit:null },
+    { assist:null, blade:null, ratchet:null, bit:null },
+    { assist:null, blade:null, ratchet:null, bit:null },
+  ],
+  note:'',
+  pickerTarget: null,
+};
+
+function openShare() {
+  document.getElementById("vaultPage").classList.remove("active");
+  const sp = document.getElementById("sharePage");
+  sp.scrollTop = 0;
+  sp.classList.add("active");
+  document.body.style.overflow = "hidden";
+  setIslandActive(2);
+  renderSharePage();
+}
+function closeShare() {
+  document.getElementById("sharePage").classList.remove("active");
+  document.body.style.overflow = "";
+  setIslandActive(0);
+}
+function hexToRgba(hex, alpha) {
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function renderSharePage() {
+  const bgSwatches = BG_THEMES.map(t => `
+    <div class="bg-opt${t.id===shareState.bgId?' active':''}"
+      onclick="shareState.bgId='${t.id}';renderSharePage()"
+      title="${t.label}"
+      style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]})">
+    </div>`).join('');
+
+  const partLabels = { assist:'輔助戰刃', blade:'戰刃', ratchet:'固鎖', bit:'軸心' };
+  const partOrder  = ['assist','blade','ratchet','bit'];
+
+  const rowColors = [
+    { border:'rgba(18,239,206,0.3)',   bg:'rgba(18,239,206,0.06)'   },
+    { border:'rgba(105,167,255,0.3)',  bg:'rgba(105,167,255,0.06)'  },
+    { border:'rgba(180,120,255,0.3)',  bg:'rgba(180,120,255,0.06)'  },
+  ];
+
+  const comboRows = shareState.combos.map((combo, row) => {
+    const rc = rowColors[row];
+    const cells = partOrder.map(part => {
+      const item = combo[part];
+      if (item) {
+        const imgUrl = part==='blade'||part==='assist' ? getImgUrl(item) : PARTS_IMG[item.id]||'';
+        const thumb = imgUrl
+          ? `<img src="${imgUrl}" style="width:44px;height:44px;object-fit:contain;">`
+          : `<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>`;
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 4px;border-radius:10px;border:1px solid ${rc.border};background:${rc.bg};" onclick="openPartPicker(${row},'${part}')">
+          ${thumb}
+          <div style="font-size:0.58rem;font-weight:700;color:var(--text);text-align:center;line-height:1.2;">${item.id||item.name}</div>
+        </div>`;
+      }
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 4px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.02);min-height:74px;justify-content:center;" onclick="openPartPicker(${row},'${part}')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <div style="font-size:0.55rem;color:var(--muted);text-align:center;">${partLabels[part]}</div>
+      </div>`;
+    }).join('');
+    return `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;padding:6px;border-radius:12px;border:1px solid ${rc.border};background:${rc.bg};">${cells}</div>`;
+  }).join('');
+
+  document.getElementById("shareContent").innerHTML = `
+    <div class="vault-notice" style="margin-bottom:14px;">
+      <button class="vault-notice-close" onclick="this.closest('.vault-notice').remove()">✕</button>
+      📣 此功能公開測試中，歡迎分享。
+    </div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">背景主題</div>
+    <div class="bg-options">${bgSwatches}</div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">陀螺組合（輔助戰刃可選）</div>
+    ${comboRows}
+    <textarea class="share-input" id="shareNoteInput" placeholder="組合備註" rows="3"
+      style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
+      oninput="shareState.note=this.value;renderShareCanvas()">${shareState.note||''}</textarea>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">預覽</div>
+    <div class="share-preview-wrap"><canvas id="shareCanvas" width="800" height="1080"></canvas></div>
+    <div class="share-hint">📱 手機長按圖片儲存　💻 電腦右鍵另存圖片</div>`;
+
+  renderShareCanvas();
+}
+
+async function renderShareCanvas() {
+  // 確保 canvas 存在
+  const wrap = document.querySelector('.share-preview-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<canvas id="shareCanvas" width="800" height="1080"></canvas>';
+  const canvas = document.getElementById("shareCanvas");
+  const ctx = canvas.getContext("2d");
+  const W=800, H=1080;
+  canvas.width=W; canvas.height=H;
+  const theme = BG_THEMES.find(t=>t.id===shareState.bgId);
+
+  // 底色 + 光暈
+  ctx.fillStyle = theme.colors[0];
+  ctx.fillRect(0,0,W,H);
+  theme.stops.forEach(s => {
+    const grd = ctx.createRadialGradient(W*s.cx/100,H*s.cy/100,0,W*s.cx/100,H*s.cy/100,Math.max(W,H)*s.r/100);
+    grd.addColorStop(0, hexToRgba(s.c,s.o));
+    grd.addColorStop(1, hexToRgba(s.c,0));
+    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+  });
+
+  // 網格 80px 間距
+  ctx.strokeStyle='rgba(255,255,255,0.09)'; ctx.lineWidth=0.6;
+  for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // ── 頂部資訊列 ──
+  ctx.fillStyle='rgba(255,255,255,0.88)';
+  ctx.font='600 18px "Inter","Helvetica Neue",sans-serif';
+  ctx.fillText('WINNING',60,66);
+  ctx.fillStyle='rgba(255,255,255,0.42)';
+  ctx.font='400 14.5px "Inter",sans-serif';
+  ctx.fillText('COMBO',60,86);
+
+  ctx.fillStyle='rgba(255,255,255,0.88)';
+  ctx.font='600 18px "Inter","Helvetica Neue",sans-serif';
+  ctx.fillText('BEYBLADE X TIER',260,66);
+  ctx.fillStyle='rgba(255,255,255,0.42)';
+  ctx.font='400 14.5px "Inter",sans-serif';
+  ctx.fillText('TAIWAN',260,86);
+
+  // 右：書籤 icon（圓角）+ designed by，底部對齊
+  ctx.font='400 14.5px "Inter",sans-serif';
+  const dbText = 'designed by @stan_yao';
+  const dbW = ctx.measureText(dbText).width;
+  const textBaselineY = 76; // 文字 baseline
+
+  // 書籤放在文字左邊，底部跟文字 baseline 對齊
+  const bkW = 13, bkH = 18, bkR = 2.5;
+  const bkX = W - 60 - dbW - 20;
+  const bkY = textBaselineY - bkH + 3; // 底部對齊 baseline
+
+  ctx.fillStyle = 'rgba(255,255,255,0.38)';
+  ctx.beginPath();
+  // 圓角矩形頂部
+  ctx.moveTo(bkX + bkR, bkY);
+  ctx.lineTo(bkX + bkW - bkR, bkY);
+  ctx.quadraticCurveTo(bkX + bkW, bkY, bkX + bkW, bkY + bkR);
+  // 右側到 V 點
+  ctx.lineTo(bkX + bkW, bkY + bkH);
+  // V 型底部
+  ctx.lineTo(bkX + bkW/2, bkY + bkH - 5);
+  ctx.lineTo(bkX, bkY + bkH);
+  // 左側回到圓角
+  ctx.lineTo(bkX, bkY + bkR);
+  ctx.quadraticCurveTo(bkX, bkY, bkX + bkR, bkY);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.textAlign='right';
+  ctx.fillStyle='rgba(255,255,255,0.42)';
+  ctx.fillText(dbText, W-60, textBaselineY);
+  ctx.textAlign='left';
+
+  // ── 三行陀螺 ──
+  // 固定 4×3 格子，緊密排列，圖片自然出血
+  const gridTop = 130;
+  const gridH   = 640;
+  const cellW   = 200;
+  const cellH   = Math.round(gridH / 3);
+  const imgSizes = [156, 172, 170, 138];  // 輔助/戰刃/固鎖/軸心
+
+  const getCellCenter = (row, col) => ({
+    x: col * cellW + cellW / 2,
+    y: gridTop + row * cellH + cellH / 2,
+  });
+
+  // 佔位框
+  shareState.combos.forEach((combo, row) => {
+    [0,1,2,3].forEach(col => {
+      const {x, y} = getCellCenter(row, col);
+      const sz = imgSizes[col];
+      ctx.save();
+      ctx.beginPath(); ctx.arc(x, y, sz/2, 0, Math.PI*2);
+      ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+    });
+  });
+
+  // 載入圖片
+  const loadTasks = [];
+  shareState.combos.forEach((combo, row) => {
+    const parts = [
+      { item: combo.assist,  cat:'assist'  },
+      { item: combo.blade,   cat:'blade'   },
+      { item: combo.ratchet, cat:'ratchet' },
+      { item: combo.bit,     cat:'bit'     },
+    ];
+    parts.forEach((p, col) => {
+      if (!p.item) return;
+      const imgUrl = (p.cat==='blade'||p.cat==='assist') ? getImgUrl(p.item) : PARTS_IMG[p.item.id]||'';
+      if (!imgUrl) return;
+      loadTasks.push({ imgUrl, row, col });
+    });
+  });
+
+  const imgResults = await Promise.all(loadTasks.map(task =>
+    new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin='anonymous';
+      img.onload  = ()=>resolve({...task, img});
+      img.onerror = ()=>resolve({...task, img:null});
+      img.src = task.imgUrl;
+    })
+  ));
+
+  imgResults.forEach(r => {
+    if (!r.img) return;
+    const {x, y} = getCellCenter(r.row, r.col);
+    const sz = imgSizes[r.col];
+    ctx.drawImage(r.img, x-sz/2, y-sz/2, sz, sz);
+  });
+
+  // ── 底部大字 ──
+  // 字體 Inter Bold 96pt，離左 70px，底行離底 82px
+  ctx.font='700 96px "Inter","Helvetica Neue",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.92)';
+  ctx.fillText('Beyblade', 70, H-82-85);
+  ctx.fillText('X combo',  70, H-82);
+
+  // 右下：使用者名稱 + 日期
+  // 右下：備註文字（多行，右對齊）
+  if (shareState.note) {
+    ctx.textAlign='right';
+    ctx.font='400 22px "Noto Sans TC","Inter",sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.75)';
+    const lines = shareState.note.split('\n').filter(l=>l.trim());
+    const lineH = 30;
+    const startY = H-82-85+20;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, W-60, startY + i*lineH);
+    });
+    ctx.textAlign='left';
+  }
+
+  // 網址
+  ctx.font='400 16px "Inter",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.28)';
+  ctx.textAlign='center';
+  ctx.fillText('https://stan-yao.github.io/beyblade_x_tier/', W/2, H-24);
+  ctx.textAlign='left';
+
+  // canvas 直接顯示，手機長按/右鍵另存
+  canvas.style.cssText='width:100%;display:block;border-radius:16px;';
+}
+
+function closeBladePicker() {
+  const picker = document.getElementById('bladePicker');
+  picker?._cleanupViewport?.();
+  picker?.remove();
+}
+function openPartPicker(row, part) {
+  shareState.pickerTarget = { row, part };
+  const partLabels = { assist:'輔助戰刃', blade:'戰刃', ratchet:'固鎖', bit:'軸心' };
+  const catMap = { assist:'assist', blade:'blade', ratchet:'ratchet', bit:'bit' };
+  const picker = document.createElement('div');
+  picker.className='blade-picker'; picker.id='bladePicker';
+  picker.innerHTML=`<div class="blade-picker-box">
+    <div class="blade-picker-head">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="blade-picker-title">選擇第 ${row+1} 組 — ${partLabels[part]}</div>
+        <button onclick="closeBladePicker()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);border-radius:999px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <input class="blade-picker-search" id="bladePickerSearch" placeholder="搜尋…" autocomplete="off" oninput="renderPartPickerList(this.value)">
+    </div>
+    <div class="blade-picker-list" id="bladePickerList"></div>
+  </div>`;
+  picker.onclick = e => { if(e.target===picker) closeBladePicker(); };
+  document.body.appendChild(picker);
+  // iOS 鍵盤彈起時，用 visualViewport 調整 picker 位置
+  const adjustPicker = () => {
+    const box = picker.querySelector('.blade-picker-box');
+    if (!box) return;
+    if (window.visualViewport) {
+      const vvBottom = window.visualViewport.offsetTop + window.visualViewport.height;
+      const bottom = window.innerHeight - vvBottom;
+      picker.style.bottom = bottom + 'px';
+    }
+  };
+  window.visualViewport?.addEventListener('resize', adjustPicker);
+  window.visualViewport?.addEventListener('scroll', adjustPicker);
+  picker._cleanupViewport = () => {
+    window.visualViewport?.removeEventListener('resize', adjustPicker);
+    window.visualViewport?.removeEventListener('scroll', adjustPicker);
+  };
+  renderPartPickerList('');
+  setTimeout(()=>document.getElementById('bladePickerSearch')?.focus(),100);
+}
+
+function renderPartPickerList(q) {
+  const list = document.getElementById('bladePickerList');
+  if (!list || !shareState.pickerTarget) return;
+  const { row, part } = shareState.pickerTarget;
+  const catMap = { assist:'assist', blade:'blade', ratchet:'ratchet', bit:'bit' };
+  const items = DB.filter(x=>x.cat===catMap[part]);
+  const filtered = q.trim()
+    ? items.filter(b => norm(b.name).includes(norm(q)) || norm(b.id).includes(norm(q)))
+    : items;
+
+  const uniqueItems = part==='ratchet'||part==='bit'
+    ? [...new Map(filtered.map(x=>[x.id,x])).values()]
+    : filtered;
+
+  const hasCurrent = shareState.combos[row][part] !== null;
+  list.innerHTML = (hasCurrent ? `
+    <div class="blade-picker-item" onclick="selectPartForSlot(null)" style="color:var(--danger);border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;padding-bottom:12px;">
+      <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.7;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      </div>
+      <div class="blade-picker-item-info">
+        <div class="blade-picker-item-name" style="color:var(--danger);">取消選擇</div>
+      </div>
+    </div>` : '') + uniqueItems.map(item => {
+    const imgUrl = part==='blade'||part==='assist' ? getImgUrl(item) : PARTS_IMG[item.id]||'';
+    const thumb = imgUrl
+      ? `<img src="${imgUrl}" crossorigin="anonymous" width="44" height="44" style="object-fit:contain;flex-shrink:0;">`
+      : `<div class="blade-picker-item-ph"></div>`;
+    return `<div class="blade-picker-item" onclick="selectPartForSlot('${item.id}')">
+      ${thumb}
+      <div class="blade-picker-item-info">
+        <div class="blade-picker-item-name">${item.name}</div>
+        <div class="blade-picker-item-id">${item.id}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPartForSlot(itemId) {
+  if (!shareState.pickerTarget) return;
+  const { row, part } = shareState.pickerTarget;
+  if (itemId === null) {
+    shareState.combos[row][part] = null;
+    closeBladePicker();
+    renderSharePage();
+    return;
+  }
+  const catMap = { assist:'assist', blade:'blade', ratchet:'ratchet', bit:'bit' };
+  const item = DB.find(x=>x.id===itemId&&x.cat===catMap[part])
+            || DB.find(x=>x.id===itemId);
+  if (!item) return;
+  shareState.combos[row][part] = item;
+
+  // 戰刃選好後自動帶入原裝固鎖/軸心/輔助
+  if (part==='blade') {
+    if (item.ratchet && !shareState.combos[row].ratchet) {
+      shareState.combos[row].ratchet = DB.find(x=>x.cat==='ratchet'&&x.id===item.ratchet) || {id:item.ratchet,name:item.ratchet,cat:'ratchet'};
+    }
+    if (item.bit && !shareState.combos[row].bit) {
+      shareState.combos[row].bit = DB.find(x=>x.cat==='bit'&&x.id===item.bit) || {id:item.bit,name:item.bit,cat:'bit'};
+    }
+    if (item.assistBlade && !shareState.combos[row].assist) {
+      shareState.combos[row].assist = DB.find(x=>x.cat==='assist'&&x.id==='輔助'+item.assistBlade) || null;
+    }
+  }
+  closeBladePicker();
+  renderSharePage();
+}
 
 function renderVaultMain() {
   const noticeDismissed = sessionStorage.getItem('vault_notice_dismissed');
