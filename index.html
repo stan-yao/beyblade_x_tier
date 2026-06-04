@@ -791,16 +791,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .share-subtitle { font-size: 0.72rem; color: var(--muted); }
 
-/* 背景選色 */
-.bg-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+/* 背景選色 — 單行橫向滑動 */
+.bg-options { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 16px; padding: 5px 5px 10px 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.bg-options::-webkit-scrollbar { display: none; }
 .bg-opt {
-  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; cursor: pointer;
   border: none; outline: none; transition: all 0.2s;
   position: relative; padding: 0;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.4);
 }
 .bg-opt.active {
-  box-shadow: 0 0 0 2.5px #fff, 0 0 0 5px rgba(255,255,255,0.2);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,0.9), 0 0 0 3.5px rgba(255,255,255,0.15);
   transform: scale(1.1);
 }
 .bg-opt:hover:not(.active) { transform: scale(1.06); }
@@ -831,6 +832,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
   display: flex; align-items: flex-end; justify-content: center;
   animation: fadeIn 0.18s ease;
+  touch-action: none;
 }
 .blade-picker-box {
   background: linear-gradient(180deg, var(--surface2), var(--surface));
@@ -851,7 +853,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   -webkit-appearance: none;
 }
 .blade-picker-search:focus { border-color: var(--accent); }
-.blade-picker-list { overflow-y: auto; padding: 8px 12px 20px; flex: 1; min-height: 0; scrollbar-width: none; }
+.blade-picker-list { overflow-y: auto; padding: 8px 12px 20px; flex: 1; min-height: 0; scrollbar-width: none; touch-action: pan-y; overscroll-behavior: contain; }
 .blade-picker-list::-webkit-scrollbar { display: none; }
 .blade-picker-item {
   display: flex; align-items: center; gap: 12px;
@@ -1816,11 +1818,17 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function updateBgSwatches() {
+  document.querySelectorAll('.bg-opt').forEach((el, i) => {
+    el.classList.toggle('active', BG_THEMES[i]?.id === shareState.bgId);
+  });
+}
+
 function renderSharePage() {
   const bgSwatches = BG_THEMES.map(t => {
     const [c0,c1,c2] = t.colors;
     return `<div class="bg-opt${t.id===shareState.bgId?' active':''}"
-      onclick="shareState.bgId='${t.id}';renderSharePage()"
+      onclick="shareState.bgId='${t.id}';updateBgSwatches();renderShareCanvas()"
       title="${t.label}"
       style="background:linear-gradient(135deg,${c2},${c1} 50%,${c0})">
     </div>`;
@@ -1862,15 +1870,16 @@ function renderSharePage() {
       <button class="vault-notice-close" onclick="this.closest('.vault-notice').remove()">✕</button>
       📣 此功能公開測試中，歡迎分享。
     </div>
-    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">背景主題</div>
-    <div class="bg-options">${bgSwatches}</div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">陀螺組合（輔助戰刃可選）</div>
     ${comboRows}
     <textarea class="share-input" id="shareNoteInput" placeholder="組合備註" rows="3"
       style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
       oninput="shareState.note=this.value;renderShareCanvas()">${shareState.note||''}</textarea>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">背景主題</div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;" class="bg-options">${bgSwatches}</div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">預覽</div>
-    <div class="share-preview-wrap"><canvas id="shareCanvas" width="800" height="1080"></canvas></div>`;
+    <div class="share-preview-wrap"><canvas id="shareCanvas" width="1600" height="2160" style="width:100%;display:block;border-radius:14px;"></canvas></div>
+    <div id="shareDownloadBtn"></div>`;
 
   renderShareCanvas();
 }
@@ -1879,8 +1888,12 @@ async function renderShareCanvas() {
   // 確保 canvas 存在
   const wrap = document.querySelector('.share-preview-wrap');
   if (!wrap) return;
-  wrap.innerHTML = '<canvas id="shareCanvas" width="1600" height="2160" style="width:100%;display:block;"></canvas>';
-  const canvas = document.getElementById("shareCanvas");
+  let canvas = document.getElementById("shareCanvas");
+  if (!canvas || canvas.tagName !== 'CANVAS') {
+    wrap.innerHTML = '<canvas id="shareCanvas" width="1600" height="2160" style="width:100%;display:block;border-radius:14px;"></canvas>';
+    canvas = document.getElementById("shareCanvas");
+  }
+  canvas.width = 1600; canvas.height = 2160;
   const SCALE=2, W=800, H=1080;
   canvas.width=W*SCALE; canvas.height=H*SCALE;
   canvas.style.width='100%';
@@ -1961,7 +1974,7 @@ async function renderShareCanvas() {
   const imgSizes = [156, 172, 170, 138];  // 輔助/戰刃/固鎖/軸心
 
   const getCellCenter = (row, col) => ({
-    x: col * cellW + cellW / 2,
+    x: col * cellW + cellW / 2 + (col < 3 ? 30 : 0),
     y: gridTop + row * cellH + cellH / 2,
   });
 
@@ -2035,18 +2048,19 @@ async function renderShareCanvas() {
   ctx.fillText('https://stan-yao.github.io/beyblade_x_tier/', W/2, H-24);
   ctx.textAlign='left';
 
-  // 轉成 img 讓使用者儲存
+  // 更新下載按鈕（canvas 保持不動，不觸發頁面跳動）
   const dataUrl = canvas.toDataURL('image/png');
-  if (wrap) {
-    wrap.innerHTML = `
-      <img src="${dataUrl}" style="width:100%;display:block;border-radius:16px;" id="sharePreviewImg">
-      <button onclick="shareImage('${dataUrl}')"
-        style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:12px;width:100%;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:16px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;"
-        onmouseover="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.25),rgba(105,167,255,0.18))'"
-        onmouseout="this.style.background='linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1))'">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        儲存 / 分享圖片
-      </button>`;
+  const btnDiv = document.getElementById('shareDownloadBtn');
+  if (btnDiv && !btnDiv.querySelector('button')) {
+    btnDiv.innerHTML = `<button onclick="shareImage('${dataUrl}')"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:12px;width:100%;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:16px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      儲存 / 分享圖片
+    </button>`;
+  } else if (btnDiv) {
+    // 更新 dataUrl 供按鈕使用
+    const btn = btnDiv.querySelector('button');
+    if (btn) btn.onclick = () => shareImage(dataUrl);
   }
 }
 
@@ -2073,22 +2087,23 @@ function openPartPicker(row, part) {
   </div>`;
   picker.onclick = e => { if(e.target===picker) closeBladePicker(); };
   document.body.appendChild(picker);
-  // iOS 鍵盤彈起時，用 visualViewport 調整 picker 位置
-  const adjustPicker = () => {
-    const box = picker.querySelector('.blade-picker-box');
-    if (!box) return;
-    if (window.visualViewport) {
+  // iOS 鍵盤彈起時，只調整一次 picker 位置，不持續監聽 scroll
+  if (window.visualViewport) {
+    let adjusted = false;
+    const adjustOnce = () => {
+      if (adjusted) return;
       const vvBottom = window.visualViewport.offsetTop + window.visualViewport.height;
       const bottom = window.innerHeight - vvBottom;
-      picker.style.bottom = bottom + 'px';
-    }
-  };
-  window.visualViewport?.addEventListener('resize', adjustPicker);
-  window.visualViewport?.addEventListener('scroll', adjustPicker);
-  picker._cleanupViewport = () => {
-    window.visualViewport?.removeEventListener('resize', adjustPicker);
-    window.visualViewport?.removeEventListener('scroll', adjustPicker);
-  };
+      if (bottom > 100) { // 鍵盤確實彈起才調整
+        picker.style.bottom = bottom + 'px';
+        adjusted = true;
+      }
+    };
+    window.visualViewport.addEventListener('resize', adjustOnce);
+    picker._cleanupViewport = () => {
+      window.visualViewport.removeEventListener('resize', adjustOnce);
+    };
+  }
   renderPartPickerList('');
   setTimeout(()=>document.getElementById('bladePickerSearch')?.focus(),100);
 }
