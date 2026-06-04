@@ -1054,6 +1054,22 @@ document.addEventListener('visibilitychange', function() {
 // 如果不需要顯示，立即隱藏避免任何閃爍
 if (!window._splashShouldShow) {
   document.getElementById('appSplash').style.display = 'none';
+} else {
+  // icon 立即開始淡入（在 render() dismiss 之前就跑）
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const icon = document.getElementById('splashIcon');
+      if (icon) { icon.style.opacity = '1'; icon.style.transform = 'scale(1)'; }
+    });
+  });
+  // Fallback: 3 秒強制消失
+  setTimeout(() => {
+    const s = document.getElementById('appSplash');
+    if (s && s.style.display !== 'none') {
+      s.style.opacity = '0';
+      setTimeout(() => { s.style.display = 'none'; }, 520);
+    }
+  }, 3000);
 }
 </script>
 
@@ -3127,30 +3143,6 @@ function renderAnalysis() {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
-
-// ── Splash overlay logic ──
-(function() {
-  if (!window._splashShouldShow) return;
-
-  const splash = document.getElementById('appSplash');
-  const icon   = document.getElementById('splashIcon');
-
-  // icon 淡入
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      icon.style.opacity = '1';
-      icon.style.transform = 'scale(1)';
-    });
-  });
-
-  // Fallback: 3 秒強制消失
-  setTimeout(() => {
-    if (splash && splash.style.display !== 'none') {
-      splash.style.opacity = '0';
-      setTimeout(() => { splash.style.display = 'none'; }, 520);
-    }
-  }, 3000);
-})();
 
 // ── iOS PWA Splash Screen generator ──
 (function() {
