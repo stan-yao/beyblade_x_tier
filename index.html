@@ -793,8 +793,9 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .share-subtitle { font-size: 0.72rem; color: var(--muted); }
 
 /* 背景選色 — 單行橫向滑動 */
-.bg-options { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 16px; padding: 5px 5px 10px 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.bg-options { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 16px; padding: 5px 5px 10px 5px; scrollbar-width: none; -webkit-overflow-scrolling: touch; cursor: grab; }
 .bg-options::-webkit-scrollbar { display: none; }
+.bg-options.dragging { cursor: grabbing; }
 .bg-opt {
   width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; cursor: pointer;
   border: none; outline: none; transition: all 0.2s;
@@ -1678,6 +1679,13 @@ function showShareHint() {}
 // ════════════════════════════════
 
 const BG_THEMES = [
+  { id:'carbon',   label:'Carbon',
+    colors:['#080808','#2a2a2a','#505050'],
+    stops:[
+      {cx:80,cy:10,r:85,c:'#606060',o:0.85},
+      {cx:8, cy:88,r:80,c:'#383838',o:0.75},
+      {cx:50,cy:50,r:60,c:'#282828',o:0.4},
+    ]},
   { id:'arctic',   label:'Arctic',
     colors:['#0d2535','#0DB8D3','#1B7FDC'],
     stops:[
@@ -1705,13 +1713,6 @@ const BG_THEMES = [
       {cx:80,cy:10,r:90,c:'#5588ff',o:0.85},
       {cx:8, cy:88,r:85,c:'#2233cc',o:0.8},
       {cx:50,cy:50,r:55,c:'#8844dd',o:0.3},
-    ]},
-  { id:'carbon',   label:'Carbon',
-    colors:['#080808','#2a2a2a','#505050'],
-    stops:[
-      {cx:80,cy:10,r:85,c:'#606060',o:0.85},
-      {cx:8, cy:88,r:80,c:'#383838',o:0.75},
-      {cx:50,cy:50,r:60,c:'#282828',o:0.4},
     ]},
   { id:'ember',    label:'Ember',
     colors:['#1a0800','#cc5500','#ffaa00'],
@@ -1765,6 +1766,26 @@ const BG_THEMES = [
       {cx:20,cy:20,r:50,c:'#003333',o:0.6},
       {cx:78,cy:78,r:50,c:'#001a1a',o:0.5},
     ]},
+  { id:'cyberwave', label:'CyberWave',
+    colors:['#0a0a0a','#2ec4b6','#c0151a'],
+    stops:[
+      {cx:38,cy:65,r:55,c:'#b0e8e0',o:0.65},
+      {cx:38,cy:65,r:80,c:'#2ec4b6',o:0.45},
+      {cx:92,cy:78,r:30,c:'#c0151a',o:0.55},
+      {cx:50,cy:50,r:85,c:'#151515',o:0.35},
+    ]},
+  { id:'deepsea',  label:'DeepSea',
+    colors:['#000508','#003a55','#00ccee'],
+    stops:[
+      {cx:85,cy:95,r:75,c:'#00ccee',o:0.95},
+      {cx:50,cy:85,r:80,c:'#0099cc',o:0.75},
+      {cx:20,cy:75,r:65,c:'#005577',o:0.55},
+      {cx:15,cy:20,r:70,c:'#1a0008',o:0.45},
+      {cx:60,cy:30,r:75,c:'#000a12',o:0.60},
+    ]},
+  { id:'peachbloom', label:'PeachBloom',
+    colors:['#fde8dc','#ffb3c1','#ff3c78'],
+    stops:[] },
 ];
 
 let shareState = {
@@ -1817,6 +1838,30 @@ async function shareImage(dataUrl) {
 function hexToRgba(hex, alpha) {
   const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function initBgOptionsScroll() {
+  const el = document.querySelector('.bg-options');
+  if (!el) return;
+  // 滾輪橫向捲動
+  el.addEventListener('wheel', e => {
+    e.preventDefault();
+    el.scrollLeft += e.deltaY || e.deltaX;
+  }, { passive: false });
+  // 滑鼠拖曳
+  let isDown = false, startX, scrollLeft;
+  el.addEventListener('mousedown', e => {
+    isDown = true; el.classList.add('dragging');
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+  el.addEventListener('mouseleave', () => { isDown = false; el.classList.remove('dragging'); });
+  el.addEventListener('mouseup', () => { isDown = false; el.classList.remove('dragging'); });
+  el.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    e.preventDefault();
+    el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX);
+  });
 }
 
 function updateBgSwatches() {
@@ -1883,6 +1928,7 @@ function renderSharePage() {
     <div id="shareDownloadBtn"></div>`;
 
   renderShareCanvas();
+  requestAnimationFrame(initBgOptionsScroll);
 }
 
 async function renderShareCanvas() {
@@ -1905,13 +1951,103 @@ async function renderShareCanvas() {
   // 底色 + 光暈
   ctx.fillStyle = theme.colors[0];
   ctx.fillRect(0,0,W,H);
-  theme.stops.forEach(s => {
-    const grd = ctx.createRadialGradient(W*s.cx/100,H*s.cy/100,0,W*s.cx/100,H*s.cy/100,Math.max(W,H)*s.r/100);
-    grd.addColorStop(0,   hexToRgba(s.c, Math.min(s.o * 1.25, 1)));
-    grd.addColorStop(0.35,hexToRgba(s.c, s.o * 0.6));
-    grd.addColorStop(1,   hexToRgba(s.c, 0));
-    ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
-  });
+
+  if (theme.id === 'cyberwave' || theme.id === 'peachbloom') {
+    if (theme.id === 'peachbloom') {
+      // 亮底暖色液態 blob
+      ctx.fillStyle = '#fde8dc'; ctx.fillRect(0,0,W,H);
+      const pbBlobs = [
+        // 粉紅群
+        {x:0.45,y:0.35,rx:0.70,ry:0.55,r:255,g:100,b:130,a:0.55},
+        {x:0.75,y:0.72,rx:0.65,ry:0.70,r:255,g:60, b:120,a:0.70},
+        {x:0.30,y:0.55,rx:0.60,ry:0.50,r:255,g:140,b:160,a:0.40},
+        // 橘紅群
+        {x:0.92,y:0.08,rx:0.55,ry:0.50,r:240,g:90, b:60, a:0.75},
+        {x:0.30,y:0.92,rx:0.70,ry:0.45,r:255,g:160,b:90, a:0.55},
+        // 亮粉白提亮
+        {x:0.25,y:0.30,rx:0.65,ry:0.55,r:255,g:220,b:220,a:0.60},
+      ];
+      pbBlobs.forEach(b => {
+        ctx.save();
+        ctx.scale(1, b.ry/b.rx);
+        const grd = ctx.createRadialGradient(
+          W*b.x, H*b.y/(b.ry/b.rx), 0,
+          W*b.x, H*b.y/(b.ry/b.rx), W*b.rx
+        );
+        grd.addColorStop(0,    `rgba(${b.r},${b.g},${b.b},${b.a})`);
+        grd.addColorStop(0.55, `rgba(${b.r},${b.g},${b.b},0.08)`);
+        grd.addColorStop(1,    `rgba(${b.r},${b.g},${b.b},0)`);
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, W, H/(b.ry/b.rx));
+        ctx.restore();
+      });
+    } else {
+    // 純黑底
+    ctx.fillStyle = '#060808'; ctx.fillRect(0,0,W,H);
+
+    // 液態青綠：大範圍橢圓互相融合
+    const blobs = [
+      {x:0.20,y:0.50,rx:0.90,ry:0.65,c:'rgba(46,196,182,0.65)'},
+      {x:0.45,y:0.75,rx:0.80,ry:0.55,c:'rgba(176,232,224,0.45)'},
+      {x:0.08,y:0.85,rx:0.75,ry:0.50,c:'rgba(13,122,114,0.55)'},
+      {x:0.35,y:0.35,rx:0.70,ry:0.60,c:'rgba(0,180,160,0.40)'},
+      {x:0.55,y:0.60,rx:0.65,ry:0.80,c:'rgba(46,196,182,0.30)'},
+    ];
+    blobs.forEach(b => {
+      ctx.save();
+      ctx.scale(1, b.ry/b.rx);
+      const grd2 = ctx.createRadialGradient(
+        W*b.x, H*b.y/(b.ry/b.rx), 0,
+        W*b.x, H*b.y/(b.ry/b.rx), W*b.rx
+      );
+      const fade = b.c.replace(/[^,]+\)$/, '0)');
+      grd2.addColorStop(0,    b.c);
+      grd2.addColorStop(0.60, b.c.replace(/[^,]+\)$/, '0.08)'));
+      grd2.addColorStop(1,    fade);
+      ctx.fillStyle = grd2;
+      ctx.fillRect(0, 0, W, H/(b.ry/b.rx));
+      ctx.restore();
+    });
+
+    // 液態紅：大範圍橢圓，跟青綠自然融合
+    const redBlobs = [
+      {x:0.85,y:0.60,rx:0.75,ry:0.90,c:'rgba(192,21,26,0.72)'},
+      {x:0.70,y:0.85,rx:0.70,ry:0.60,c:'rgba(160,10,15,0.50)'},
+      {x:0.98,y:0.40,rx:0.60,ry:0.75,c:'rgba(100,5,8,0.42)'},
+      {x:0.65,y:0.50,rx:0.55,ry:0.70,c:'rgba(80,5,8,0.28)'},
+    ];
+    redBlobs.forEach(b => {
+      ctx.save();
+      ctx.scale(1, b.ry/b.rx);
+      const grd2 = ctx.createRadialGradient(
+        W*b.x, H*b.y/(b.ry/b.rx), 0,
+        W*b.x, H*b.y/(b.ry/b.rx), W*b.rx
+      );
+      const fade = b.c.replace(/[^,]+\)$/, '0)');
+      grd2.addColorStop(0,    b.c);
+      grd2.addColorStop(0.60, b.c.replace(/[^,]+\)$/, '0.06)'));
+      grd2.addColorStop(1,    fade);
+      ctx.fillStyle = grd2;
+      ctx.fillRect(0, 0, W, H/(b.ry/b.rx));
+      ctx.restore();
+    });
+
+    // 四周壓暗，突出中央液態混合區
+    const dark = ctx.createRadialGradient(W*0.45,H*0.60,W*0.05,W*0.45,H*0.60,W*1.1);
+    dark.addColorStop(0,   'rgba(0,0,0,0)');
+    dark.addColorStop(0.7, 'rgba(0,0,0,0.25)');
+    dark.addColorStop(1,   'rgba(0,0,0,0.6)');
+    ctx.fillStyle = dark; ctx.fillRect(0,0,W,H);
+    } // end cyberwave
+  } else {
+    theme.stops.forEach(s => {
+      const grd = ctx.createRadialGradient(W*s.cx/100,H*s.cy/100,0,W*s.cx/100,H*s.cy/100,Math.max(W,H)*s.r/100);
+      grd.addColorStop(0,   hexToRgba(s.c, Math.min(s.o * 1.25, 1)));
+      grd.addColorStop(0.35,hexToRgba(s.c, s.o * 0.6));
+      grd.addColorStop(1,   hexToRgba(s.c, 0));
+      ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+    });
+  }
 
   // 網格 80px 間距
   ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=0.6;
