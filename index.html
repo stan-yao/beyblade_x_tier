@@ -194,7 +194,7 @@ h1 {
 .source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 8px; opacity: 0.7; text-align: left; width: 100%; box-sizing: border-box; }
 .source-note a { color: #5588bb; text-decoration: none; }
 
-main { padding: 1.2rem 2rem 4rem; }
+main { padding: 1.2rem 2rem 4rem; padding-top: calc(1.2rem + env(safe-area-inset-top)); }
 
 .tier-section {
   display: flex; margin-bottom: 6px;
@@ -1009,21 +1009,19 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 <script>
 // 用 sessionStorage 判斷是否為冷啟動
 // sessionStorage 在 PWA 完全關閉後會清空，從背景回來則保留
+window._splashShouldShow = true; // 測試用：每次都跑
+/*
 window._splashShouldShow = (function() {
   const SESSION_KEY = 'bey_session_active';
   const TIME_KEY    = 'bey_last_hide';
   const THRESHOLD   = 30 * 60 * 1000;
-
   const hasSession  = sessionStorage.getItem(SESSION_KEY);
   const lastHide    = parseInt(localStorage.getItem(TIME_KEY) || '0', 10);
   const tooLong     = !lastHide || (Date.now() - lastHide > THRESHOLD);
-
-  // 標記本次 session 已啟動
   sessionStorage.setItem(SESSION_KEY, '1');
-
-  // 沒有 session（冷啟動）或離開超過 30 分鐘 → 顯示
   return !hasSession || tooLong;
 })();
+*/
 
 // 記錄離開時間
 document.addEventListener('visibilitychange', function() {
