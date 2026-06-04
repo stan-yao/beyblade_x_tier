@@ -248,6 +248,7 @@ main { padding: 1.2rem 2rem 4rem; }
 
 .type-pill { font-size: 0.52rem; padding: 2px 7px; border-radius: var(--radius-pill); margin-top: 3px; font-weight: 600; letter-spacing: 0.03em; }
 .tp-attack  { background: rgba(255,68,102,0.15);  color: #ff8899; }
+.tp-assist  { background: rgba(255,182,214,0.15);  color: #ffb6d6; }
 .tp-stamina { background: rgba(64,212,192,0.13);  color: #40d4c0; }
 .tp-defense { background: rgba(56,176,240,0.13);  color: #38b0f0; }
 .tp-balance { background: rgba(255,184,48,0.13);  color: #ffb830; }
@@ -1436,7 +1437,7 @@ function render() {
         ${imgHtml}
         <div class="card-name">${displayName}</div>
         <div class="card-sub">${displaySub}</div>
-        <span class="type-pill ${TYPE_CLASSES[d.type]}">${TYPE_LABELS[d.type]}</span>
+        <span class="type-pill ${d.cat === 'assist' ? 'tp-assist' : TYPE_CLASSES[d.type]}">${d.cat === 'assist' ? '輔助戰刃' : TYPE_LABELS[d.type]}</span>
       `;
       card.onclick = () => { modalHistory = []; openModal(d); };
       cards.appendChild(card);
