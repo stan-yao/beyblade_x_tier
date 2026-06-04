@@ -1814,21 +1814,22 @@ function closeShare() {
   setIslandActive(0);
 }
 async function shareImage(dataUrl) {
-  try {
-    // iOS / Android：轉成 Blob 用 Web Share API 彈出系統分享畫面
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], 'beyblade_combo.png', { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: 'Beyblade X Combo',
-        text: 'https://stan-yao.github.io/beyblade_x_tier/',
-      });
-      return;
-    }
-  } catch(e) { /* 不支援或取消，退回下載 */ }
-  // 電腦/不支援 Web Share：直接下載
+  // 判斷是否為手機裝置
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (isMobile && navigator.canShare) {
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], 'beyblade_combo.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Beyblade X Combo' });
+        return;
+      }
+    } catch(e) { /* 取消或失敗，退回下載 */ }
+  }
+
+  // 電腦版或手機分享失敗：直接下載
   const a = document.createElement('a');
   a.href = dataUrl;
   a.download = 'beyblade_combo.png';
