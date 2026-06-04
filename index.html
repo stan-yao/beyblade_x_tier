@@ -6,6 +6,14 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0a0b10">
 <meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="天梯 BeyTier">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="天梯 BeyTier">
+
+<!-- iOS Splash Screens (generated via JS below) -->
+<link rel="apple-touch-startup-image" id="ios-splash">
 <title>Beyblade X Tier｜台灣天梯情報站</title>
 
 <meta name="description"
@@ -891,6 +899,23 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </style>
 <body>
 
+<!-- ── Loading Splash Overlay ── -->
+<div id="appSplash" style="
+  position:fixed;inset:0;z-index:99999;
+  background:#0a0b10;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.5s ease;
+  pointer-events:none;
+">
+  <img src="apple-touch-icon.png" id="splashIcon" style="
+    width:96px;height:96px;
+    border-radius:22px;
+    opacity:0;
+    transform:scale(0.85);
+    transition:opacity 0.4s ease, transform 0.4s ease;
+  " alt="BeyTier">
+</div>
+
 <header>
   <div class="header-top">
     <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
@@ -1448,6 +1473,9 @@ function render() {
     sec.appendChild(cards);
     main.appendChild(sec);
   });
+
+  // Dismiss loading splash once content is rendered
+  if (window._dismissSplash) { window._dismissSplash(); window._dismissSplash = null; }
 }
 
 function linkifyParts(text) {
@@ -2951,6 +2979,96 @@ function renderAnalysis() {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
+
+// ── Splash overlay logic ──
+(function() {
+  const splash = document.getElementById('appSplash');
+  const icon   = document.getElementById('splashIcon');
+
+  // Fade icon in immediately
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      icon.style.opacity = '1';
+      icon.style.transform = 'scale(1)';
+    });
+  });
+
+  // Dismiss splash after data is ready
+  window._dismissSplash = function() {
+    if (!splash) return;
+    splash.style.opacity = '0';
+    setTimeout(() => { splash.style.display = 'none'; }, 520);
+  };
+
+  // Fallback: always dismiss after 3s max
+  setTimeout(window._dismissSplash, 3000);
+})();
+
+// ── iOS PWA Splash Screen generator ──
+(function() {
+  const iconUrl = 'apple-touch-icon.png';
+  const bg = '#0a0b10';
+
+  const sizes = [
+    // [width, height, scale, media]
+    [430, 932, 3, '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)'],
+    [393, 852, 3, '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)'],
+    [390, 844, 3, '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)'],
+    [375, 812, 3, '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)'],
+    [414, 896, 2, '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)'],
+    [375, 667, 2, '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)'],
+    [320, 568, 2, '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'],
+  ];
+
+  const img = new Image();
+  img.onload = function() {
+    sizes.forEach(([w, h, dpr, media]) => {
+      const c = document.createElement('canvas');
+      c.width = w * dpr; c.height = h * dpr;
+      const ctx = c.getContext('2d');
+
+      // Background
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Subtle radial glow
+      const grad = ctx.createRadialGradient(c.width/2, c.height/2, 0, c.width/2, c.height/2, c.width*0.55);
+      grad.addColorStop(0, 'rgba(18,239,206,0.06)');
+      grad.addColorStop(1, 'rgba(18,239,206,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // Icon centered
+      const iconSize = Math.round(c.width * 0.22);
+      const x = (c.width - iconSize) / 2;
+      const y = (c.height - iconSize) / 2;
+      const r = iconSize * 0.23;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + iconSize, y, x + iconSize, y + iconSize, r);
+      ctx.arcTo(x + iconSize, y + iconSize, x, y + iconSize, r);
+      ctx.arcTo(x, y + iconSize, x, y, r);
+      ctx.arcTo(x, y, x + iconSize, y, r);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(img, x, y, iconSize, iconSize);
+      ctx.restore();
+
+      const link = document.createElement('link');
+      link.rel = 'apple-touch-startup-image';
+      link.media = media;
+      link.href = c.toDataURL('image/png');
+      document.head.appendChild(link);
+    });
+
+    // Remove placeholder
+    const placeholder = document.getElementById('ios-splash');
+    if (placeholder) placeholder.remove();
+  };
+  img.src = iconUrl;
+})();
+
 loadData();
 
 document.getElementById('searchInput').addEventListener('input', function(e) {
