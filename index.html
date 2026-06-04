@@ -2186,18 +2186,18 @@ async function renderShareCanvas() {
   ctx.textAlign='left';
 
   // 更新下載按鈕（canvas 保持不動，不觸發頁面跳動）
-  const dataUrl = canvas.toDataURL('image/png');
+  // 用全域變數存 dataUrl，避免 onclick 字串過長
+  window._shareDataUrl = canvas.toDataURL('image/png');
   const btnDiv = document.getElementById('shareDownloadBtn');
   if (btnDiv && !btnDiv.querySelector('button')) {
-    btnDiv.innerHTML = `<button onclick="shareImage('${dataUrl}')"
+    btnDiv.innerHTML = `<button onclick="shareImage(window._shareDataUrl)"
       style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:12px;width:100%;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:16px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       儲存 / 分享圖片
     </button>`;
   } else if (btnDiv) {
-    // 更新 dataUrl 供按鈕使用
     const btn = btnDiv.querySelector('button');
-    if (btn) btn.onclick = () => shareImage(dataUrl);
+    if (btn) btn.onclick = () => shareImage(window._shareDataUrl);
   }
 }
 
