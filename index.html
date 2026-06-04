@@ -116,7 +116,7 @@ body::before {
 header, #main, .modal-overlay { position: relative; z-index: 1; }
 
 header {
-  padding: 1.8rem 2rem 1rem;
+  padding: calc(1.8rem + env(safe-area-inset-top)) 2rem 1rem;
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0;
   background: linear-gradient(to bottom, rgba(10,11,16,0.95), rgba(10,11,16,0.72), transparent);
@@ -1004,13 +1004,24 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </script>
 
 <script>
-// 在渲染前決定是否顯示 splash（避免被 render() 提早 dismiss）
+// 用 sessionStorage 判斷是否為冷啟動
+// sessionStorage 在 PWA 完全關閉後會清空，從背景回來則保留
 window._splashShouldShow = (function() {
-  const KEY = 'bey_last_hide';
-  const THRESHOLD = 30 * 60 * 1000;
-  const lastHide = parseInt(localStorage.getItem(KEY) || '0', 10);
-  return !lastHide || (Date.now() - lastHide > THRESHOLD);
+  const SESSION_KEY = 'bey_session_active';
+  const TIME_KEY    = 'bey_last_hide';
+  const THRESHOLD   = 30 * 60 * 1000;
+
+  const hasSession  = sessionStorage.getItem(SESSION_KEY);
+  const lastHide    = parseInt(localStorage.getItem(TIME_KEY) || '0', 10);
+  const tooLong     = !lastHide || (Date.now() - lastHide > THRESHOLD);
+
+  // 標記本次 session 已啟動
+  sessionStorage.setItem(SESSION_KEY, '1');
+
+  // 沒有 session（冷啟動）或離開超過 30 分鐘 → 顯示
+  return !hasSession || tooLong;
 })();
+
 // 記錄離開時間
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') {
