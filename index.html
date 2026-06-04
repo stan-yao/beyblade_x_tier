@@ -120,7 +120,7 @@ header {
   padding: 1.8rem 2rem 1rem;
   padding-top: calc(env(safe-area-inset-top) + 1.8rem);
   border-bottom: 1px solid var(--border);
-  position: sticky; top: calc(-1 * env(safe-area-inset-top));
+  position: fixed; top: 0; left: 0; right: 0;
   background: linear-gradient(to bottom, rgba(10,11,16,0.95), rgba(10,11,16,0.72), transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -1639,6 +1639,8 @@ function render() {
       setTimeout(() => { _splash.style.display = 'none'; }, 520);
     }
   }
+
+  if (typeof adjustMainPadding === 'function') adjustMainPadding();
 }
 
 function linkifyParts(text) {
@@ -3142,6 +3144,15 @@ function renderAnalysis() {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
+
+// fixed header 後動態設定 main padding-top
+function adjustMainPadding() {
+  const hdr = document.querySelector('header');
+  const main = document.getElementById('main');
+  if (hdr && main) main.style.paddingTop = (hdr.offsetHeight + 8) + 'px';
+}
+window.addEventListener('resize', adjustMainPadding);
+// render 完成後也會呼叫（見 render 函數末尾）
 
 // ── iOS PWA Splash Screen generator ──
 (function() {
