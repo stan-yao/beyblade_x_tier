@@ -2616,21 +2616,27 @@ function toggleOwnedBlade(bladeId) {
 }
 
 // ── PATCH 4: 散件新增戰刃上蓋區塊 ──
-function renderLooseParts(inv, fromBlades) {
+function renderLooseParts(inv, fromBlades, searchVal = '') {
+  const q = searchVal.trim().toLowerCase();
+
   const ratchets = [...new Set(DB.filter(x=>x.cat==='ratchet').map(x=>x.id))].sort();
   const bits     = [...new Set(DB.filter(x=>x.cat==='bit').map(x=>x.id))].sort();
   const assists  = [...new Set(DB.filter(x=>x.cat==='assist').map(x=>x.id))].sort();
-  // 戰刃上蓋：取所有 blade 的 id 作為上蓋代號列表
   const covers   = [...new Set(DB.filter(x=>x.cat==='blade').map(x=>x.id))].sort();
 
+  function matchQ(id) {
+    if (!q) return true;
+    const nq = norm(q);
+    return norm(id).includes(nq);
+  }
+
   function chipsHtml(list, cat) {
-    return list.map(id => {
+    return list.filter(matchQ).map(id => {
       const manualOwned = (inv[cat]||[]).includes(id);
       const autoOwned = fromBlades[cat]?.has(id);
       if (autoOwned) {
         let srcName = '';
         if (cat === 'bladeCover') {
-          // 上蓋來源就是同 id 的原裝陀螺
           const src = DB.find(x=>x.cat==='blade'&&x.id===id);
           srcName = src?.name || id;
         } else {
@@ -2664,21 +2670,91 @@ function renderLooseParts(inv, fromBlades) {
   ].filter(s=>s.list.length>0);
 
   document.getElementById("invSubContent").innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <div style="font-size:0.8rem;color:var(--muted);">點擊標記散件；<span style="color:rgba(18,239,206,0.6)">淡色</span>為原裝自動帶入</div>
       <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個零件</div>
     </div>
-    ${sections.map(s=>`
-      <div class="vault-section">
+    <div style="position:relative;margin-bottom:12px;">
+      <input id="looseSearchInput" type="text" value="${searchVal}"
+        placeholder="搜尋零件型號…"
+        oninput="filterLooseParts(this.value)"
+        style="width:100%;padding:9px 16px 9px 36px;background:var(--surface2);border:1px solid var(--border2);border-radius:999px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:16px;outline:none;box-sizing:border-box;transition:border-color 0.2s;-webkit-appearance:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.4;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+    ${sections.map(s => {
+      const filtered = s.list.filter(id => {
+        if (!q) return true;
+        if (norm(id).includes(q)) return true;
+        if (s.cat === 'bladeCover') {
+          const entry = DB.find(x=>x.cat==='blade'&&x.id===id);
+          if (entry && norm(entry.name).includes(q)) return true;
+        }
+        return false;
+      });
+      return `<div class="vault-section" id="looseSection_${s.cat}" ${filtered.length===0&&q?'style="display:none"':''}>
         <div class="vault-section-head">
           <span class="vault-section-title">${s.label}</span>
           <span class="vault-section-count">${s.count} / ${s.list.length}</span>
         </div>
-        <div class="vault-parts-grid">${chipsHtml(s.list, s.cat)}</div>
-      </div>`).join('')}
+        <div class="vault-parts-grid" id="looseGrid_${s.cat}">${chipsHtml(s.list, s.cat)}</div>
+      </div>`;
+    }).join('')}
+    <div id="looseNoResult" style="display:none;text-align:center;color:var(--muted);padding:30px 0;font-size:0.85rem;"></div>
     <div style="text-align:center;margin-top:16px;">
       <button onclick="clearInventory()" style="background:none;border:1px solid rgba(255,94,122,0.25);color:var(--danger);border-radius:999px;padding:6px 18px;font-size:0.75rem;cursor:pointer;" onmouseover="this.style.background='rgba(255,94,122,0.08)'" onmouseout="this.style.background='none'">清除所有收藏</button>
     </div>`;
+}
+
+function filterLooseParts(val) {
+  const inv = loadInventory();
+  const fromBlades = getPartsFromOwnedBlades(inv);
+  const q = norm(val.trim());
+
+  // 只更新各 section 的 chips，不重建整個 DOM
+  const cats = ['ratchet','bit','assist','bladeCover'];
+  cats.forEach(cat => {
+    const grid = document.getElementById(`looseGrid_${cat}`);
+    if (!grid) return;
+
+    const allIds = cat === 'bladeCover'
+      ? [...new Set(DB.filter(x=>x.cat==='blade').map(x=>x.id))].sort()
+      : [...new Set(DB.filter(x=>x.cat===cat).map(x=>x.id))].sort();
+
+    const filtered = q ? allIds.filter(id => {
+      if (norm(id).includes(q)) return true;
+      // 戰刃上蓋額外比對中文名稱
+      if (cat === 'bladeCover') {
+        const entry = DB.find(x=>x.cat==='blade'&&x.id===id);
+        if (entry && norm(entry.name).includes(q)) return true;
+      }
+      return false;
+    }) : allIds;
+
+    grid.innerHTML = filtered.map(id => {
+      const manualOwned = (inv[cat]||[]).includes(id);
+      const autoOwned = fromBlades[cat]?.has(id);
+      if (autoOwned) {
+        return `<span class="vault-part-chip from-blade"><span class="chip-dot"></span>${id}<span class="chip-source">原裝</span></span>`;
+      }
+      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="togglePart('${cat}','${id}')"><span class="chip-dot"></span>${id}</span>`;
+    }).join('');
+
+    // 更新 section 顯示/隱藏
+    const section = document.getElementById(`looseSection_${cat}`);
+    if (section) section.style.display = filtered.length === 0 && q ? 'none' : '';
+  });
+
+  // 找不到提示
+  const noResult = document.getElementById('looseNoResult');
+  if (noResult) {
+    const allEmpty = cats.every(cat => {
+      const grid = document.getElementById(`looseGrid_${cat}`);
+      return grid && grid.innerHTML === '';
+    });
+    noResult.style.display = allEmpty && q ? 'block' : 'none';
+    if (noResult.style.display === 'block') noResult.textContent = `找不到「${val.trim()}」`;
+  }
 }
 
 function togglePart(cat, id) {
@@ -2687,7 +2763,8 @@ function togglePart(cat, id) {
   const idx = inv[cat].indexOf(id);
   if (idx===-1) inv[cat].push(id); else inv[cat].splice(idx,1);
   saveInventory(inv);
-  renderInventory();
+  const q = document.getElementById('looseSearchInput')?.value || '';
+  renderLooseParts(inv, getPartsFromOwnedBlades(inv), q);
 }
 function clearInventory() {
   if (!confirm("確定要清除所有收藏的零件嗎？")) return;
