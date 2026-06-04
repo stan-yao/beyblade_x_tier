@@ -899,7 +899,110 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </style>
 <body>
 
-<!-- ── Loading Splash Overlay ── -->
+<!-- ── PWA Install Banner ── -->
+<div id="pwaBanner" style="
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  padding:12px 16px 28px;
+  transform:translateY(100%);
+  transition:transform 0.4s cubic-bezier(0.34,1.26,0.64,1), opacity 0.4s ease;
+  opacity:0;
+  pointer-events:none;
+">
+  <div style="
+    background:rgba(18,22,32,0.45);
+    backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:20px;
+    padding:14px 16px 14px 14px;
+    display:flex;align-items:center;gap:14px;
+    box-shadow:0 4px 32px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.04) inset;
+  ">
+    <img src="apple-touch-icon.png" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;opacity:0.9;" alt="BeyTier">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:0.78rem;font-weight:400;color:rgba(220,228,242,0.9);letter-spacing:0.01em;margin-bottom:3px;">加入主畫面，像 App 一樣開啟體驗</div>
+      <div style="font-size:0.68rem;color:rgba(160,175,200,0.55);line-height:1.5;">
+        點下方 <span style="display:inline-block;background:rgba(255,255,255,0.09);border-radius:5px;padding:1px 5px;font-size:0.65rem;">分享 ↑</span> → 「加入主畫面」
+      </div>
+    </div>
+    <button id="pwaBannerClose" style="
+      background:rgba(255,255,255,0.08);border:none;
+      color:rgba(180,190,210,0.7);
+      width:26px;height:26px;border-radius:50%;
+      font-size:0.85rem;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;padding:0;
+      transition:background 0.2s;
+    ">✕</button>
+  </div>
+  <div id="pwaBannerProgress" style="
+    position:absolute;bottom:28px;left:16px;right:16px;height:2px;
+    background:rgba(255,255,255,0.06);border-radius:0 0 20px 20px;overflow:hidden;
+  ">
+    <div id="pwaBannerBar" style="
+      height:100%;width:100%;
+      background:linear-gradient(90deg,var(--accent),var(--accent-2));
+      transform-origin:left;
+      transition:none;
+    "></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  // 電腦版不顯示（小視窗仍顯示供預覽）
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    window.matchMedia('(max-width: 768px)').matches;
+  if (!isMobile) return;
+
+  // 已是 PWA 模式則不顯示
+  const isStandalone = window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if (isStandalone) return;
+
+  // 每次開啟都顯示（或改用 localStorage 只顯示一次）
+  const banner = document.getElementById('pwaBanner');
+  const closeBtn = document.getElementById('pwaBannerClose');
+  const bar = document.getElementById('pwaBannerBar');
+  const DURATION = 5000;
+  let timer, rafId, startTime;
+
+  function dismiss() {
+    cancelAnimationFrame(rafId);
+    clearTimeout(timer);
+    banner.style.transform = 'translateY(100%)';
+    banner.style.opacity = '0';
+    banner.style.pointerEvents = 'none';
+  }
+
+  function startProgress() {
+    startTime = performance.now();
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(1)';
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const ratio = Math.max(0, 1 - elapsed / DURATION);
+      bar.style.transform = `scaleX(${ratio})`;
+      if (ratio > 0) rafId = requestAnimationFrame(tick);
+      else dismiss();
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function show() {
+    banner.style.pointerEvents = 'auto';
+    banner.style.transform = 'translateY(0)';
+    banner.style.opacity = '1';
+    startProgress();
+  }
+
+  closeBtn.addEventListener('click', dismiss);
+
+  // 等 splash 消失後再出現（約 1.2s 後）
+  setTimeout(show, 1200);
+})();
+</script>
+
 <div id="appSplash" style="
   position:fixed;inset:0;z-index:99999;
   background:#0a0b10;
