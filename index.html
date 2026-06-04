@@ -118,9 +118,8 @@ header, #main, .modal-overlay { position: relative; z-index: 1; }
 
 header {
   padding: 1.8rem 2rem 1rem;
-  padding-top: calc(1.8rem + var(--sat));
   border-bottom: 1px solid var(--border);
-  position: sticky; top: calc(-1 * var(--sat));
+  position: sticky; top: 0;
   background: linear-gradient(to bottom, rgba(10,11,16,0.95), rgba(10,11,16,0.72), transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -546,7 +545,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 0 14px; gap: 12px; position: sticky; top: 0; z-index: 5;
-  padding-top: calc(15px + var(--sat));
+  padding-top: calc(10px + var(--sat));
   margin: 0 -16px; padding-left: 16px; padding-right: 16px;
   background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -789,7 +788,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .share-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 0 14px; position: sticky; top: 0; z-index: 5;
-  padding-top: calc(15px + var(--sat));
+  padding-top: calc(10px + var(--sat));
   margin: 0 -16px; padding-left: 16px; padding-right: 16px;
   background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -1058,6 +1057,7 @@ if (!window._splashShouldShow) {
 }
 </script>
 
+<div style="height:env(safe-area-inset-top);background:#0a0b10;"></div>
 <header>
   <div class="header-top">
     <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
