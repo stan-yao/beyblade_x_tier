@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-TW" style="background:#0a0b10">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1475,7 +1475,11 @@ function render() {
   });
 
   // Dismiss loading splash once content is rendered
-  if (window._dismissSplash) { window._dismissSplash(); window._dismissSplash = null; }
+  const _splash = document.getElementById('appSplash');
+  if (_splash && _splash.style.display !== 'none') {
+    _splash.style.opacity = '0';
+    setTimeout(() => { _splash.style.display = 'none'; }, 520);
+  }
 }
 
 function linkifyParts(text) {
@@ -2408,7 +2412,7 @@ function renderTransfer() {
         <div style="font-size:0.8rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#d5def1;margin-bottom:6px;">匯入資料 IMPORT</div>
         <div style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">貼上從其他裝置匯出的代碼，載入倉庫資料。<br><span style="color:var(--warn);">⚠ 匯入將覆蓋目前的倉庫資料。</span></div>
         <div style="position:relative;">
-          <textarea id="importInput" placeholder="在此貼上匯入代碼…" style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:14px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:14px;padding:12px;resize:none;outline:none;box-sizing:border-box;line-height:1.5;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+          <textarea id="importInput" placeholder="在此貼上匯入代碼…" style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border2);border-radius:14px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:16px;padding:12px;resize:none;outline:none;box-sizing:border-box;line-height:1.5;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
         </div>
         <button onclick="importData()" style="width:100%;margin-top:10px;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:999px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
           匯入資料
@@ -2993,15 +2997,13 @@ buildBuyFilter();
     });
   });
 
-  // Dismiss splash after data is ready
-  window._dismissSplash = function() {
-    if (!splash) return;
-    splash.style.opacity = '0';
-    setTimeout(() => { splash.style.display = 'none'; }, 520);
-  };
-
   // Fallback: always dismiss after 3s max
-  setTimeout(window._dismissSplash, 3000);
+  setTimeout(() => {
+    if (splash && splash.style.display !== 'none') {
+      splash.style.opacity = '0';
+      setTimeout(() => { splash.style.display = 'none'; }, 520);
+    }
+  }, 3000);
 })();
 
 // ── iOS PWA Splash Screen generator ──
