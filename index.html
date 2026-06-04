@@ -1009,6 +1009,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   display:flex;align-items:center;justify-content:center;
   transition:opacity 0.5s ease;
   pointer-events:none;
+  will-change:opacity;
 ">
   <img src="apple-touch-icon.png" id="splashIcon" style="
     width:96px;height:96px;
@@ -3091,8 +3092,26 @@ buildBuyFilter();
 (function() {
   const splash = document.getElementById('appSplash');
   const icon   = document.getElementById('splashIcon');
+  const KEY    = 'bey_last_hide';
+  const THRESHOLD = 30 * 60 * 1000; // 30 分鐘
 
-  // Fade icon in immediately
+  // 記錄離開時間
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      localStorage.setItem(KEY, Date.now());
+    }
+  });
+
+  const lastHide = parseInt(localStorage.getItem(KEY) || '0', 10);
+  const shouldShow = !lastHide || (Date.now() - lastHide > THRESHOLD);
+
+  if (!shouldShow) {
+    // 從背景切回，直接跳過不閃
+    splash.style.display = 'none';
+    return;
+  }
+
+  // 首次或超過 30 分鐘：跑動畫
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       icon.style.opacity = '1';
@@ -3100,7 +3119,7 @@ buildBuyFilter();
     });
   });
 
-  // Fallback: always dismiss after 3s max
+  // Fallback: 3 秒強制消失
   setTimeout(() => {
     if (splash && splash.style.display !== 'none') {
       splash.style.opacity = '0';
