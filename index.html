@@ -7,13 +7,8 @@
 <meta name="theme-color" content="#0a0b10">
 <meta name="referrer" content="no-referrer">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="天梯 BeyTier">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="application-name" content="天梯 BeyTier">
 
-<!-- iOS Splash Screens (generated via JS below) -->
-<link rel="apple-touch-startup-image" id="ios-splash">
 <title>Beyblade X Tier｜台灣天梯情報站</title>
 
 <meta name="description"
@@ -83,7 +78,6 @@
   --radius-card: 14px;
   --radius-modal: 22px;
   --radius-pill: 999px;
-  --sat: env(safe-area-inset-top);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
@@ -118,9 +112,8 @@ header, #main, .modal-overlay { position: relative; z-index: 1; }
 
 header {
   padding: 1.8rem 2rem 1rem;
-  padding-top: calc(env(safe-area-inset-top) + 1.8rem);
   border-bottom: 1px solid var(--border);
-  position: sticky; top: calc(-1 * env(safe-area-inset-top));
+  position: sticky; top: 0;
   background: linear-gradient(to bottom, rgba(10,11,16,0.95), rgba(10,11,16,0.72), transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -546,7 +539,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 0 14px; gap: 12px; position: sticky; top: 0; z-index: 5;
-  padding-top: calc(10px + var(--sat));
   margin: 0 -16px; padding-left: 16px; padding-right: 16px;
   background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -789,7 +781,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .share-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 0 14px; position: sticky; top: 0; z-index: 5;
-  padding-top: calc(10px + var(--sat));
   margin: 0 -16px; padding-left: 16px; padding-right: 16px;
   background: linear-gradient(to bottom, rgba(10,11,16,0.98) 60%, rgba(10,11,16,0.7) 85%, transparent);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
@@ -885,7 +876,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .share-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .share-input {
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 10px; color: var(--text); font-size: 14px;
+  border-radius: 10px; color: var(--text); font-size: 16px;
   padding: 10px 14px; outline: none; font-family: 'Noto Sans TC', sans-serif;
   transition: border-color 0.2s; width: 100%; box-sizing: border-box;
 }
@@ -903,176 +894,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </style>
 <body>
 
-<!-- ── PWA Install Banner ── -->
-<div id="pwaBanner" style="
-  position:fixed;bottom:0;left:0;right:0;z-index:9999;
-  padding:12px 16px calc(16px + env(safe-area-inset-bottom));
-  transform:translateY(100%);
-  transition:transform 0.4s cubic-bezier(0.34,1.26,0.64,1), opacity 0.4s ease;
-  opacity:0;
-  pointer-events:none;
-">
-  <div style="
-    background:rgba(18,22,32,0.45);
-    backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);
-    border:1px solid rgba(255,255,255,0.07);
-    border-radius:20px;
-    padding:14px 16px 14px 14px;
-    display:flex;align-items:center;gap:14px;
-    box-shadow:0 4px 32px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.04) inset;
-  ">
-    <img src="apple-touch-icon.png" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;opacity:0.9;" alt="BeyTier">
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:0.78rem;font-weight:400;color:rgba(220,228,242,0.9);letter-spacing:0.01em;margin-bottom:3px;">加入主畫面，像 App 一樣開啟體驗</div>
-      <div style="font-size:0.68rem;color:rgba(160,175,200,0.55);line-height:1.5;">
-        點下方 <span style="display:inline-block;background:rgba(255,255,255,0.09);border-radius:5px;padding:1px 5px;font-size:0.65rem;">分享 ↑</span> → 「加入主畫面」
-      </div>
-    </div>
-    <button id="pwaBannerClose" style="
-      background:rgba(255,255,255,0.08);border:none;
-      color:rgba(180,190,210,0.7);
-      width:26px;height:26px;border-radius:50%;
-      font-size:0.85rem;cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      flex-shrink:0;padding:0;
-      transition:background 0.2s;
-    ">✕</button>
-  </div>
-  <div id="pwaBannerProgress" style="
-    position:absolute;bottom:calc(16px + env(safe-area-inset-bottom));left:16px;right:16px;height:2px;
-    background:rgba(255,255,255,0.06);border-radius:0 0 20px 20px;overflow:hidden;
-  ">
-    <div id="pwaBannerBar" style="
-      height:100%;width:100%;
-      background:linear-gradient(90deg,var(--accent),var(--accent-2));
-      transform-origin:left;
-      transition:none;
-    "></div>
-  </div>
-</div>
-
-<script>
-(function() {
-  // 電腦版不顯示（小視窗仍顯示供預覽）
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-    window.matchMedia('(max-width: 768px)').matches;
-  if (!isMobile) return;
-
-  // 已是 PWA 模式則不顯示
-  const isStandalone = window.navigator.standalone === true ||
-    window.matchMedia('(display-mode: standalone)').matches;
-  if (isStandalone) return;
-
-  // 每次開啟都顯示（或改用 localStorage 只顯示一次）
-  const banner = document.getElementById('pwaBanner');
-  const closeBtn = document.getElementById('pwaBannerClose');
-  const bar = document.getElementById('pwaBannerBar');
-  const DURATION = 5000;
-  let timer, rafId, startTime;
-
-  function dismiss() {
-    cancelAnimationFrame(rafId);
-    clearTimeout(timer);
-    banner.style.transform = 'translateY(100%)';
-    banner.style.opacity = '0';
-    banner.style.pointerEvents = 'none';
-  }
-
-  function startProgress() {
-    startTime = performance.now();
-    bar.style.transition = 'none';
-    bar.style.transform = 'scaleX(1)';
-
-    function tick(now) {
-      const elapsed = now - startTime;
-      const ratio = Math.max(0, 1 - elapsed / DURATION);
-      bar.style.transform = `scaleX(${ratio})`;
-      if (ratio > 0) rafId = requestAnimationFrame(tick);
-      else dismiss();
-    }
-    rafId = requestAnimationFrame(tick);
-  }
-
-  function show() {
-    banner.style.pointerEvents = 'auto';
-    banner.style.transform = 'translateY(0)';
-    banner.style.opacity = '1';
-    startProgress();
-  }
-
-  closeBtn.addEventListener('click', dismiss);
-
-  // 等 splash 消失後再出現（約 1.2s 後）
-  setTimeout(show, 1200);
-})();
-</script>
-
-<script>
-// 用 sessionStorage 判斷是否為冷啟動
-// sessionStorage 在 PWA 完全關閉後會清空，從背景回來則保留
-window._splashShouldShow = true; // 測試用：每次都跑
-/*
-window._splashShouldShow = (function() {
-  const SESSION_KEY = 'bey_session_active';
-  const TIME_KEY    = 'bey_last_hide';
-  const THRESHOLD   = 30 * 60 * 1000;
-  const hasSession  = sessionStorage.getItem(SESSION_KEY);
-  const lastHide    = parseInt(localStorage.getItem(TIME_KEY) || '0', 10);
-  const tooLong     = !lastHide || (Date.now() - lastHide > THRESHOLD);
-  sessionStorage.setItem(SESSION_KEY, '1');
-  return !hasSession || tooLong;
-})();
-*/
-
-// 記錄離開時間
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'hidden') {
-    localStorage.setItem('bey_last_hide', Date.now());
-  }
-});
-</script>
-
-<div id="appSplash" style="
-  position:fixed;inset:0;z-index:99999;
-  background:#0a0b10;
-  display:flex;align-items:center;justify-content:center;
-  transition:opacity 0.5s ease;
-  pointer-events:none;
-  will-change:opacity;
-">
-  <img src="apple-touch-icon.png" id="splashIcon" style="
-    width:96px;height:96px;
-    border-radius:22px;
-    opacity:0;
-    transform:scale(0.85);
-    transition:opacity 0.4s ease, transform 0.4s ease;
-  " alt="BeyTier">
-</div>
-
-<script>
-// 如果不需要顯示，立即隱藏避免任何閃爍
-if (!window._splashShouldShow) {
-  document.getElementById('appSplash').style.display = 'none';
-} else {
-  // icon 立即開始淡入（在 render() dismiss 之前就跑）
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const icon = document.getElementById('splashIcon');
-      if (icon) { icon.style.opacity = '1'; icon.style.transform = 'scale(1)'; }
-    });
-  });
-  // Fallback: 3 秒強制消失
-  setTimeout(() => {
-    const s = document.getElementById('appSplash');
-    if (s && s.style.display !== 'none') {
-      s.style.opacity = '0';
-      setTimeout(() => { s.style.display = 'none'; }, 520);
-    }
-  }, 3000);
-}
-</script>
-
-<div style="position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:rgba(10,11,16,0.95);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:101;"></div>
 <header>
   <div class="header-top">
     <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
@@ -1630,15 +1451,6 @@ function render() {
     sec.appendChild(cards);
     main.appendChild(sec);
   });
-
-  // Dismiss loading splash once content is rendered
-  if (window._splashShouldShow) {
-    const _splash = document.getElementById('appSplash');
-    if (_splash && _splash.style.display !== 'none') {
-      _splash.style.opacity = '0';
-      setTimeout(() => { _splash.style.display = 'none'; }, 520);
-    }
-  }
 }
 
 function linkifyParts(text) {
@@ -2593,7 +2405,7 @@ function exportData() {
   }).catch(() => {
     const el = document.getElementById("exportResult");
     el.innerHTML = `<div style="margin-bottom:6px;font-size:0.75rem;color:var(--muted);">請手動複製以下代碼：</div>
-      <textarea readonly onclick="this.select()" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:0.7rem;padding:10px;resize:none;outline:none;box-sizing:border-box;word-break:break-all;">${code}</textarea>`;
+      <textarea readonly onclick="this.select()" style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:16px;padding:10px;resize:none;outline:none;box-sizing:border-box;word-break:break-all;">${code}</textarea>`;
   });
 }
 
@@ -3142,71 +2954,6 @@ function renderAnalysis() {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
-
-// ── iOS PWA Splash Screen generator ──
-(function() {
-  const iconUrl = 'apple-touch-icon.png';
-  const bg = '#0a0b10';
-
-  const sizes = [
-    // [width, height, scale, media]
-    [430, 932, 3, '(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)'],
-    [393, 852, 3, '(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)'],
-    [390, 844, 3, '(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)'],
-    [375, 812, 3, '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)'],
-    [414, 896, 2, '(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)'],
-    [375, 667, 2, '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)'],
-    [320, 568, 2, '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'],
-  ];
-
-  const img = new Image();
-  img.onload = function() {
-    sizes.forEach(([w, h, dpr, media]) => {
-      const c = document.createElement('canvas');
-      c.width = w * dpr; c.height = h * dpr;
-      const ctx = c.getContext('2d');
-
-      // Background
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, c.width, c.height);
-
-      // Subtle radial glow
-      const grad = ctx.createRadialGradient(c.width/2, c.height/2, 0, c.width/2, c.height/2, c.width*0.55);
-      grad.addColorStop(0, 'rgba(18,239,206,0.06)');
-      grad.addColorStop(1, 'rgba(18,239,206,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, c.width, c.height);
-
-      // Icon centered
-      const iconSize = Math.round(c.width * 0.22);
-      const x = (c.width - iconSize) / 2;
-      const y = (c.height - iconSize) / 2;
-      const r = iconSize * 0.23;
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + iconSize, y, x + iconSize, y + iconSize, r);
-      ctx.arcTo(x + iconSize, y + iconSize, x, y + iconSize, r);
-      ctx.arcTo(x, y + iconSize, x, y, r);
-      ctx.arcTo(x, y, x + iconSize, y, r);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, x, y, iconSize, iconSize);
-      ctx.restore();
-
-      const link = document.createElement('link');
-      link.rel = 'apple-touch-startup-image';
-      link.media = media;
-      link.href = c.toDataURL('image/png');
-      document.head.appendChild(link);
-    });
-
-    // Remove placeholder
-    const placeholder = document.getElementById('ios-splash');
-    if (placeholder) placeholder.remove();
-  };
-  img.src = iconUrl;
-})();
 
 loadData();
 
