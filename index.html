@@ -451,7 +451,7 @@ main { padding: 1.2rem 2rem 4rem; }
     text-align: center !important;
   }
   .float-island {
-    bottom: max(0px, calc(env(safe-area-inset-bottom) + 8px));
+    bottom: max(-8px, calc(env(safe-area-inset-bottom) + 2px));
     right: 16px;
   }
 }
@@ -459,7 +459,7 @@ main { padding: 1.2rem 2rem 4rem; }
 /* ── 右下角懸浮島 ── */
 .float-island {
   position: fixed;
-  bottom: 28px; right: 20px;
+  bottom: 35px; right: 35px;
   z-index: 400;
   display: flex;
   flex-direction: column;
@@ -490,11 +490,15 @@ main { padding: 1.2rem 2rem 4rem; }
   border-radius: 50%;
   background: none;
   border: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
   color: rgba(255,255,255,0.35);
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: color 0.18s, background 0.18s;
 }
+.fi-btn:focus { outline: none; background: none; }
+.fi-btn:focus:not(:hover) { background: none; }
 .fi-btn:hover {
   color: rgba(255,255,255,0.85);
   background: rgba(255,255,255,0.07);
@@ -959,6 +963,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     if (vaultPage && vaultPage.classList.contains('active')) vaultPage.scrollTo({top:0,behavior:'smooth'});
     else if (sharePage && sharePage.classList.contains('active')) sharePage.scrollTo({top:0,behavior:'smooth'});
     else window.scrollTo({top:0,behavior:'smooth'});
+    this.blur();
   " title="回到頂部" id="scrollTopBtn">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="19 13 12 4 5 13"/>
