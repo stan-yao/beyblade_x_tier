@@ -950,6 +950,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
     </svg>
   </button>
+  <button class="fi-btn" onclick="
+    const vaultPage = document.getElementById('vaultPage');
+    const sharePage = document.getElementById('sharePage');
+    if (vaultPage && vaultPage.classList.contains('active')) vaultPage.scrollTo({top:0,behavior:'smooth'});
+    else if (sharePage && sharePage.classList.contains('active')) sharePage.scrollTo({top:0,behavior:'smooth'});
+    else window.scrollTo({top:0,behavior:'smooth'});
+  " title="回到頂部" id="scrollTopBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="19 13 12 4 5 13"/>
+      <line x1="12" y1="4" x2="12" y2="22"/>
+    </svg>
+  </button>
 </div>
 
 <!-- 分享頁面 -->
@@ -2514,7 +2526,22 @@ function renderOverview(inv, fromBlades) {
   document.getElementById("invSubContent").innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="font-size:0.8rem;color:var(--muted);">所有已收藏的零件</div>
-      <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個</div>
+        <button onclick="
+          if(confirm('確定要清除所有倉庫資料嗎？此操作無法復原。')) {
+            localStorage.removeItem('bey_inventory');
+            renderVaultTab();
+          }
+        " style="
+          font-size:0.7rem;color:var(--danger);
+          background:rgba(255,94,122,0.08);
+          border:1px solid rgba(255,94,122,0.25);
+          border-radius:8px;padding:3px 10px;
+          cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+          transition:background 0.2s;
+        " onmouseover="this.style.background='rgba(255,94,122,0.16)'" onmouseout="this.style.background='rgba(255,94,122,0.08)'">清除倉庫</button>
+      </div>
     </div>
     ${sections.map(s => `
       <div class="vault-section" style="margin-bottom:10px;">
