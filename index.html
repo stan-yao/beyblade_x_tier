@@ -1820,6 +1820,39 @@ const BG_THEMES = [
     stops:[] },
 ];
 
+// ── 特殊解鎖主題 ──
+const SPECIAL_THEMES_CSV = 'https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent('分享卡主題');
+let SPECIAL_THEMES = []; // 從 Sheet 載入
+
+function getUnlockedIds() {
+  try { return JSON.parse(localStorage.getItem('bey_unlocked_themes') || '[]'); }
+  catch { return []; }
+}
+function saveUnlockedId(id) {
+  const ids = getUnlockedIds();
+  if (!ids.includes(id)) { ids.push(id); localStorage.setItem('bey_unlocked_themes', JSON.stringify(ids)); }
+}
+
+async function loadSpecialThemes() {
+  try {
+    const res = await fetch(SPECIAL_THEMES_CSV + '&t=' + Date.now());
+    const text = await res.text();
+    const rows = text.trim().split('\n').slice(1); // skip header
+    SPECIAL_THEMES = rows.map(row => {
+      const cols = row.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+      const clean = cols.map(c => c.replace(/^"|"$/g,'').trim());
+      return { id: clean[0], label: clean[1], code: clean[2], preview_url: clean[3], bg_type: clean[4] };
+    }).filter(t => t.id);
+  } catch(e) { console.warn('特殊主題載入失敗', e); }
+}
+
+function tryUnlockCode(inputCode) {
+  const match = SPECIAL_THEMES.find(t => t.code === inputCode.trim());
+  if (!match) return false;
+  saveUnlockedId(match.id);
+  return match;
+}
+
 let shareState = {
   bgId:'carbon',
   combos: [
@@ -1838,7 +1871,7 @@ function openShare() {
   sp.classList.add("active");
   document.body.style.overflow = "hidden";
   setIslandActive(2);
-  renderSharePage();
+  loadSpecialThemes().then(() => renderSharePage());
 }
 function closeShare() {
   document.getElementById("sharePage").classList.remove("active");
@@ -1903,7 +1936,78 @@ function updateBgSwatches() {
   });
 }
 
+function openUnlockModal() {
+  // 移除舊的
+  const old = document.getElementById('unlockModal');
+  if (old) old.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'unlockModal';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);
+    padding:24px;
+  `;
+  modal.innerHTML = `
+    <div style="
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:20px;padding:28px 24px;width:100%;max-width:340px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    ">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:6px;">🔒 解鎖特殊主題</div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:20px;">輸入活動代碼來解鎖限定背景主題</div>
+      <input id="unlockCodeInput" type="text" placeholder="輸入代碼…"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);
+          border-radius:12px;color:var(--text);font-size:16px;padding:12px 14px;
+          outline:none;box-sizing:border-box;font-family:'Noto Sans TC',sans-serif;
+          margin-bottom:8px;"
+        onfocus="this.style.borderColor='var(--accent)'"
+        onblur="this.style.borderColor='var(--border2)'"
+        onkeydown="if(event.key==='Enter')document.getElementById('unlockSubmitBtn').click()">
+      <div id="unlockMsg" style="font-size:0.78rem;min-height:20px;margin-bottom:14px;"></div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('unlockModal').remove()"
+          style="flex:1;padding:11px;border-radius:12px;border:1px solid var(--border2);
+            background:none;color:var(--muted);font-size:0.85rem;cursor:pointer;
+            font-family:'Noto Sans TC',sans-serif;">取消</button>
+        <button id="unlockSubmitBtn" onclick="submitUnlockCode()"
+          style="flex:2;padding:11px;border-radius:12px;border:none;
+            background:var(--accent);color:#000;font-size:0.85rem;font-weight:700;
+            cursor:pointer;font-family:'Noto Sans TC',sans-serif;">解鎖</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(() => document.getElementById('unlockCodeInput')?.focus(), 100);
+}
+
+function submitUnlockCode() {
+  const input = document.getElementById('unlockCodeInput');
+  const msg = document.getElementById('unlockMsg');
+  if (!input) return;
+  const result = tryUnlockCode(input.value);
+  if (result) {
+    msg.style.color = 'var(--success)';
+    msg.textContent = `✓ 已解鎖「${result.label}」！`;
+    shareState.bgId = result.id;
+    setTimeout(() => {
+      document.getElementById('unlockModal')?.remove();
+      renderSharePage();
+      renderShareCanvas();
+    }, 900);
+  } else {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = '代碼錯誤，請再試一次。';
+    input.style.borderColor = 'var(--danger)';
+    setTimeout(() => { input.style.borderColor = 'var(--border2)'; }, 1200);
+  }
+}
+
 function renderSharePage() {
+  const unlockedIds = getUnlockedIds();
+  const unlockedThemes = SPECIAL_THEMES.filter(t => unlockedIds.includes(t.id));
+
   const bgSwatches = BG_THEMES.map(t => {
     const [c0,c1,c2] = t.colors;
     return `<div class="bg-opt${t.id===shareState.bgId?' active':''}"
@@ -1912,6 +2016,23 @@ function renderSharePage() {
       style="background:linear-gradient(135deg,${c2},${c1} 50%,${c0})">
     </div>`;
   }).join('');
+
+  const specialSwatches = unlockedThemes.map(t => `
+    <div class="bg-opt${t.id===shareState.bgId?' active':''}"
+      onclick="shareState.bgId='${t.id}';updateBgSwatches();renderShareCanvas()"
+      title="${t.label}"
+      style="background-image:url('${t.preview_url}');background-size:cover;background-position:center;">
+    </div>`).join('');
+
+  const lockBtn = `<div
+    onclick="openUnlockModal()"
+    title="輸入解鎖代碼"
+    style="width:38px;height:38px;flex-shrink:0;border-radius:50%;cursor:pointer;
+      background:none;border:1.5px dashed rgba(255,255,255,0.2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1rem;transition:all 0.2s;box-shadow:0 3px 8px rgba(0,0,0,0.3);"
+    onmouseover="this.style.borderColor='rgba(255,255,255,0.5)'"
+    onmouseout="this.style.borderColor='rgba(255,255,255,0.2)'">🔒</div>`;
 
   const partLabels = { assist:'輔助戰刃', blade:'戰刃', ratchet:'固鎖', bit:'軸心' };
   const partOrder  = ['assist','blade','ratchet','bit'];
@@ -1955,7 +2076,7 @@ function renderSharePage() {
       style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
       oninput="shareState.note=this.value;renderShareCanvas()">${shareState.note||''}</textarea>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">背景主題</div>
-    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;" class="bg-options">${bgSwatches}</div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;" class="bg-options">${bgSwatches}${specialSwatches}${lockBtn}</div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">預覽</div>
     <div class="share-preview-wrap"><canvas id="shareCanvas" width="1600" height="2160" style="width:100%;display:block;border-radius:14px;"></canvas></div>
     <div id="shareDownloadBtn"></div>`;
@@ -1980,12 +2101,23 @@ async function renderShareCanvas() {
   const ctx=canvas.getContext('2d');
   ctx.scale(SCALE,SCALE);
   const theme = BG_THEMES.find(t=>t.id===shareState.bgId);
+  const specialTheme = !theme ? SPECIAL_THEMES.find(t => t.id === shareState.bgId) : null;
 
-  // 底色 + 光暈
-  ctx.fillStyle = theme.colors[0];
-  ctx.fillRect(0,0,W,H);
+  // 特殊圖片主題 - 先畫底圖
+  if (specialTheme && specialTheme.bg_type === 'image') {
+    await new Promise(resolve => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve(); };
+      img.onerror = () => { ctx.fillStyle = '#0a0b10'; ctx.fillRect(0,0,W,H); resolve(); };
+      img.src = specialTheme.preview_url;
+    });
+  } else if (theme) {
+    // 底色 + 光暈
+    ctx.fillStyle = theme.colors[0];
+    ctx.fillRect(0,0,W,H);
 
-  if (theme.id === 'cyberwave' || theme.id === 'peachbloom') {
+    if (theme.id === 'cyberwave' || theme.id === 'peachbloom') {
     if (theme.id === 'peachbloom') {
       // 亮底暖色液態 blob
       ctx.fillStyle = '#fde8dc'; ctx.fillRect(0,0,W,H);
@@ -2081,6 +2213,7 @@ async function renderShareCanvas() {
       ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
     });
   }
+  } // end else if (theme)
 
   // 網格 80px 間距
   ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=0.6;
