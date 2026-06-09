@@ -1822,7 +1822,8 @@ const BG_THEMES = [
 
 // ── 特殊解鎖主題 ──
 const SPECIAL_THEMES_CSV = 'https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent('分享卡主題');
-let SPECIAL_THEMES = []; // 從 Sheet 載入
+let SPECIAL_THEMES = [];
+let _specialThemesLoaded = false;
 
 function getUnlockedIds() {
   try { return JSON.parse(localStorage.getItem('bey_unlocked_themes') || '[]'); }
@@ -1834,15 +1835,17 @@ function saveUnlockedId(id) {
 }
 
 async function loadSpecialThemes() {
+  if (_specialThemesLoaded) return;
   try {
     const res = await fetch(SPECIAL_THEMES_CSV + '&t=' + Date.now());
     const text = await res.text();
-    const rows = text.trim().split('\n').slice(1); // skip header
+    const rows = text.trim().split('\n').slice(1);
     SPECIAL_THEMES = rows.map(row => {
       const cols = row.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
       const clean = cols.map(c => c.replace(/^"|"$/g,'').trim());
       return { id: clean[0], label: clean[1], code: clean[2], preview_url: clean[3], bg_type: clean[4] };
     }).filter(t => t.id);
+    _specialThemesLoaded = true;
   } catch(e) { console.warn('特殊主題載入失敗', e); }
 }
 
@@ -3131,6 +3134,9 @@ function renderAnalysis() {
 buildCatTabs();
 buildTierFilter();
 buildBuyFilter();
+
+// 背景預載特殊主題，進分享頁時直接用快取
+loadSpecialThemes();
 
 loadData();
 
