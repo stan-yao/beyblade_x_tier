@@ -1427,7 +1427,7 @@ function render() {
   const tiers = tiersFor(activeCategory);
 
   const filtered = DB.filter(d =>
-    (activeCategory==="all" || d.cat===activeCategory) &&
+    (activeCategory==="all" || d.cat===activeCategory || (activeCategory==="blade" && d.cat==="assist")) &&
     matchSearch(d,q) &&
     (activeTier==="all" || d.tier===activeTier) &&
     (activeBuy==="all"  || d.buy===activeBuy)
