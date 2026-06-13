@@ -182,11 +182,19 @@ h1 {
 .tfbtn:hover { color: var(--text); background: rgba(255,255,255,0.07); }
 .tfbtn.active { box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); margin-top: 6px; justify-content: flex-start; width: 100%; box-sizing: border-box; }
+.legend { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); margin-top: 4px; justify-content: flex-start; width: 100%; box-sizing: border-box; }
 .legend-item { display: flex; align-items: center; gap: 5px; }
 .ldot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 8px; opacity: 0.7; text-align: left; width: 100%; box-sizing: border-box; }
+.source-note { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 3px; opacity: 0.7; text-align: left; width: 100%; box-sizing: border-box; }
 .source-note a { color: #5588bb; text-decoration: none; }
+
+@keyframes blink-update {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.update-blink {
+  animation: blink-update 1.2s ease-in-out infinite;
+}
 
 main { padding: 1.2rem 2rem 4rem; }
 
@@ -916,7 +924,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     <span class="subtitle">
       <span class="st-main">天梯表</span>
       <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
-        <span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>
+        <span style="color:#99ff00; font-weight:700;" class="update-blink"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>
       </span>
     </span>
   </div>
@@ -1101,7 +1109,7 @@ async function backgroundCheck(currentCachedDate) {
       
       if (latestDate && latestDate !== currentCachedDate) {
           const dateEl = document.getElementById("updateDateDisplay");
-          dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
+          dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;" class="update-blink"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
           dateEl.style.cursor = "pointer";
           
           dateEl.onclick = () => {
@@ -2096,7 +2104,20 @@ function renderSharePage() {
       <button class="vault-notice-close" onclick="this.closest('.vault-notice').remove()">✕</button>
       📣 此功能公開測試中，歡迎分享。
     </div>
-    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">陀螺組合（輔助戰刃可選）</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:0.78rem;color:var(--muted);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">陀螺組合（輔助戰刃可選）</div>
+      <button onclick="
+        shareState.combos = [{assist:null,blade:null,ratchet:null,bit:null},{assist:null,blade:null,ratchet:null,bit:null},{assist:null,blade:null,ratchet:null,bit:null}];
+        renderSharePage(); renderShareCanvas();
+      " style="
+        font-size:0.7rem;color:var(--danger);
+        background:rgba(255,94,122,0.08);
+        border:1px solid rgba(255,94,122,0.25);
+        border-radius:8px;padding:3px 10px;
+        cursor:pointer;font-family:'Noto Sans TC',sans-serif;
+        transition:background 0.2s;
+      " onmouseover="this.style.background='rgba(255,94,122,0.16)'" onmouseout="this.style.background='rgba(255,94,122,0.08)'">清除全部</button>
+    </div>
     ${comboRows}
     <textarea class="share-input" id="shareNoteInput" placeholder="組合備註" rows="3"
       style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
@@ -2382,14 +2403,119 @@ async function renderShareCanvas() {
   window._shareDataUrl = canvas.toDataURL('image/png');
   const btnDiv = document.getElementById('shareDownloadBtn');
   if (btnDiv && !btnDiv.querySelector('button')) {
-    btnDiv.innerHTML = `<button onclick="shareImage(window._shareDataUrl)"
+    btnDiv.innerHTML = `
+    <button onclick="shareImage(window._shareDataUrl)"
       style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:12px;width:100%;background:linear-gradient(135deg,rgba(18,239,206,0.15),rgba(105,167,255,0.1));border:1px solid rgba(18,239,206,0.3);border-radius:16px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       儲存 / 分享圖片
+    </button>
+    <button onclick="copyTransparentPng()"
+      style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;padding:12px;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:16px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;" id="copyTransparentBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      拷貝去背版本
     </button>`;
   } else if (btnDiv) {
     const btn = btnDiv.querySelector('button');
     if (btn) btn.onclick = () => shareImage(window._shareDataUrl);
+  }
+}
+
+async function copyTransparentPng() {
+  const btn = document.getElementById('copyTransparentBtn');
+  if (btn) { btn.textContent = '處理中…'; btn.disabled = true; }
+
+  try {
+    const W = 800, H = 1080, SCALE = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = W * SCALE; canvas.height = H * SCALE;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(SCALE, SCALE);
+    // 不畫背景，保持透明
+
+    // 格線
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 0.6;
+    for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // 直接從現有 canvas 抓零件圖層（重繪一遍，跳過背景）
+    // 用現有 shareCanvas 的內容做 reference，但重新繪製零件
+    const imgSizes = [90, 172, 120, 120];
+    const cellW = 200, gridTop = 144;
+    const mainCanvas = document.getElementById('shareCanvas');
+    const mainCtx = mainCanvas?.getContext('2d');
+
+    const getCellCenter = (row, col) => ({
+      x: col * cellW + cellW / 2 + (col < 3 ? 30 : 0),
+      y: gridTop + row * (H - gridTop - 80) / 3 + (H - gridTop - 80) / 6,
+    });
+
+    // 載入並繪製零件圖片
+    const loadTasks = [];
+    shareState.combos.forEach((combo, row) => {
+      const parts = [
+        { item: combo.assist, cat:'assist' },
+        { item: combo.blade,  cat:'blade'  },
+        { item: combo.ratchet,cat:'ratchet'},
+        { item: combo.bit,    cat:'bit'    },
+      ];
+      parts.forEach((p, col) => {
+        if (!p.item) return;
+        const imgUrl = p.cat==='blade' ? getImgUrl(p.item) : (p.item._variantImgUrl || (p.cat==='assist' ? getImgUrl(p.item) : PARTS_IMG[p.item.id] || ''));
+        if (!imgUrl) return;
+        loadTasks.push(new Promise(resolve => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve({ img, row, col });
+          img.onerror = () => resolve(null);
+          img.src = imgUrl;
+        }));
+      });
+    });
+
+    const results = (await Promise.all(loadTasks)).filter(Boolean);
+    results.forEach(r => {
+      const {x, y} = getCellCenter(r.row, r.col);
+      const sz = imgSizes[r.col];
+      ctx.drawImage(r.img, x-sz/2, y-sz/2, sz, sz);
+    });
+
+    // 文字（白色）
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = '700 96px "Inter","Helvetica Neue",sans-serif';
+    ctx.fillText('Beyblade', 70, H-82-85);
+    ctx.fillText('X combo',  70, H-82);
+
+    if (shareState.note) {
+      ctx.font = '500 22px "Noto Sans TC",sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      const lines = shareState.note.split('\n').slice(0, 3);
+      lines.forEach((line, i) => {
+        ctx.fillText(line, W - 45, H - 220 + i * 28, W - 120);
+      });
+    }
+
+    // 轉成 PNG blob 並複製
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        if (btn) { btn.innerHTML = '✓ 已拷貝！'; btn.style.color = 'var(--success)'; btn.style.borderColor = 'rgba(122,223,96,0.4)'; }
+        setTimeout(() => {
+          if (btn) { btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 拷貝去背版本`; btn.style.color = 'var(--muted)'; btn.style.borderColor = 'rgba(255,255,255,0.12)'; btn.disabled = false; }
+        }, 2000);
+      } catch(e) {
+        // clipboard API 不支援時，fallback 下載
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'combo_transparent.png'; a.click();
+        URL.revokeObjectURL(url);
+        if (btn) { btn.innerHTML = '拷貝去背版本'; btn.disabled = false; }
+      }
+    }, 'image/png');
+
+  } catch(e) {
+    console.error(e);
+    if (btn) { btn.innerHTML = '拷貝去背版本'; btn.disabled = false; }
   }
 }
 
