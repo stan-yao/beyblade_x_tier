@@ -2132,7 +2132,7 @@ function renderSharePage() {
   requestAnimationFrame(initBgOptionsScroll);
 }
 
-async function renderShareCanvas() {
+async function renderShareCanvas(transparentMode = false) {
   // 確保 canvas 存在
   const wrap = document.querySelector('.share-preview-wrap');
   if (!wrap) return;
@@ -2150,6 +2150,7 @@ async function renderShareCanvas() {
   const theme = BG_THEMES.find(t=>t.id===shareState.bgId);
   const specialTheme = !theme ? SPECIAL_THEMES.find(t => t.id === shareState.bgId) : null;
 
+  if (!transparentMode) {
   // 特殊圖片主題 - 先畫底圖
   if (specialTheme && specialTheme.bg_type === 'image') {
     await new Promise(resolve => {
@@ -2261,11 +2262,14 @@ async function renderShareCanvas() {
     });
   }
   } // end else if (theme)
+  } // end !transparentMode
 
-  // 網格 80px 間距
-  ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=0.6;
-  for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-  for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // 網格 80px 間距（透明模式跳過）
+  if (!transparentMode) {
+    ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.lineWidth=0.6;
+    for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  }
 
   // ── 頂部資訊列 ──
   ctx.fillStyle='rgba(255,255,255,0.88)';
@@ -2424,72 +2428,25 @@ async function copyTransparentPng() {
   const btn = document.getElementById('copyTransparentBtn');
   if (btn) { btn.innerHTML = '處理中…'; btn.disabled = true; }
 
-  // iOS 要求 ClipboardItem 必須在同步手勢內建立
-  // 用 Promise 包住非同步繪製，讓 ClipboardItem 在手勢內同步宣告
   const blobPromise = (async () => {
-    const W = 800, H = 1080, SCALE = 2;
-    const canvas = document.createElement('canvas');
-    canvas.width = W * SCALE; canvas.height = H * SCALE;
-    const ctx = canvas.getContext('2d');
-    ctx.scale(SCALE, SCALE);
+    const origCanvas = document.getElementById('shareCanvas');
+    if (!origCanvas) return null;
+    origCanvas.id = '_shareCanvas_orig';
 
-    // 格線
-    ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 0.6;
-    for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-    for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.id = 'shareCanvas';
+    tempCanvas.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+    document.body.appendChild(tempCanvas);
 
-    const imgSizes = [90, 172, 120, 120];
-    const cellW = 200, gridTop = 144;
-    const getCellCenter = (row, col) => ({
-      x: col * cellW + cellW / 2 + (col < 3 ? 30 : 0),
-      y: gridTop + row * (H - gridTop - 80) / 3 + (H - gridTop - 80) / 6,
-    });
+    await renderShareCanvas(true);
+    const blob = await new Promise(resolve => tempCanvas.toBlob(resolve, 'image/png'));
 
-    const loadTasks = [];
-    shareState.combos.forEach((combo, row) => {
-      [
-        { item: combo.assist, cat:'assist' },
-        { item: combo.blade,  cat:'blade'  },
-        { item: combo.ratchet,cat:'ratchet'},
-        { item: combo.bit,    cat:'bit'    },
-      ].forEach((p, col) => {
-        if (!p.item) return;
-        const imgUrl = p.cat==='blade' ? getImgUrl(p.item) : (p.item._variantImgUrl || (p.cat==='assist' ? getImgUrl(p.item) : PARTS_IMG[p.item.id] || ''));
-        if (!imgUrl) return;
-        loadTasks.push(new Promise(resolve => {
-          const img = new Image(); img.crossOrigin = 'anonymous';
-          img.onload = () => resolve({ img, row, col });
-          img.onerror = () => resolve(null);
-          img.src = imgUrl;
-        }));
-      });
-    });
-
-    const results = (await Promise.all(loadTasks)).filter(Boolean);
-    results.forEach(r => {
-      const {x, y} = getCellCenter(r.row, r.col);
-      const sz = imgSizes[r.col];
-      ctx.drawImage(r.img, x-sz/2, y-sz/2, sz, sz);
-    });
-
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.font = '700 96px "Inter","Helvetica Neue",sans-serif';
-    ctx.fillText('Beyblade', 70, H-82-85);
-    ctx.fillText('X combo',  70, H-82);
-
-    if (shareState.note) {
-      ctx.font = '500 22px "Noto Sans TC",sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      shareState.note.split('\n').slice(0,3).forEach((line, i) => {
-        ctx.fillText(line, W-45, H-220+i*28, W-120);
-      });
-    }
-
-    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    tempCanvas.remove();
+    origCanvas.id = 'shareCanvas';
+    return blob;
   })();
 
   try {
-    // ClipboardItem 在手勢同步內建立，接收一個 Promise
     await navigator.clipboard.write([
       new ClipboardItem({ 'image/png': blobPromise })
     ]);
@@ -2498,7 +2455,7 @@ async function copyTransparentPng() {
       btn.style.color = 'var(--success)';
       btn.style.borderColor = 'rgba(122,223,96,0.4)';
       setTimeout(() => {
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 拷貝去背版本`;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 拷貝去背版本';
         btn.style.color = 'var(--muted)';
         btn.style.borderColor = 'rgba(255,255,255,0.12)';
         btn.disabled = false;
