@@ -2422,49 +2422,42 @@ async function renderShareCanvas() {
 
 async function copyTransparentPng() {
   const btn = document.getElementById('copyTransparentBtn');
-  if (btn) { btn.textContent = '處理中…'; btn.disabled = true; }
+  if (btn) { btn.innerHTML = '處理中…'; btn.disabled = true; }
 
-  try {
+  // iOS 要求 ClipboardItem 必須在同步手勢內建立
+  // 用 Promise 包住非同步繪製，讓 ClipboardItem 在手勢內同步宣告
+  const blobPromise = (async () => {
     const W = 800, H = 1080, SCALE = 2;
     const canvas = document.createElement('canvas');
     canvas.width = W * SCALE; canvas.height = H * SCALE;
     const ctx = canvas.getContext('2d');
     ctx.scale(SCALE, SCALE);
-    // 不畫背景，保持透明
 
     // 格線
     ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.lineWidth = 0.6;
     for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
     for(let y=80;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-    // 直接從現有 canvas 抓零件圖層（重繪一遍，跳過背景）
-    // 用現有 shareCanvas 的內容做 reference，但重新繪製零件
     const imgSizes = [90, 172, 120, 120];
     const cellW = 200, gridTop = 144;
-    const mainCanvas = document.getElementById('shareCanvas');
-    const mainCtx = mainCanvas?.getContext('2d');
-
     const getCellCenter = (row, col) => ({
       x: col * cellW + cellW / 2 + (col < 3 ? 30 : 0),
       y: gridTop + row * (H - gridTop - 80) / 3 + (H - gridTop - 80) / 6,
     });
 
-    // 載入並繪製零件圖片
     const loadTasks = [];
     shareState.combos.forEach((combo, row) => {
-      const parts = [
+      [
         { item: combo.assist, cat:'assist' },
         { item: combo.blade,  cat:'blade'  },
         { item: combo.ratchet,cat:'ratchet'},
         { item: combo.bit,    cat:'bit'    },
-      ];
-      parts.forEach((p, col) => {
+      ].forEach((p, col) => {
         if (!p.item) return;
         const imgUrl = p.cat==='blade' ? getImgUrl(p.item) : (p.item._variantImgUrl || (p.cat==='assist' ? getImgUrl(p.item) : PARTS_IMG[p.item.id] || ''));
         if (!imgUrl) return;
         loadTasks.push(new Promise(resolve => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
+          const img = new Image(); img.crossOrigin = 'anonymous';
           img.onload = () => resolve({ img, row, col });
           img.onerror = () => resolve(null);
           img.src = imgUrl;
@@ -2479,7 +2472,6 @@ async function copyTransparentPng() {
       ctx.drawImage(r.img, x-sz/2, y-sz/2, sz, sz);
     });
 
-    // 文字（白色）
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     ctx.font = '700 96px "Inter","Helvetica Neue",sans-serif';
     ctx.fillText('Beyblade', 70, H-82-85);
@@ -2488,34 +2480,34 @@ async function copyTransparentPng() {
     if (shareState.note) {
       ctx.font = '500 22px "Noto Sans TC",sans-serif';
       ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      const lines = shareState.note.split('\n').slice(0, 3);
-      lines.forEach((line, i) => {
-        ctx.fillText(line, W - 45, H - 220 + i * 28, W - 120);
+      shareState.note.split('\n').slice(0,3).forEach((line, i) => {
+        ctx.fillText(line, W-45, H-220+i*28, W-120);
       });
     }
 
-    // 轉成 PNG blob 並複製
-    canvas.toBlob(async blob => {
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
-        if (btn) { btn.innerHTML = '✓ 已拷貝！'; btn.style.color = 'var(--success)'; btn.style.borderColor = 'rgba(122,223,96,0.4)'; }
-        setTimeout(() => {
-          if (btn) { btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 拷貝去背版本`; btn.style.color = 'var(--muted)'; btn.style.borderColor = 'rgba(255,255,255,0.12)'; btn.disabled = false; }
-        }, 2000);
-      } catch(e) {
-        // clipboard API 不支援時，fallback 下載
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'combo_transparent.png'; a.click();
-        URL.revokeObjectURL(url);
-        if (btn) { btn.innerHTML = '拷貝去背版本'; btn.disabled = false; }
-      }
-    }, 'image/png');
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  })();
 
+  try {
+    // ClipboardItem 在手勢同步內建立，接收一個 Promise
+    await navigator.clipboard.write([
+      new ClipboardItem({ 'image/png': blobPromise })
+    ]);
+    if (btn) {
+      btn.innerHTML = '✓ 已拷貝！';
+      btn.style.color = 'var(--success)';
+      btn.style.borderColor = 'rgba(122,223,96,0.4)';
+      setTimeout(() => {
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 拷貝去背版本`;
+        btn.style.color = 'var(--muted)';
+        btn.style.borderColor = 'rgba(255,255,255,0.12)';
+        btn.disabled = false;
+      }, 2000);
+    }
   } catch(e) {
-    console.error(e);
-    if (btn) { btn.innerHTML = '拷貝去背版本'; btn.disabled = false; }
+    console.warn('clipboard write failed:', e);
+    if (btn) { btn.innerHTML = '拷貝去背版本'; btn.style.color = 'var(--muted)'; btn.disabled = false; }
+    alert('此瀏覽器不支援直接拷貝，請截圖使用。');
   }
 }
 
