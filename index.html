@@ -2041,7 +2041,7 @@ function submitUnlockCode() {
 
 function renderSharePage() {
   const unlockedIds = getUnlockedIds();
-  const unlockedThemes = SPECIAL_THEMES.filter(t => unlockedIds.includes(t.id));
+  const unlockedThemes = SPECIAL_THEMES.filter(t => !t.code || unlockedIds.includes(t.id));
 
   const bgSwatches = BG_THEMES.map(t => {
     const [c0,c1,c2] = t.colors;
