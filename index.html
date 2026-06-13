@@ -1894,6 +1894,7 @@ let shareState = {
     { assist:null, blade:null, ratchet:null, bit:null },
   ],
   note:'',
+  showNames: false,
   pickerTarget: null,
 };
 
@@ -2122,6 +2123,12 @@ function renderSharePage() {
     <textarea class="share-input" id="shareNoteInput" placeholder="組合備註" rows="3"
       style="resize:none;text-align:left;width:100%;box-sizing:border-box;margin-bottom:12px;"
       oninput="shareState.note=this.value;renderShareCanvas()">${shareState.note||''}</textarea>
+    <div onclick="shareState.showNames=!shareState.showNames;this.querySelector('.sn-dot').style.transform=shareState.showNames?'translateX(18px)':'translateX(0)';this.querySelector('.sn-track').style.background=shareState.showNames?'var(--accent)':'rgba(255,255,255,0.12)';renderShareCanvas();" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;cursor:pointer;margin-bottom:12px;user-select:none;">
+      <span style="font-size:0.82rem;color:var(--muted);">顯示零件名稱</span>
+      <div class="sn-track" style="width:36px;height:20px;border-radius:999px;background:rgba(255,255,255,0.12);position:relative;transition:background 0.2s;flex-shrink:0;">
+        <div class="sn-dot" style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform 0.2s;"></div>
+      </div>
+    </div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">背景主題</div>
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;" class="bg-options">${bgSwatches}${specialSwatches}${lockBtn}</div>
     <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">預覽</div>
@@ -2367,6 +2374,48 @@ async function renderShareCanvas(transparentMode = false) {
     const sz = imgSizes[r.col];
     ctx.drawImage(r.img, x-sz/2, y-sz/2, sz, sz);
   });
+
+  // 零件名稱（showNames 開啟時）
+  if (shareState.showNames) {
+    ctx.textAlign = 'center';
+    const bladeSz = imgSizes[1]; // 172px
+    shareState.combos.forEach((combo, row) => {
+      // 名稱固定在戰刃圖片底部的絕對 y
+      const { y: centerY } = getCellCenter(row, 1);
+      const nameY = centerY + bladeSz / 2 + 18;
+
+      [
+        { item: combo.assist,  col: 0 },
+        { item: combo.blade,   col: 1 },
+        { item: combo.ratchet, col: 2 },
+        { item: combo.bit,     col: 3 },
+      ].forEach(({ item, col }) => {
+        if (!item) return;
+        const { x } = getCellCenter(row, col);
+        const name = item.id || item.name || '';
+        if (!name) return;
+
+        if (col === 1) {
+          // 戰刃：第一行代號，第二行中文名
+          ctx.font = `600 13px "Inter","Noto Sans TC",sans-serif`;
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.fillText(item.id || '', x, nameY);
+          if (item.name && item.name !== item.id) {
+            ctx.font = `500 13px "Noto Sans TC","Inter",sans-serif`;
+            ctx.letterSpacing = '0.5px';
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillText(item.name, x, nameY + 16);
+            ctx.letterSpacing = '0px';
+          }
+        } else {
+          ctx.font = `600 13px "Noto Sans TC","Inter",sans-serif`;
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.fillText(name, x, nameY);
+        }
+      });
+    });
+    ctx.textAlign = 'left';
+  }
 
   // ── 底部大字 ──
   // 字體 Inter Bold 96pt，離左 70px，底行離底 82px
