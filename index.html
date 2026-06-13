@@ -1822,6 +1822,28 @@ const BG_THEMES = [
 
 // ── 特殊解鎖主題 ──
 const SPECIAL_THEMES_CSV = 'https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent('分享卡主題');
+const VARIANTS_CSV = 'https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent('零件各版本款');
+
+let PART_VARIANTS = {};
+let _variantsLoaded = false;
+
+async function loadPartVariants() {
+  if (_variantsLoaded) return;
+  try {
+    const res = await fetch(VARIANTS_CSV + '&t=' + Date.now());
+    const text = await res.text();
+    const rows = text.trim().split('\n').slice(1);
+    rows.forEach(row => {
+      const cols = row.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+      const clean = cols.map(c => c.replace(/^"|"$/g,'').trim());
+      const [id, cat, color, img] = clean;
+      if (!id || !color) return;
+      if (!PART_VARIANTS[id]) PART_VARIANTS[id] = [];
+      PART_VARIANTS[id].push({ color, img: img || '' });
+    });
+    _variantsLoaded = true;
+  } catch(e) { console.warn('配色資料載入失敗', e); }
+}
 let SPECIAL_THEMES = [];
 let _specialThemesLoaded = false;
 
@@ -1875,6 +1897,7 @@ function openShare() {
   document.body.style.overflow = "hidden";
   setIslandActive(2);
   loadSpecialThemes().then(() => renderSharePage());
+  loadPartVariants();
 }
 function closeShare() {
   document.getElementById("sharePage").classList.remove("active");
@@ -2297,7 +2320,7 @@ async function renderShareCanvas() {
     ];
     parts.forEach((p, col) => {
       if (!p.item) return;
-      const imgUrl = (p.cat==='blade'||p.cat==='assist') ? getImgUrl(p.item) : PARTS_IMG[p.item.id]||'';
+      const imgUrl = p.cat==='blade' ? getImgUrl(p.item) : (p.item._variantImgUrl || (p.cat==='assist' ? getImgUrl(p.item) : PARTS_IMG[p.item.id] || ''));
       if (!imgUrl) return;
       loadTasks.push({ imgUrl, row, col });
     });
@@ -2478,9 +2501,107 @@ function selectPartForSlot(itemId) {
     if (item.assistBlade && !shareState.combos[row].assist) {
       shareState.combos[row].assist = DB.find(x=>x.cat==='assist'&&x.id==='輔助'+item.assistBlade) || null;
     }
+    closeBladePicker();
+    renderSharePage();
+    return;
   }
+
+  // 固鎖/軸心/輔助：如果有配色資料，跳出選色層
+  if ((part === 'ratchet' || part === 'bit' || part === 'assist') && PART_VARIANTS[itemId]?.length > 0) {
+    closeBladePicker();
+    openVariantPicker(row, part, item);
+    return;
+  }
+
   closeBladePicker();
   renderSharePage();
+}
+
+function openVariantPicker(row, part, item) {
+  const old = document.getElementById('variantPicker');
+  if (old) old.remove();
+
+  const variants = PART_VARIANTS[item.id] || [];
+  const partLabel = part === 'ratchet' ? '固鎖' : part === 'bit' ? '軸心' : '輔助戰刃';
+
+  const modal = document.createElement('div');
+  modal.id = 'variantPicker';
+  modal.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);
+    padding:24px;
+  `;
+
+  const variantItems = variants.map((v, i) => `
+    <div onclick="selectVariant(${row},'${part}',${i})" style="
+      display:flex;align-items:center;gap:12px;
+      padding:12px 14px;border-radius:12px;cursor:pointer;
+      border:1px solid var(--border);background:var(--surface2);
+      transition:all 0.15s;
+    "
+    onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(18,239,206,0.06)'"
+    onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
+      ${v.img
+        ? `<img src="${v.img}" style="width:48px;height:48px;object-fit:contain;border-radius:8px;background:rgba(255,255,255,0.04);">`
+        : `<div style="width:48px;height:48px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--muted);">無圖</div>`
+      }
+      <div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--text);">${v.color}</div>
+        <div style="font-size:0.72rem;color:var(--muted);">${item.id} ${partLabel}</div>
+      </div>
+    </div>`).join('');
+
+  modal.innerHTML = `
+    <div style="
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:20px;padding:24px;width:100%;max-width:340px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.6);
+      max-height:80vh;overflow-y:auto;
+    ">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:var(--text);">選擇配色</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">${item.id}｜${item.name || partLabel}</div>
+        </div>
+        <button onclick="document.getElementById('variantPicker').remove();renderSharePage();"
+          style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);
+            width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.9rem;">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div onclick="selectVariant(${row},'${part}',null)" style="
+          display:flex;align-items:center;gap:12px;
+          padding:12px 14px;border-radius:12px;cursor:pointer;
+          border:1px solid rgba(255,94,122,0.25);background:rgba(255,94,122,0.06);
+          transition:all 0.15s;
+        "
+        onmouseover="this.style.background='rgba(255,94,122,0.12)'"
+        onmouseout="this.style.background='rgba(255,94,122,0.06)'">
+          <div style="width:48px;height:48px;border-radius:8px;background:rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🔄</div>
+          <div style="font-size:0.85rem;color:var(--danger);">使用預設圖片</div>
+        </div>
+        ${variantItems}
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => {
+    if (e.target === modal) { modal.remove(); renderSharePage(); }
+  });
+}
+
+function selectVariant(row, part, variantIndex) {
+  const item = shareState.combos[row][part];
+  if (!item) return;
+  if (variantIndex === null) {
+    delete item._variantImgUrl;
+  } else {
+    const v = PART_VARIANTS[item.id]?.[variantIndex];
+    if (v && v.img) item._variantImgUrl = v.img;
+  }
+  document.getElementById('variantPicker')?.remove();
+  renderSharePage();
+  renderShareCanvas();
 }
 
 function renderVaultMain() {
@@ -3137,6 +3258,7 @@ buildBuyFilter();
 
 // 背景預載特殊主題，進分享頁時直接用快取
 loadSpecialThemes();
+loadPartVariants();
 
 loadData();
 
