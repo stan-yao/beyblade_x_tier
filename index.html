@@ -1026,6 +1026,58 @@ let PARTS_IMG = {};
 
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
 const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
+const comboStatsUrl = "https://docs.google.com/spreadsheets/d/18eTJLjyNmqDz5MH0-VD03TX4wobUCdHdrRMyo4uojDo/gviz/tq?tqx=out:csv&sheet=Combo%20Summary";
+
+// 賽事統計資料：{ [site_blade_id]: [ { ratchet, bit, champion_rate, total_wins }, ... ] }
+let COMBO_STATS = {};
+
+async function loadComboStats() {
+  try {
+    const cached = localStorage.getItem('bey_combo_stats_v1');
+    if (cached) { COMBO_STATS = JSON.parse(cached); return; }
+  } catch(e) {}
+
+  try {
+    const res = await fetch(comboStatsUrl + "&_=" + Date.now());
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (!rows || rows.length < 2) return;
+
+    const head = rows[0].map(h => (h || "").trim().toLowerCase());
+    const iBladeId   = head.indexOf("site_blade_id");
+    const iRatchet   = head.indexOf("ratchet");
+    const iBit       = head.indexOf("bit");
+    const iChampRate = head.indexOf("champion_rate");
+    const iTotalWins = head.indexOf("total_wins");
+    const iRank      = head.indexOf("site_recommendation_rank");
+    if (iBladeId === -1 || iRatchet === -1 || iBit === -1) return;
+
+    const map = {};
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r[iBladeId]) continue;
+      const bladeId = r[iBladeId].trim();
+      if (!bladeId) continue;
+      if (!map[bladeId]) map[bladeId] = [];
+      map[bladeId].push({
+        ratchet:      r[iRatchet]   ? r[iRatchet].trim()        : "",
+        bit:          r[iBit]       ? r[iBit].trim()             : "",
+        championRate: r[iChampRate] ? parseFloat(r[iChampRate])  : 0,
+        totalWins:    r[iTotalWins] ? parseInt(r[iTotalWins])    : 0,
+        rank:         r[iRank]      ? parseInt(r[iRank])         : 9999,
+      });
+    }
+    Object.keys(map).forEach(k => {
+      map[k].sort((a, b) => a.rank - b.rank);
+      map[k] = map[k].slice(0, 5);
+    });
+
+    COMBO_STATS = map;
+    localStorage.setItem('bey_combo_stats_v1', JSON.stringify(COMBO_STATS));
+  } catch(e) {
+    console.log("賽事資料載入失敗", e);
+  }
+}
 
 function extractDateOnly(dateStr) {
   if (!dateStr) return "未知日期 更新";
@@ -1091,7 +1143,9 @@ async function loadData(force = false) {
           localStorage.removeItem('bey_img_v2');
           localStorage.removeItem('bey_parts_img_v2');
           localStorage.removeItem('bey_date_v2');
+          localStorage.removeItem('bey_combo_stats_v1');
       }
+      await loadComboStats();
       await fetchAndProcess();
   }
 }
@@ -1560,13 +1614,36 @@ function openModal(d) {
         `;
       }
       
-      if (d.comboText || d.noteText) {
+      // 手動備註 + 賽事數據合併顯示
+      const statsForBlade = COMBO_STATS[d.id] || [];
+      const hasManual = d.comboText || d.noteText;
+      const hasStats  = statsForBlade.length > 0;
+
+      if (hasManual || hasStats) {
         let suggestedContent = "";
+
+        // 手動備註（在上）
         if (d.comboText) suggestedContent += linkifyParts(d.comboText);
         if (d.noteText) {
           if (suggestedContent) suggestedContent += "<br><br>";
           suggestedContent += linkifyParts(d.noteText);
         }
+
+        // 賽事數據（在下）
+        if (hasStats) {
+          if (suggestedContent) suggestedContent += "<br>";
+          suggestedContent += `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size:0.72rem; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">🏆 賽事推薦配置</div>`;
+          statsForBlade.forEach(s => {
+            const pct = s.championRate ? (s.championRate * 100).toFixed(1) : "0.0";
+            suggestedContent += `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;margin-bottom:3px;border-radius:7px;background:rgba(255,255,255,0.04);">
+              <span style="font-size:0.83rem;font-weight:700;color:var(--text);">${s.ratchet} ${s.bit}</span>
+              <span style="font-size:0.75rem;color:var(--muted);">冠軍率 <span style="color:var(--warn);font-weight:700;">${pct}%</span> <span style="opacity:0.55;">(${s.totalWins}場)</span></span>
+            </div>`;
+          });
+          suggestedContent += `</div>`;
+        }
+
         detailsHtml += `
           <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
             <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>建議配置 <span style="font-weight: 300; opacity: 0.6; font-size: 0.75rem; margin-left: 5px;">(點擊查看)</span>：</div>
@@ -3384,7 +3461,7 @@ buildBuyFilter();
 loadSpecialThemes();
 loadPartVariants();
 
-loadData();
+(async () => { await loadComboStats(); await loadData(); })();
 
 document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
