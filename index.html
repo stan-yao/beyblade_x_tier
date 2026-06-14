@@ -3354,23 +3354,57 @@ function renderAnalysis() {
   const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
   const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
 
-  const blades = DB.filter(x=>x.cat==='blade'&&(x.comboText||x.noteText));
+  // 所有倉庫裡有的戰刃（含原裝＋散件）
+  const ownedBladeIds = new Set([
+    ...(inv.ownedBlades||[]),
+    ...(inv.blade||[]),
+    ...fromBlades.blade,
+  ]);
+
+  // 同時納入：有 comboText/noteText 的 AND 有賽事資料的戰刃
+  const bladesWithManual = new Set(DB.filter(x=>x.cat==='blade'&&(x.comboText||x.noteText)).map(x=>x.id));
+  const bladesWithStats  = new Set(Object.keys(COMBO_STATS));
+  const allBladeIds = new Set([...bladesWithManual, ...bladesWithStats]);
+  const blades = DB.filter(x => x.cat==='blade' && allBladeIds.has(x.id));
+
   const complete=[], nearMiss=[];
 
   blades.forEach(blade=>{
-    // ── PATCH 2: 用 fromBlades.blade 判斷是否擁有此戰刃 ──
-    const hasThisBlade = fromBlades.blade.has(blade.id) || (inv.blade||[]).includes(blade.id);
+    const hasThisBlade = ownedBladeIds.has(blade.id);
     if (!hasThisBlade) return;
 
+    // ── 手動 comboText 解析（原有邏輯）──
     parseComboNeed(blade).forEach(combo=>{
       const isValidCombo = combo.ratchets.length >= 1 && combo.bits.length >= 1;
       if (!isValidCombo) return;
-
       const nR=combo.ratchets.filter(r=>!ownedR.has(r));
       const nB=combo.bits.filter(b=>!ownedB.has(b));
       const nA=combo.assists.filter(a=>!ownedA.has(a));
       const miss=nR.length+nB.length+nA.length;
-      const entry={blade,combo,neededR:nR,neededB:nB,neededA:nA,totalMissing:miss};
+      const entry={blade,combo,neededR:nR,neededB:nB,neededA:nA,totalMissing:miss,source:'manual',championRate:null,totalWins:null};
+      if(miss===0) complete.push(entry);
+      else if(miss===1) nearMiss.push(entry);
+    });
+
+    // ── 賽事資料推薦（新增）──
+    const stats = COMBO_STATS[blade.id] || [];
+    stats.forEach(s => {
+      if (!s.ratchet || !s.bit) return;
+      // 避免與手動 comboText 重複（同固鎖＋軸心）
+      const isDupe = [...complete, ...nearMiss].some(e =>
+        e.blade.id === blade.id &&
+        e.source === 'stats' &&
+        e.combo.ratchets[0] === s.ratchet &&
+        e.combo.bits[0] === s.bit
+      );
+      if (isDupe) return;
+
+      const combo = { ratchets: [s.ratchet], bits: [s.bit], assists: [] };
+      const nR = ownedR.has(s.ratchet) ? [] : [s.ratchet];
+      const nB = ownedB.has(s.bit)     ? [] : [s.bit];
+      const miss = nR.length + nB.length;
+      const entry = {blade, combo, neededR:nR, neededB:nB, neededA:[], totalMissing:miss,
+                     source:'stats', championRate:s.championRate, totalWins:s.totalWins};
       if(miss===0) complete.push(entry);
       else if(miss===1) nearMiss.push(entry);
     });
@@ -3400,8 +3434,17 @@ function renderAnalysis() {
     const pipe = ' <span style="opacity:0.4;margin:0 3px;">｜</span> ';
     const leftHtml  = leftParts.length  ? leftParts.join(sep)  : '';
     const rightHtml = rightParts.length ? rightParts.join(sep) : '';
-    if (leftHtml && rightHtml) return leftHtml + pipe + rightHtml;
-    return leftHtml || rightHtml;
+    let comboLine = '';
+    if (leftHtml && rightHtml) comboLine = leftHtml + pipe + rightHtml;
+    else comboLine = leftHtml || rightHtml;
+
+    // 賽事來源：加上冠軍率標籤
+    if (e.source === 'stats' && e.championRate !== null) {
+      const pct = (e.championRate * 100).toFixed(1);
+      const wins = e.totalWins || 0;
+      comboLine += ` <span style="margin-left:6px;font-size:0.7rem;color:var(--warn);font-weight:700;">冠軍率 ${pct}%</span><span style="font-size:0.68rem;color:var(--muted);"> (${wins}場)</span>`;
+    }
+    return comboLine;
   }
 
   // 依陀螺群組化
@@ -3416,13 +3459,43 @@ function renderAnalysis() {
 
   function groupHtml(group, isComplete) {
     const { blade, combos } = group;
-    const comboLines = combos.map(e => {
+
+    // 手動 comboText 在前，賽事資料在後
+    const manualCombos = combos.filter(e => e.source === 'manual');
+    const statsCombos  = combos.filter(e => e.source === 'stats');
+    const sorted = [...manualCombos, ...statsCombos];
+
+    const comboLines = sorted.map(e => {
+      const line = comboHtml(e);
+      const missing = e.totalMissing === 1
+        ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
+        : '';
+      const isStats = e.source === 'stats';
+      return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;${isStats?'opacity:0.9;':''}">${line}${missing}</div>`;
+    }).join('');
+
+    // 如果有賽事資料，在兩段之間加分隔標籤
+    const hasManual = manualCombos.length > 0;
+    const hasStats  = statsCombos.length > 0;
+    const manualLines = manualCombos.map(e => {
       const line = comboHtml(e);
       const missing = e.totalMissing === 1
         ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
         : '';
       return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;">${line}${missing}</div>`;
     }).join('');
+    const statsLines = statsCombos.map(e => {
+      const line = comboHtml(e);
+      const missing = e.totalMissing === 1
+        ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
+        : '';
+      return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;">${line}${missing}</div>`;
+    }).join('');
+
+    const statsSection = hasStats ? `
+      ${hasManual ? `<div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;padding:6px 0 2px;opacity:0.7;">🏆 賽事推薦</div>` : ''}
+      ${statsLines}` : '';
+    const finalLines = (hasManual ? manualLines : '') + statsSection;
 
     return `<div class="analysis-item" onclick="openModal(DB.find(x=>x.id=='${blade.id}'&&x.cat=='blade'))">
       <div class="analysis-item-head">
@@ -3432,7 +3505,7 @@ function renderAnalysis() {
           <div class="analysis-id">${blade.id} <span style="color:var(--muted);font-size:0.68rem;">${combos.length} 組配置</span></div>
         </div>
       </div>
-      <div class="analysis-combo" style="margin-top:6px;">${comboLines}</div>
+      <div class="analysis-combo" style="margin-top:6px;">${finalLines}</div>
     </div>`;
   }
 
