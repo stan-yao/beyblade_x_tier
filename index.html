@@ -915,6 +915,77 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 }
 .share-preview-wrap canvas { display: block; width: 100%; height: auto; }
 .share-hint { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 8px 0; }
+
+/* ── 公告彈窗 ── */
+#announcementOverlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+#announcementOverlay.show { display: flex; }
+#announcementBox {
+  position: relative;
+  max-width: 480px; width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 22px;
+  box-shadow:
+    0 12px 48px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.07) inset,
+    0 1px 0 rgba(255,255,255,0.12) inset;
+  backdrop-filter: blur(40px) saturate(1.6);
+  -webkit-backdrop-filter: blur(40px) saturate(1.6);
+  padding: 28px 24px 24px;
+  animation: announceFadeIn 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes announceFadeIn {
+  from { opacity:0; transform:translateY(16px) scale(0.96); }
+  to   { opacity:1; transform:translateY(0)    scale(1);    }
+}
+#announcementBox .ann-badge {
+  display: inline-block;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent);
+  background: rgba(18,239,206,0.08); border: 1px solid rgba(18,239,206,0.22);
+  border-radius: 99px; padding: 2px 10px; margin-bottom: 16px;
+}
+#announcementBox .ann-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--text); margin-bottom: 14px; margin-top: 4px; line-height: 1.4;
+}
+#announcementBox .ann-content {
+  font-size: 0.88rem; color: rgba(255,255,255,0.7);
+  line-height: 1.8; white-space: pre-line;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 14px; margin-bottom: 22px;
+}
+#announcementBox .ann-close {
+  width: 100%; padding: 12px;
+  background: rgba(18,239,206,0.08);
+  border: 1px solid rgba(18,239,206,0.25);
+  border-radius: 12px; color: var(--accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+}
+#announcementBox .ann-close:hover {
+  background: rgba(18,239,206,0.15);
+  box-shadow: 0 0 16px rgba(18,239,206,0.15);
+}
+#announcementBox .ann-x {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: rgba(255,255,255,0.35);
+  font-size: 1.1rem; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: color 0.15s;
+}
+#announcementBox .ann-x:hover { color: rgba(255,255,255,0.8); }
 </style>
 <body>
 
@@ -1027,6 +1098,7 @@ let PARTS_IMG = {};
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
 const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
 const comboStatsUrl = "https://docs.google.com/spreadsheets/d/18eTJLjyNmqDz5MH0-VD03TX4wobUCdHdrRMyo4uojDo/gviz/tq?tqx=out:csv&sheet=Combo%20Summary";
+const announcementUrl = sheetUrl + "&sheet=公告";
 
 // 賽事統計資料：{ [site_blade_id]: [ { ratchet, bit, champion_rate, total_wins }, ... ] }
 let COMBO_STATS = {};
@@ -3531,8 +3603,58 @@ buildTierFilter();
 buildBuyFilter();
 
 // 背景預載特殊主題，進分享頁時直接用快取
+
+async function loadAnnouncement() {
+  try {
+    const res = await fetch(announcementUrl + "&_=" + Date.now());
+    const text = await res.text();
+    const rows = parseCSV(text);
+    if (!rows || rows.length < 2) return;
+
+    const head = rows[0].map(h => (h||"").trim().toLowerCase());
+    const fi = (kw) => head.findIndex(h => h.includes(kw));
+    const iTitle   = fi("title") !== -1 ? fi("title") : fi("titel");
+    const iContent = fi("content");
+    const iStart   = fi("start");
+    const iEnd     = fi("end");
+    const iActive  = fi("active");
+    if (iTitle === -1 || iContent === -1) return;
+
+    const now = new Date();
+    let target = null;
+
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r[iTitle]) continue;
+      const active = (r[iActive]||"").trim().toUpperCase();
+      if (active !== "TRUE") continue;
+
+      const start = iStart !== -1 && r[iStart] ? new Date(r[iStart].trim().replace(/\//g,'-')) : null;
+      const end   = iEnd   !== -1 && r[iEnd]   ? new Date(r[iEnd].trim().replace(/\//g,'-'))   : null;
+      if (start && now < start) continue;
+      if (end   && now > end)   continue;
+
+      target = { title: r[iTitle].trim(), content: (r[iContent]||"").trim().replace(/\\n/g,"\n") };
+      break; // 只取第一筆有效公告
+    }
+
+    if (!target) return;
+
+    document.getElementById("annTitle").textContent   = target.title;
+    document.getElementById("annContent").textContent = target.content;
+    document.getElementById("announcementOverlay").classList.add("show");
+  } catch(e) {
+    console.log("公告載入失敗", e);
+  }
+}
+
+function closeAnnouncement() {
+  document.getElementById("announcementOverlay").classList.remove("show");
+}
+
 loadSpecialThemes();
 loadPartVariants();
+loadAnnouncement();
 
 (async () => { await loadComboStats(); await loadData(); })();
 
@@ -3541,5 +3663,16 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   render();
 });
 </script>
+
+<!-- 公告彈窗 -->
+<div id="announcementOverlay" onclick="if(event.target===this)closeAnnouncement()">
+  <div id="announcementBox">
+    <button class="ann-x" onclick="closeAnnouncement()">✕</button>
+    <div class="ann-badge">公告</div>
+    <div class="ann-title" id="annTitle"></div>
+    <div class="ann-content" id="annContent"></div>
+    <button class="ann-close" onclick="closeAnnouncement()">我知道了</button>
+  </div>
+</div>
 </body>
 </html>
