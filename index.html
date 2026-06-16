@@ -988,6 +988,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 #announcementBox .ann-x:hover { color: rgba(255,255,255,0.8); }
 
 
+.part-link { border-radius: 4px; padding: 1px 3px; transition: background 0.15s, color 0.15s; }
+.part-link[onclick]:hover { background: rgba(18,239,206,0.15); color: var(--accent); }
 </style>
 <body>
 
@@ -1729,8 +1731,16 @@ function openModal(d) {
             <div style="font-size:0.72rem; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">🏆 賽事推薦配置</div>`;
           statsForBlade.forEach(s => {
             const pct = s.championRate ? (s.championRate * 100).toFixed(1) : "0.0";
+            const rData = DB.find(x => x.id === s.ratchet && x.cat === 'ratchet');
+            const bData = DB.find(x => x.id === s.bit     && x.cat === 'bit');
+            const rClick = rData ? `onclick="modalHistory.push(currentModalData);openModal(DB.find(x=>x.id==='${s.ratchet}'&&x.cat==='ratchet'))" style="cursor:pointer;"` : '';
+            const bClick = bData ? `onclick="modalHistory.push(currentModalData);openModal(DB.find(x=>x.id==='${s.bit}'&&x.cat==='bit'))" style="cursor:pointer;"` : '';
             suggestedContent += `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;margin-bottom:3px;border-radius:7px;background:rgba(255,255,255,0.04);">
-              <span style="font-size:0.83rem;font-weight:700;color:var(--text);">${s.ratchet} ${s.bit}</span>
+              <span style="font-size:0.83rem;font-weight:700;color:var(--text);">
+                <span class="part-link" ${rClick}>${s.ratchet}</span>
+                <span style="opacity:0.4;margin:0 3px;">+</span>
+                <span class="part-link" ${bClick}>${s.bit}</span>
+              </span>
               <span style="font-size:0.75rem;color:var(--muted);">冠軍率 <span style="color:var(--warn);font-weight:700;">${pct}%</span> <span style="opacity:0.55;">(${s.totalWins}場)</span></span>
             </div>`;
           });
