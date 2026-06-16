@@ -2882,8 +2882,8 @@ function renderVaultMain() {
   const noticeHtml = noticeDismissed ? '' : `
     <div class="vault-notice" id="vaultNotice">
       <button class="vault-notice-close" onclick="document.getElementById('vaultNotice').remove(); sessionStorage.setItem('vault_notice_dismissed','1')">✕</button>
-      📣 此功能公開測試中<br>
-      <span style="font-size:0.75rem;color:var(--muted);">資料儲存於本機裝置，換裝置需重新設定，或匯出轉移代碼。</span>
+      📣 請記得匯出資料代碼保存，以防倉庫紀錄丟失<br>
+      <span style="font-size:0.75rem;color:var(--muted);">資料儲存於本機裝置，換裝置或大更新後需重新設定，或匯出轉移代碼。</span>
     </div>`;
   document.getElementById("vaultContent").innerHTML = `
     ${noticeHtml}
