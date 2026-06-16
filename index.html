@@ -1585,6 +1585,25 @@ function render() {
     const cards = document.createElement("div");
     cards.className = "tier-cards";
 
+    if (activeCategory === 'all') {
+      if (tier === '-') {
+        // - 階級：assist 在前，blade 在後，同 cat 內按 id 升序
+        const catOrder = { assist: 0, ratchet: 1, bit: 2, blade: 3 };
+        items.sort((a, b) =>
+          (catOrder[a.cat] ?? 9) - (catOrder[b.cat] ?? 9) ||
+          a.id.localeCompare(b.id, 'zh-TW', {numeric: true})
+        );
+      } else {
+        // X～E 階級：blade → ratchet → bit，同 cat 內按 id 升序
+        const catOrder = { blade: 0, ratchet: 1, bit: 2, assist: 3 };
+        items.sort((a, b) =>
+          (catOrder[a.cat] ?? 9) - (catOrder[b.cat] ?? 9) ||
+          a.id.localeCompare(b.id, 'zh-TW', {numeric: true})
+        );
+      }
+    } else {
+      items.sort((a, b) => a.id.localeCompare(b.id, 'zh-TW', {numeric: true}));
+    }
     items.forEach(d => {
       const card = document.createElement("div");
       card.className = "bey-card";
@@ -2720,9 +2739,9 @@ function renderPartPickerList(q) {
     ? items.filter(b => norm(b.name).includes(norm(q)) || norm(b.id).includes(norm(q)))
     : items;
 
-  const uniqueItems = part==='ratchet'||part==='bit'
+  const uniqueItems = (part==='ratchet'||part==='bit'
     ? [...new Map(filtered.map(x=>[x.id,x])).values()]
-    : filtered;
+    : filtered).sort((a, b) => a.id.localeCompare(b.id, 'zh-TW', {numeric: true}));
 
   const hasCurrent = shareState.combos[row][part] !== null;
   list.innerHTML = (hasCurrent ? `
@@ -3107,9 +3126,9 @@ function renderOwnedBlades(inv, fromBlades, searchVal = '') {
   const ownedCount = ownedSet.size;
   const q = searchVal.trim().toLowerCase();
 
-  const filtered = q
+  const filtered = (q
     ? allBlades.filter(b => norm(b.name).includes(norm(q)) || norm(b.id).includes(norm(q)))
-    : allBlades;
+    : allBlades).sort((a, b) => a.id.localeCompare(b.id, 'zh-TW', {numeric: true}));
 
   const html = filtered.map(blade => {
     const owned = ownedSet.has(blade.id);
