@@ -2576,17 +2576,13 @@ async function renderShareCanvas(transparentMode = false) {
         if (!name) return;
 
         if (col === 1) {
-          // 戰刃：第一行代號，第二行中文名
-          ctx.font = `600 13px "Inter","Noto Sans TC",sans-serif`;
-          ctx.fillStyle = 'rgba(255,255,255,0.8)';
-          ctx.fillText(item.id || '', x, nameY);
-          if (item.name && item.name !== item.id) {
-            ctx.font = `500 13px "Noto Sans TC","Inter",sans-serif`;
-            ctx.letterSpacing = '0.5px';
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.fillText(item.name, x, nameY + 16);
-            ctx.letterSpacing = '0px';
-          }
+          // 戰刃：並排顯示「BX-34 蒼穹龍騎士」
+          const bladeLabel = item.name && item.name !== item.id
+            ? `${item.id} ${item.name}`
+            : (item.id || item.name || '');
+          ctx.font = `600 12px "Inter","Noto Sans TC",sans-serif`;
+          ctx.fillStyle = 'rgba(255,255,255,0.85)';
+          ctx.fillText(bladeLabel, x, nameY);
         } else {
           ctx.font = `600 13px "Noto Sans TC","Inter",sans-serif`;
           ctx.fillStyle = 'rgba(255,255,255,0.8)';
