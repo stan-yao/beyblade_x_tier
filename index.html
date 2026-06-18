@@ -60,6 +60,47 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="apple-touch-icon.png">
 <style>
+/* ── Splash 載入畫面：inline 在最前面，瀏覽器一開始 parse 就能畫出來 ── */
+#splashScreen {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #0a0b10;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.4s ease;
+}
+#splashScreen.fade-out { opacity: 0; pointer-events: none; }
+#splashScreen img {
+  width: 88px; height: 88px; border-radius: 20px;
+  box-shadow: 0 0 40px rgba(18,239,206,0.25);
+  animation: splashPulse 1.6s ease-in-out infinite;
+}
+#splashScreen .splash-title {
+  margin-top: 18px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em;
+  color: rgba(230,238,250,0.85);
+}
+#splashScreen .splash-bar {
+  margin-top: 22px;
+  width: 120px; height: 3px; border-radius: 99px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+#splashScreen .splash-bar-inner {
+  height: 100%; width: 40%;
+  background: linear-gradient(90deg, #12efce, #69a7ff);
+  border-radius: 99px;
+  animation: splashLoading 1.2s ease-in-out infinite;
+}
+@keyframes splashPulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%      { transform: scale(1.05); opacity: 0.85; }
+}
+@keyframes splashLoading {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%);  }
+}
+</style>
+<style>
 :root {
   --bg: #0a0b10;
   --surface: #12151d;
@@ -992,6 +1033,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .part-link[onclick]:hover { background: rgba(18,239,206,0.15); color: var(--accent); }
 </style>
 <body>
+
+<!-- Splash 載入畫面：放在最前面，DOM parse 到這裡就立刻顯示 -->
+<div id="splashScreen">
+  <img src="https://stan-yao.github.io/beyblade_x_tier/apple-touch-icon.png" alt="BeyTier">
+  <div class="splash-title">天梯 BeyTier</div>
+  <div class="splash-bar"><div class="splash-bar-inner"></div></div>
+</div>
 
 <header>
   <div class="header-top">
@@ -3699,7 +3747,21 @@ function closeAnnouncement() {
 loadSpecialThemes();
 loadAnnouncement();
 
-(async () => { await loadComboStats(); await loadData(); await loadPartVariants(); })();
+function hideSplash() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+  splash.classList.add('fade-out');
+  setTimeout(() => splash.remove(), 450);
+}
+// 保險機制：最多等 8 秒，避免載入失敗時 splash 卡住不消失
+setTimeout(hideSplash, 8000);
+
+(async () => {
+  await loadComboStats();
+  await loadData();
+  await loadPartVariants();
+  hideSplash();
+})();
 
 document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
