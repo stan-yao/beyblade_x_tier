@@ -1095,6 +1095,20 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   cursor: pointer; opacity: 0.7; font-size: 0.85rem; padding: 0 2px;
 }
 #ccBox .cc-chip-x:hover { opacity: 1; }
+#ccBox .cc-mode-toggle {
+  display: flex; gap: 6px; padding: 4px;
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+#ccBox .cc-mode-btn {
+  flex: 1; text-align: center; padding: 8px 6px;
+  font-size: 0.74rem; font-weight: 600; color: var(--muted);
+  border-radius: 9px; cursor: pointer; transition: all 0.15s;
+}
+#ccBox .cc-mode-btn.active {
+  background: rgba(18,239,206,0.12); color: var(--accent);
+  border: 1px solid rgba(18,239,206,0.3);
+}
 #ccBox .cc-dropdown {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
   max-height: 180px; overflow-y: auto;
@@ -3873,12 +3887,34 @@ const CC_PART_FIELDS = {
 
 // 多選的已選清單：{ ratchet: [], bit: [], assist: [] }
 let ccSelected = { ratchet: [], bit: [], assist: [] };
+let ccMode = 'edit'; // 'edit' = 覆蓋既有內容；'add' = 附加保留原有
+let ccExistingRaw = ''; // 該戰刃目前 P 欄的原始內容（add 模式用）
+
+function ccSetMode(mode) {
+  ccMode = mode;
+  document.getElementById('ccModeEditBtn').classList.toggle('active', mode === 'edit');
+  document.getElementById('ccModeAddBtn').classList.toggle('active', mode === 'add');
+
+  if (mode === 'add') {
+    // 切到新增模式：清空表單讓使用者填全新的獨立組合
+    ccSelected = { ratchet: [], bit: [], assist: [] };
+    document.getElementById('ccNote').value = '';
+    ['ratchet','bit','assist'].forEach(cat => ccRenderChips(cat));
+  } else {
+    // 切回編輯模式：重新載入既有內容
+    const bladeId = document.getElementById('ccBladeId').value.trim();
+    if (bladeId) ccLoadExisting(bladeId);
+  }
+}
 
 function openCcModal() {
   document.getElementById('ccBladeInput').value = '';
   document.getElementById('ccBladeId').value = '';
   document.getElementById('ccNote').value = '';
   document.getElementById('ccMsg').innerHTML = '';
+  document.getElementById('ccModeRow').style.display = 'none';
+  ccMode = 'edit';
+  ccExistingRaw = '';
   ccSelected = { ratchet: [], bit: [], assist: [] };
   ['ratchet','bit','assist'].forEach(cat => {
     document.getElementById(CC_PART_FIELDS[cat].inputId).value = '';
@@ -3916,6 +3952,72 @@ function ccSelectBlade(id, name) {
   document.getElementById('ccBladeInput').value = `${id} ${name}`;
   document.getElementById('ccBladeId').value = id;
   document.getElementById('ccBladeDropdown').classList.remove('show');
+  ccLoadExisting(id);
+}
+
+// 解析既有 P 欄內容，回填到表單方便編輯
+// 格式範例：蛟龍、雙頭龍 ｜ 固鎖：7-70 / 5-70 | 軸心：L / E（備註文字）
+function ccLoadExisting(bladeId) {
+  ccSelected = { ratchet: [], bit: [], assist: [] };
+  document.getElementById('ccNote').value = '';
+  ['ratchet','bit','assist'].forEach(cat => ccRenderChips(cat));
+
+  const blade = DB.find(x => x.id === bladeId && x.cat === 'blade');
+  const raw = (blade && blade.communityCombo) ? blade.communityCombo.trim() : '';
+  ccExistingRaw = raw;
+
+  const msgEl = document.getElementById('ccMsg');
+  const modeRow = document.getElementById('ccModeRow');
+
+  if (!raw) {
+    msgEl.className = '';
+    msgEl.textContent = '';
+    modeRow.style.display = 'none';
+    ccMode = 'edit';
+    return;
+  }
+
+  // 有既有資料：顯示模式切換鈕，預設為編輯模式
+  modeRow.style.display = 'block';
+  ccMode = 'edit';
+  document.getElementById('ccModeEditBtn').classList.add('active');
+  document.getElementById('ccModeAddBtn').classList.remove('active');
+
+  let text = raw;
+
+  // 取出備註（最後一組全形括號內容）
+  const noteMatch = text.match(/（([^）]*)）\s*$/);
+  if (noteMatch) {
+    document.getElementById('ccNote').value = noteMatch[1];
+    text = text.slice(0, noteMatch.index).trim();
+  }
+
+  // 取出輔助戰刃（在「固鎖：」之前、用 ｜ 分隔的部分）
+  let assistPart = '';
+  let rest = text;
+  const pipeIdx = text.indexOf('｜');
+  if (pipeIdx !== -1) {
+    assistPart = text.slice(0, pipeIdx).trim();
+    rest = text.slice(pipeIdx + 1).trim();
+  }
+  if (assistPart) {
+    ccSelected.assist = assistPart.split('、').map(s => s.trim()).filter(Boolean);
+  }
+
+  // 解析固鎖／軸心：固鎖：A / B | 軸心：C / D
+  const ratchetMatch = rest.match(/固鎖：([^|]*)/);
+  const bitMatch = rest.match(/軸心：(.*)/);
+  if (ratchetMatch) {
+    ccSelected.ratchet = ratchetMatch[1].split('/').map(s => s.trim()).filter(Boolean);
+  }
+  if (bitMatch) {
+    ccSelected.bit = bitMatch[1].split('/').map(s => s.trim()).filter(Boolean);
+  }
+
+  ['ratchet','bit','assist'].forEach(cat => ccRenderChips(cat));
+
+  msgEl.className = '';
+  msgEl.innerHTML = `<div style="font-size:0.74rem;color:var(--accent);padding:6px 2px;">📝 已載入此戰刃現有的海巡配置，可直接編輯，或切換成「新增獨立組合」</div>`;
 }
 
 function ccRenderChips(cat) {
@@ -3989,12 +4091,18 @@ async function submitCommunityCombo() {
   comboStr += '固鎖：' + ratchets.join(' / ') + ' | 軸心：' + bits.join(' / ');
   if (note) comboStr += `（${note}）`;
 
+  // add 模式：保留既有內容，用 / 附加新組合在後面；edit 模式：直接覆蓋
+  let finalStr = comboStr;
+  if (ccMode === 'add' && ccExistingRaw) {
+    finalStr = ccExistingRaw + ' / ' + comboStr;
+  }
+
   try {
     await fetch(CC_APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bladeId, comboStr })
+      body: JSON.stringify({ bladeId, comboStr: finalStr })
     });
     msgEl.className = 'cc-msg ok';
     msgEl.textContent = '✓ 已寫入！下次強制同步即可看到。';
@@ -4194,6 +4302,13 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     <div class="cc-row">
       <div class="cc-label">備註（選填）</div>
       <textarea class="cc-input" id="ccNote" rows="2" placeholder="例：論壇看到的高爆發配置…"></textarea>
+    </div>
+
+    <div id="ccModeRow" class="cc-row" style="display:none;">
+      <div class="cc-mode-toggle">
+        <div class="cc-mode-btn active" id="ccModeEditBtn" onclick="ccSetMode('edit')">✏️ 編輯既有內容</div>
+        <div class="cc-mode-btn" id="ccModeAddBtn" onclick="ccSetMode('add')">➕ 新增獨立組合（保留原有）</div>
+      </div>
     </div>
 
     <button class="cc-submit" id="ccSubmitBtn" onclick="submitCommunityCombo()">寫入天梯資料庫 →</button>
