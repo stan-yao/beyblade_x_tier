@@ -3983,11 +3983,10 @@ async function submitCommunityCombo() {
   btn.disabled = true; btn.textContent = '送出中…';
   msgEl.className = ''; msgEl.textContent = '';
 
-  // 多選格式：固鎖/軸心用 / 表示可任選一個，組合成 comboText 慣用語法
-  // 例：蛟龍, 3-60 / 4-60, F / LF（備註）
+  // 多選格式：固鎖：A / B | 軸心：C / D（備註）
   let comboStr = '';
-  if (assists.length) comboStr += assists.join('、') + ', ';
-  comboStr += ratchets.join(' / ') + ', ' + bits.join(' / ');
+  if (assists.length) comboStr += assists.join('、') + ' ｜ ';
+  comboStr += '固鎖：' + ratchets.join(' / ') + ' | 軸心：' + bits.join(' / ');
   if (note) comboStr += `（${note}）`;
 
   try {
