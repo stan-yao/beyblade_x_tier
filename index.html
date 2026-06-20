@@ -1082,6 +1082,19 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 #ccBox select.cc-input option {
   background: #12151d; color: var(--text);
 }
+#ccBox .cc-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;
+}
+#ccBox .cc-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(18,239,206,0.12); border: 1px solid rgba(18,239,206,0.3);
+  border-radius: 8px; padding: 4px 6px 4px 10px;
+  font-size: 0.8rem; font-weight: 700; color: var(--accent);
+}
+#ccBox .cc-chip-x {
+  cursor: pointer; opacity: 0.7; font-size: 0.85rem; padding: 0 2px;
+}
+#ccBox .cc-chip-x:hover { opacity: 1; }
 #ccBox .cc-dropdown {
   position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
   max-height: 180px; overflow-y: auto;
@@ -3853,22 +3866,24 @@ function ccNorm(s) {
 }
 
 const CC_PART_FIELDS = {
-  ratchet: { inputId: 'ccRatchetInput', idFieldId: 'ccRatchetId', dropdownId: 'ccRatchetDropdown' },
-  bit:     { inputId: 'ccBitInput',     idFieldId: 'ccBitId',     dropdownId: 'ccBitDropdown' },
-  assist:  { inputId: 'ccAssistInput',  idFieldId: 'ccAssistId',  dropdownId: 'ccAssistDropdown' },
+  ratchet: { inputId: 'ccRatchetInput', dropdownId: 'ccRatchetDropdown', chipsId: 'ccRatchetChips' },
+  bit:     { inputId: 'ccBitInput',     dropdownId: 'ccBitDropdown',     chipsId: 'ccBitChips' },
+  assist:  { inputId: 'ccAssistInput',  dropdownId: 'ccAssistDropdown',  chipsId: 'ccAssistChips' },
 };
+
+// 多選的已選清單：{ ratchet: [], bit: [], assist: [] }
+let ccSelected = { ratchet: [], bit: [], assist: [] };
 
 function openCcModal() {
   document.getElementById('ccBladeInput').value = '';
   document.getElementById('ccBladeId').value = '';
-  document.getElementById('ccRatchetInput').value = '';
-  document.getElementById('ccRatchetId').value = '';
-  document.getElementById('ccBitInput').value = '';
-  document.getElementById('ccBitId').value = '';
-  document.getElementById('ccAssistInput').value = '';
-  document.getElementById('ccAssistId').value = '';
   document.getElementById('ccNote').value = '';
   document.getElementById('ccMsg').innerHTML = '';
+  ccSelected = { ratchet: [], bit: [], assist: [] };
+  ['ratchet','bit','assist'].forEach(cat => {
+    document.getElementById(CC_PART_FIELDS[cat].inputId).value = '';
+    ccRenderChips(cat);
+  });
   document.getElementById('ccOverlay').classList.add('show');
 }
 
@@ -3903,6 +3918,27 @@ function ccSelectBlade(id, name) {
   document.getElementById('ccBladeDropdown').classList.remove('show');
 }
 
+function ccRenderChips(cat) {
+  const cfg = CC_PART_FIELDS[cat];
+  const box = document.getElementById(cfg.chipsId);
+  box.innerHTML = ccSelected[cat].map((id, i) =>
+    `<div class="cc-chip">${id}<span class="cc-chip-x" onclick="ccRemoveChip('${cat}',${i})">✕</span></div>`
+  ).join('');
+}
+
+function ccAddChip(cat, id) {
+  if (!id) return;
+  if (!ccSelected[cat].includes(id)) ccSelected[cat].push(id);
+  ccRenderChips(cat);
+  document.getElementById(CC_PART_FIELDS[cat].inputId).value = '';
+  document.getElementById(CC_PART_FIELDS[cat].dropdownId).classList.remove('show');
+}
+
+function ccRemoveChip(cat, index) {
+  ccSelected[cat].splice(index, 1);
+  ccRenderChips(cat);
+}
+
 function ccFilterPart(cat, q) {
   const cfg = CC_PART_FIELDS[cat];
   const dropdown = document.getElementById(cfg.dropdownId);
@@ -3911,35 +3947,35 @@ function ccFilterPart(cat, q) {
   const matched = nq ? items.filter(id => ccNorm(id).includes(nq)) : items;
   const sorted = matched.sort((a,b) => a.localeCompare(b, 'zh-TW', {numeric:true})).slice(0, 30);
   if (sorted.length === 0) {
-    dropdown.innerHTML = `<div class="cc-dropdown-item" style="opacity:0.5;">無符合結果（將直接採用輸入文字）</div>`;
+    dropdown.innerHTML = `<div class="cc-dropdown-item" style="opacity:0.5;">無符合結果（按 Enter 直接加入輸入文字）</div>`;
   } else {
     dropdown.innerHTML = sorted.map(id =>
-      `<div class="cc-dropdown-item" onclick="ccSelectPart('${cat}','${id}')">${id}</div>`
+      `<div class="cc-dropdown-item" onclick="ccAddChip('${cat}','${id}')">${id}</div>`
     ).join('');
   }
   dropdown.classList.add('show');
 }
 
-function ccSelectPart(cat, id) {
-  const cfg = CC_PART_FIELDS[cat];
-  document.getElementById(cfg.inputId).value = id;
-  document.getElementById(cfg.idFieldId).value = id;
-  document.getElementById(cfg.dropdownId).classList.remove('show');
+function ccChipKeydown(e, cat) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = e.target.value.trim();
+    if (val) ccAddChip(cat, val);
+  }
 }
 
 async function submitCommunityCombo() {
   const bladeId = document.getElementById('ccBladeId').value.trim();
-  // 固鎖/軸心/輔助：優先用選中的 id，若使用者直接打字未點選清單，則直接採用輸入框文字
-  const ratchet = (document.getElementById('ccRatchetId').value.trim() || document.getElementById('ccRatchetInput').value.trim());
-  const bit     = (document.getElementById('ccBitId').value.trim()     || document.getElementById('ccBitInput').value.trim());
-  const assist  = (document.getElementById('ccAssistId').value.trim()  || document.getElementById('ccAssistInput').value.trim());
-  const note    = document.getElementById('ccNote').value.trim();
-  const msgEl   = document.getElementById('ccMsg');
-  const btn     = document.getElementById('ccSubmitBtn');
+  const ratchets = ccSelected.ratchet;
+  const bits     = ccSelected.bit;
+  const assists  = ccSelected.assist;
+  const note     = document.getElementById('ccNote').value.trim();
+  const msgEl    = document.getElementById('ccMsg');
+  const btn      = document.getElementById('ccSubmitBtn');
 
-  if (!bladeId) { msgEl.className='cc-msg err'; msgEl.textContent='請選擇戰刃'; return; }
-  if (!ratchet) { msgEl.className='cc-msg err'; msgEl.textContent='請輸入固鎖'; return; }
-  if (!bit)     { msgEl.className='cc-msg err'; msgEl.textContent='請輸入軸心'; return; }
+  if (!bladeId)        { msgEl.className='cc-msg err'; msgEl.textContent='請選擇戰刃'; return; }
+  if (ratchets.length === 0) { msgEl.className='cc-msg err'; msgEl.textContent='請至少輸入一個固鎖'; return; }
+  if (bits.length === 0)     { msgEl.className='cc-msg err'; msgEl.textContent='請至少輸入一個軸心'; return; }
   if (!CC_APPS_SCRIPT_URL || CC_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
     msgEl.className='cc-msg err'; msgEl.textContent='尚未設定 Apps Script URL'; return;
   }
@@ -3947,10 +3983,11 @@ async function submitCommunityCombo() {
   btn.disabled = true; btn.textContent = '送出中…';
   msgEl.className = ''; msgEl.textContent = '';
 
-  // 組成 comboText 格式：assist, ratchet, bit (備註)
+  // 多選格式：固鎖/軸心用 / 表示可任選一個，組合成 comboText 慣用語法
+  // 例：蛟龍, 3-60 / 4-60, F / LF（備註）
   let comboStr = '';
-  if (assist) comboStr += assist + ', ';
-  comboStr += ratchet + ', ' + bit;
+  if (assists.length) comboStr += assists.join('、') + ', ';
+  comboStr += ratchets.join(' / ') + ', ' + bits.join(' / ');
   if (note) comboStr += `（${note}）`;
 
   try {
@@ -4135,23 +4172,23 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     </div>
 
     <div class="cc-row">
-      <div class="cc-label">固鎖 <span style="color:var(--danger);">*</span></div>
-      <input class="cc-input" id="ccRatchetInput" placeholder="輸入或選擇固鎖…" autocomplete="off" oninput="ccFilterPart('ratchet', this.value)" onfocus="ccFilterPart('ratchet', this.value)">
-      <input type="hidden" id="ccRatchetId">
+      <div class="cc-label">固鎖（可多選）<span style="color:var(--danger);">*</span></div>
+      <div class="cc-chips" id="ccRatchetChips"></div>
+      <input class="cc-input" id="ccRatchetInput" placeholder="輸入或選擇固鎖…" autocomplete="off" oninput="ccFilterPart('ratchet', this.value)" onfocus="ccFilterPart('ratchet', this.value)" onkeydown="ccChipKeydown(event,'ratchet')">
       <div class="cc-dropdown" id="ccRatchetDropdown"></div>
     </div>
 
     <div class="cc-row">
-      <div class="cc-label">軸心 <span style="color:var(--danger);">*</span></div>
-      <input class="cc-input" id="ccBitInput" placeholder="輸入或選擇軸心…" autocomplete="off" oninput="ccFilterPart('bit', this.value)" onfocus="ccFilterPart('bit', this.value)">
-      <input type="hidden" id="ccBitId">
+      <div class="cc-label">軸心（可多選）<span style="color:var(--danger);">*</span></div>
+      <div class="cc-chips" id="ccBitChips"></div>
+      <input class="cc-input" id="ccBitInput" placeholder="輸入或選擇軸心…" autocomplete="off" oninput="ccFilterPart('bit', this.value)" onfocus="ccFilterPart('bit', this.value)" onkeydown="ccChipKeydown(event,'bit')">
       <div class="cc-dropdown" id="ccBitDropdown"></div>
     </div>
 
     <div class="cc-row">
-      <div class="cc-label">輔助戰刃（選填）</div>
-      <input class="cc-input" id="ccAssistInput" placeholder="輸入或選擇輔助戰刃…" autocomplete="off" oninput="ccFilterPart('assist', this.value)" onfocus="ccFilterPart('assist', this.value)">
-      <input type="hidden" id="ccAssistId">
+      <div class="cc-label">輔助戰刃（選填，可多選）</div>
+      <div class="cc-chips" id="ccAssistChips"></div>
+      <input class="cc-input" id="ccAssistInput" placeholder="輸入或選擇輔助戰刃…" autocomplete="off" oninput="ccFilterPart('assist', this.value)" onfocus="ccFilterPart('assist', this.value)" onkeydown="ccChipKeydown(event,'assist')">
       <div class="cc-dropdown" id="ccAssistDropdown"></div>
     </div>
 
