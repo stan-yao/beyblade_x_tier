@@ -1031,6 +1031,79 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
 .part-link { border-radius: 4px; padding: 1px 3px; transition: background 0.15s, color 0.15s; }
 .part-link[onclick]:hover { background: rgba(18,239,206,0.15); color: var(--accent); }
+
+/* ── 海巡配置 隱藏新增表單 ── */
+#ccOverlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 99998;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+  padding: 20px; box-sizing: border-box;
+}
+#ccOverlay.show { display: flex; }
+#ccBox {
+  position: relative;
+  max-width: 420px; width: 100%; max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(22,26,40,0.9);
+  border: 1px solid rgba(18,239,206,0.25);
+  border-radius: 20px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  padding: 22px 20px;
+  animation: ccFadeIn 0.25s ease;
+}
+@keyframes ccFadeIn {
+  from { opacity:0; transform:translateY(10px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0)    scale(1);    }
+}
+#ccBox .cc-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem; font-weight: 700; color: var(--accent);
+  margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;
+}
+#ccBox .cc-x { background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:2px 6px; }
+#ccBox .cc-label {
+  font-size: 0.74rem; color: var(--muted); margin-bottom: 6px;
+  font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+}
+#ccBox .cc-row { margin-bottom: 14px; position: relative; }
+#ccBox input.cc-input, #ccBox select.cc-input, #ccBox textarea.cc-input {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; color: var(--text); font-size: 16px;
+  padding: 10px 12px; outline: none; font-family: inherit;
+}
+#ccBox input.cc-input:focus, #ccBox select.cc-input:focus, #ccBox textarea.cc-input:focus { border-color: var(--accent); }
+#ccBox textarea.cc-input { resize: none; }
+#ccBox select.cc-input option {
+  background: #12151d; color: var(--text);
+}
+#ccBox .cc-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+  max-height: 180px; overflow-y: auto;
+  background: rgba(18,20,30,0.97); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; margin-top: 4px; display: none;
+}
+#ccBox .cc-dropdown.show { display: block; }
+#ccBox .cc-dropdown-item {
+  padding: 9px 12px; font-size: 0.85rem; cursor: pointer; color: var(--text);
+}
+#ccBox .cc-dropdown-item:hover { background: rgba(18,239,206,0.1); }
+#ccBox .cc-submit {
+  width: 100%; padding: 12px; margin-top: 6px;
+  background: rgba(18,239,206,0.1); border: 1px solid rgba(18,239,206,0.3);
+  border-radius: 12px; color: var(--accent); font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; transition: background 0.18s;
+}
+#ccBox .cc-submit:hover:not(:disabled) { background: rgba(18,239,206,0.2); }
+#ccBox .cc-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+#ccBox .cc-msg { text-align:center; font-size:0.82rem; padding:10px; border-radius:10px; margin-top:10px; }
+#ccBox .cc-msg.ok { background: rgba(122,223,96,0.1); border:1px solid rgba(122,223,96,0.25); color: var(--success); }
+#ccBox .cc-msg.err { background: rgba(255,94,122,0.1); border:1px solid rgba(255,94,122,0.25); color: var(--danger); }
 </style>
 <body>
 
@@ -1117,7 +1190,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   <div class="share-inner">
     <div class="share-header">
       <div class="share-title-wrap">
-        <div class="share-title">GO SHARE</div>
+        <div class="share-title" id="hiddenComboTrigger">GO SHARE</div>
         <div class="share-subtitle">組合分享卡</div>
       </div>
 
@@ -1365,6 +1438,7 @@ function processData(dataMain, dataParts, latestDate) {
       const imgUrl = row[12] ? row[12].trim() : "";
       const comboText = row[13] ? row[13].trim() : "";
       const noteText = row[14] ? row[14].trim() : "";
+      const communityCombo = row[15] ? row[15].trim() : "";
       
       if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
 
@@ -1375,7 +1449,7 @@ function processData(dataMain, dataParts, latestDate) {
           finalBuy = calculateBuyRec(tier, ratchetTier, bitTier);
       }
       
-      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, comboText, noteText };
+      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, comboText, noteText, communityCombo };
 
       if (tier) {
           DB.push(bladeObj);
@@ -1757,12 +1831,13 @@ function openModal(d) {
         `;
       }
       
-      // 手動備註 + 賽事數據合併顯示
+      // 手動備註 + 海巡配置 + 賽事數據合併顯示
       const statsForBlade = COMBO_STATS[d.id] || [];
       const hasManual = d.comboText || d.noteText;
+      const hasCommunity = !!d.communityCombo;
       const hasStats  = statsForBlade.length > 0;
 
-      if (hasManual || hasStats) {
+      if (hasManual || hasCommunity || hasStats) {
         let suggestedContent = "";
 
         // 手動備註（在上）
@@ -1770,6 +1845,15 @@ function openModal(d) {
         if (d.noteText) {
           if (suggestedContent) suggestedContent += "<br><br>";
           suggestedContent += linkifyParts(d.noteText);
+        }
+
+        // 海巡配置（社群蒐集，在中間）
+        if (hasCommunity) {
+          if (suggestedContent) suggestedContent += "<br>";
+          suggestedContent += `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size:0.72rem; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">🚤 海巡配置</div>
+            <div style="font-size:0.85rem; line-height:1.6;">${linkifyParts(d.communityCombo)}</div>
+          </div>`;
         }
 
         // 賽事數據（在下）
@@ -3747,6 +3831,164 @@ function closeAnnouncement() {
 loadSpecialThemes();
 loadAnnouncement();
 
+// ══════════════ 海巡配置：隱藏新增功能 ══════════════
+const CC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydGtXtIYGRjUhTk6oKmIKo2mC0SiGP6ii1B-nJY7nalSa7XLnEW4bLmySARYiiW3uo/exec"; // ← 部署後填入
+
+let _ccLongPressTimer = null;
+function ccAttachTrigger() {
+  const el = document.getElementById('hiddenComboTrigger');
+  if (!el) return;
+  const start = () => { _ccLongPressTimer = setTimeout(openCcModal, 800); };
+  const cancel = () => { clearTimeout(_ccLongPressTimer); };
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchmove', cancel);
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+}
+
+function ccNorm(s) {
+  return (s || '').toString().toLowerCase().replace(/-/g, '');
+}
+
+const CC_PART_FIELDS = {
+  ratchet: { inputId: 'ccRatchetInput', idFieldId: 'ccRatchetId', dropdownId: 'ccRatchetDropdown' },
+  bit:     { inputId: 'ccBitInput',     idFieldId: 'ccBitId',     dropdownId: 'ccBitDropdown' },
+  assist:  { inputId: 'ccAssistInput',  idFieldId: 'ccAssistId',  dropdownId: 'ccAssistDropdown' },
+};
+
+function openCcModal() {
+  document.getElementById('ccBladeInput').value = '';
+  document.getElementById('ccBladeId').value = '';
+  document.getElementById('ccRatchetInput').value = '';
+  document.getElementById('ccRatchetId').value = '';
+  document.getElementById('ccBitInput').value = '';
+  document.getElementById('ccBitId').value = '';
+  document.getElementById('ccAssistInput').value = '';
+  document.getElementById('ccAssistId').value = '';
+  document.getElementById('ccNote').value = '';
+  document.getElementById('ccMsg').innerHTML = '';
+  document.getElementById('ccOverlay').classList.add('show');
+}
+
+function closeCcModal() {
+  document.getElementById('ccOverlay').classList.remove('show');
+  ['ccBladeDropdown', 'ccRatchetDropdown', 'ccBitDropdown', 'ccAssistDropdown'].forEach(id => {
+    document.getElementById(id).classList.remove('show');
+  });
+}
+
+function ccFilterBlade(q) {
+  const dropdown = document.getElementById('ccBladeDropdown');
+  const blades = DB.filter(x => x.cat === 'blade');
+  const nq = ccNorm(q);
+  const matched = nq
+    ? blades.filter(b => ccNorm(b.id).includes(nq) || ccNorm(b.name).includes(nq))
+    : blades;
+  const sorted = matched.sort((a,b) => a.id.localeCompare(b.id, 'zh-TW', {numeric:true})).slice(0, 30);
+  if (sorted.length === 0) {
+    dropdown.innerHTML = `<div class="cc-dropdown-item" style="opacity:0.5;">無符合結果</div>`;
+  } else {
+    dropdown.innerHTML = sorted.map(b =>
+      `<div class="cc-dropdown-item" onclick="ccSelectBlade('${b.id}','${(b.name||'').replace(/'/g,"\\'")}')">${b.id} ${b.name||''}</div>`
+    ).join('');
+  }
+  dropdown.classList.add('show');
+}
+
+function ccSelectBlade(id, name) {
+  document.getElementById('ccBladeInput').value = `${id} ${name}`;
+  document.getElementById('ccBladeId').value = id;
+  document.getElementById('ccBladeDropdown').classList.remove('show');
+}
+
+function ccFilterPart(cat, q) {
+  const cfg = CC_PART_FIELDS[cat];
+  const dropdown = document.getElementById(cfg.dropdownId);
+  const items = [...new Set(DB.filter(x => x.cat === cat).map(x => x.id))];
+  const nq = ccNorm(q);
+  const matched = nq ? items.filter(id => ccNorm(id).includes(nq)) : items;
+  const sorted = matched.sort((a,b) => a.localeCompare(b, 'zh-TW', {numeric:true})).slice(0, 30);
+  if (sorted.length === 0) {
+    dropdown.innerHTML = `<div class="cc-dropdown-item" style="opacity:0.5;">無符合結果（將直接採用輸入文字）</div>`;
+  } else {
+    dropdown.innerHTML = sorted.map(id =>
+      `<div class="cc-dropdown-item" onclick="ccSelectPart('${cat}','${id}')">${id}</div>`
+    ).join('');
+  }
+  dropdown.classList.add('show');
+}
+
+function ccSelectPart(cat, id) {
+  const cfg = CC_PART_FIELDS[cat];
+  document.getElementById(cfg.inputId).value = id;
+  document.getElementById(cfg.idFieldId).value = id;
+  document.getElementById(cfg.dropdownId).classList.remove('show');
+}
+
+async function submitCommunityCombo() {
+  const bladeId = document.getElementById('ccBladeId').value.trim();
+  // 固鎖/軸心/輔助：優先用選中的 id，若使用者直接打字未點選清單，則直接採用輸入框文字
+  const ratchet = (document.getElementById('ccRatchetId').value.trim() || document.getElementById('ccRatchetInput').value.trim());
+  const bit     = (document.getElementById('ccBitId').value.trim()     || document.getElementById('ccBitInput').value.trim());
+  const assist  = (document.getElementById('ccAssistId').value.trim()  || document.getElementById('ccAssistInput').value.trim());
+  const note    = document.getElementById('ccNote').value.trim();
+  const msgEl   = document.getElementById('ccMsg');
+  const btn     = document.getElementById('ccSubmitBtn');
+
+  if (!bladeId) { msgEl.className='cc-msg err'; msgEl.textContent='請選擇戰刃'; return; }
+  if (!ratchet) { msgEl.className='cc-msg err'; msgEl.textContent='請輸入固鎖'; return; }
+  if (!bit)     { msgEl.className='cc-msg err'; msgEl.textContent='請輸入軸心'; return; }
+  if (!CC_APPS_SCRIPT_URL || CC_APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    msgEl.className='cc-msg err'; msgEl.textContent='尚未設定 Apps Script URL'; return;
+  }
+
+  btn.disabled = true; btn.textContent = '送出中…';
+  msgEl.className = ''; msgEl.textContent = '';
+
+  // 組成 comboText 格式：assist, ratchet, bit (備註)
+  let comboStr = '';
+  if (assist) comboStr += assist + ', ';
+  comboStr += ratchet + ', ' + bit;
+  if (note) comboStr += `（${note}）`;
+
+  try {
+    await fetch(CC_APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bladeId, comboStr })
+    });
+    msgEl.className = 'cc-msg ok';
+    msgEl.textContent = '✓ 已寫入！下次強制同步即可看到。';
+    btn.textContent = '已送出 ✓';
+    setTimeout(closeCcModal, 1400);
+  } catch(e) {
+    msgEl.className = 'cc-msg err';
+    msgEl.textContent = '送出失敗，請稍後再試。';
+    btn.disabled = false; btn.textContent = '寫入天梯資料庫 →';
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const pairs = [
+    ['ccBladeDropdown', 'ccBladeInput'],
+    ['ccRatchetDropdown', 'ccRatchetInput'],
+    ['ccBitDropdown', 'ccBitInput'],
+    ['ccAssistDropdown', 'ccAssistInput'],
+  ];
+  pairs.forEach(([dropId, inputId]) => {
+    const dropdown = document.getElementById(dropId);
+    const input = document.getElementById(inputId);
+    if (dropdown && input && !dropdown.contains(e.target) && e.target !== input) {
+      dropdown.classList.remove('show');
+    }
+  });
+});
+
+ccAttachTrigger();
+
 function hideSplash() {
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
@@ -3877,5 +4119,50 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   setTimeout(show, 1200);
 })();
 </script>
+<!-- 海巡配置 隱藏新增表單 -->
+<div id="ccOverlay" onclick="if(event.target===this)closeCcModal()">
+  <div id="ccBox">
+    <div class="cc-title">
+      🚤 新增海巡配置
+      <button class="cc-x" onclick="closeCcModal()">✕</button>
+    </div>
+
+    <div class="cc-row">
+      <div class="cc-label">戰刃 <span style="color:var(--danger);">*</span></div>
+      <input class="cc-input" id="ccBladeInput" placeholder="輸入型號或名稱搜尋…" autocomplete="off" oninput="ccFilterBlade(this.value)" onfocus="ccFilterBlade(this.value)">
+      <input type="hidden" id="ccBladeId">
+      <div class="cc-dropdown" id="ccBladeDropdown"></div>
+    </div>
+
+    <div class="cc-row">
+      <div class="cc-label">固鎖 <span style="color:var(--danger);">*</span></div>
+      <input class="cc-input" id="ccRatchetInput" placeholder="輸入或選擇固鎖…" autocomplete="off" oninput="ccFilterPart('ratchet', this.value)" onfocus="ccFilterPart('ratchet', this.value)">
+      <input type="hidden" id="ccRatchetId">
+      <div class="cc-dropdown" id="ccRatchetDropdown"></div>
+    </div>
+
+    <div class="cc-row">
+      <div class="cc-label">軸心 <span style="color:var(--danger);">*</span></div>
+      <input class="cc-input" id="ccBitInput" placeholder="輸入或選擇軸心…" autocomplete="off" oninput="ccFilterPart('bit', this.value)" onfocus="ccFilterPart('bit', this.value)">
+      <input type="hidden" id="ccBitId">
+      <div class="cc-dropdown" id="ccBitDropdown"></div>
+    </div>
+
+    <div class="cc-row">
+      <div class="cc-label">輔助戰刃（選填）</div>
+      <input class="cc-input" id="ccAssistInput" placeholder="輸入或選擇輔助戰刃…" autocomplete="off" oninput="ccFilterPart('assist', this.value)" onfocus="ccFilterPart('assist', this.value)">
+      <input type="hidden" id="ccAssistId">
+      <div class="cc-dropdown" id="ccAssistDropdown"></div>
+    </div>
+
+    <div class="cc-row">
+      <div class="cc-label">備註（選填）</div>
+      <textarea class="cc-input" id="ccNote" rows="2" placeholder="例：論壇看到的高爆發配置…"></textarea>
+    </div>
+
+    <button class="cc-submit" id="ccSubmitBtn" onclick="submitCommunityCombo()">寫入天梯資料庫 →</button>
+    <div id="ccMsg"></div>
+  </div>
+</div>
 </body>
 </html>
