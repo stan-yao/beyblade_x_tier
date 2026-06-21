@@ -4105,9 +4105,11 @@ async function submitCommunityCombo() {
       body: JSON.stringify({ bladeId, comboStr: finalStr })
     });
     msgEl.className = 'cc-msg ok';
-    msgEl.textContent = '✓ 已寫入！下次強制同步即可看到。';
-    btn.textContent = '已送出 ✓';
-    setTimeout(closeCcModal, 1400);
+    msgEl.textContent = '✓ 已寫入！下次強制同步即可看到。可繼續編輯或關閉視窗。';
+    btn.disabled = false;
+    btn.textContent = '寫入天梯資料庫 →';
+    // 更新本地暫存的既有內容，方便連續編輯同一支戰刃
+    ccExistingRaw = finalStr;
   } catch(e) {
     msgEl.className = 'cc-msg err';
     msgEl.textContent = '送出失敗，請稍後再試。';
