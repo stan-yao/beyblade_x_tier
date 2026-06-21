@@ -3992,26 +3992,27 @@ function ccLoadExisting(bladeId) {
     text = text.slice(0, noteMatch.index).trim();
   }
 
-  // 取出輔助戰刃（在「固鎖：」之前、用 ｜ 分隔的部分）
+  // 用全形｜分割：可能是 [輔助戰刃] ｜ 固鎖：... ｜ 軸心：...
+  // 或沒有輔助戰刃時：固鎖：... ｜ 軸心：...
+  const segments = text.split('｜').map(s => s.trim()).filter(Boolean);
   let assistPart = '';
-  let rest = text;
-  const pipeIdx = text.indexOf('｜');
-  if (pipeIdx !== -1) {
-    assistPart = text.slice(0, pipeIdx).trim();
-    rest = text.slice(pipeIdx + 1).trim();
-  }
+  let ratchetSeg = '';
+  let bitSeg = '';
+
+  segments.forEach(seg => {
+    if (seg.startsWith('固鎖：')) ratchetSeg = seg.replace('固鎖：', '');
+    else if (seg.startsWith('軸心：')) bitSeg = seg.replace('軸心：', '');
+    else if (!ratchetSeg && !bitSeg) assistPart = seg; // 還沒遇到固鎖/軸心，視為輔助戰刃段
+  });
+
   if (assistPart) {
     ccSelected.assist = assistPart.split('、').map(s => s.trim()).filter(Boolean);
   }
-
-  // 解析固鎖／軸心：固鎖：A / B | 軸心：C / D
-  const ratchetMatch = rest.match(/固鎖：([^|]*)/);
-  const bitMatch = rest.match(/軸心：(.*)/);
-  if (ratchetMatch) {
-    ccSelected.ratchet = ratchetMatch[1].split('/').map(s => s.trim()).filter(Boolean);
+  if (ratchetSeg) {
+    ccSelected.ratchet = ratchetSeg.split('/').map(s => s.trim()).filter(Boolean);
   }
-  if (bitMatch) {
-    ccSelected.bit = bitMatch[1].split('/').map(s => s.trim()).filter(Boolean);
+  if (bitSeg) {
+    ccSelected.bit = bitSeg.split('/').map(s => s.trim()).filter(Boolean);
   }
 
   ['ratchet','bit','assist'].forEach(cat => ccRenderChips(cat));
@@ -4088,13 +4089,13 @@ async function submitCommunityCombo() {
   // 多選格式：固鎖：A / B | 軸心：C / D（備註）
   let comboStr = '';
   if (assists.length) comboStr += assists.join('、') + ' ｜ ';
-  comboStr += '固鎖：' + ratchets.join(' / ') + ' | 軸心：' + bits.join(' / ');
+  comboStr += '固鎖：' + ratchets.join(' / ') + ' ｜ 軸心：' + bits.join(' / ');
   if (note) comboStr += `（${note}）`;
 
   // add 模式：保留既有內容，用 / 附加新組合在後面；edit 模式：直接覆蓋
   let finalStr = comboStr;
   if (ccMode === 'add' && ccExistingRaw) {
-    finalStr = ccExistingRaw + ' / ' + comboStr;
+    finalStr = ccExistingRaw + ' ｜ ' + comboStr;
   }
 
   try {
