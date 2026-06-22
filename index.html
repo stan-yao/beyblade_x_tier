@@ -1217,7 +1217,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   <div class="share-inner">
     <div class="share-header">
       <div class="share-title-wrap">
-        <div class="share-title" id="hiddenComboTrigger">GO SHARE</div>
+        <div class="share-title" id="hiddenComboTrigger" style="user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;">GO SHARE</div>
         <div class="share-subtitle">組合分享卡</div>
       </div>
 
@@ -1874,12 +1874,34 @@ function openModal(d) {
           suggestedContent += linkifyParts(d.noteText);
         }
 
-        // 海巡配置（社群蒐集，在中間）
+        // 海巡配置（社群蒐集，在中間）：每筆組合之間用細橫線分隔
         if (hasCommunity) {
           if (suggestedContent) suggestedContent += "<br>";
+          // 用「前一筆是否已收齊固鎖+軸心」判斷新一筆的起點
+          // 這樣不論新一筆是「固鎖：」開頭還是「輔助戰刃」開頭都能正確分組
+          const ccSegments = d.communityCombo.split('|').map(s => s.trim()).filter(Boolean);
+          const ccEntries = [];
+          let buffer = [];
+          let sawRatchet = false, sawBit = false;
+          ccSegments.forEach(seg => {
+            if ((sawRatchet && sawBit) && buffer.length) {
+              // 前一筆已收齊，這段屬於新的一筆
+              ccEntries.push(buffer.join(' | '));
+              buffer = [];
+              sawRatchet = false; sawBit = false;
+            }
+            buffer.push(seg);
+            if (seg.startsWith('固鎖：')) sawRatchet = true;
+            if (seg.startsWith('軸心：')) sawBit = true;
+          });
+          if (buffer.length) ccEntries.push(buffer.join(' | '));
+
+          const ccEntriesHtml = ccEntries.map(entry => linkifyParts(entry)).join(
+            '<div style="height:1px;background:rgba(255,255,255,0.08);margin:7px 0;"></div>'
+          );
           suggestedContent += `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1);">
             <div style="font-size:0.72rem; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:6px;">🚤 海巡配置</div>
-            <div style="font-size:0.85rem; line-height:1.6;">${linkifyParts(d.communityCombo)}</div>
+            <div style="font-size:0.85rem; line-height:1.6;">${ccEntriesHtml}</div>
           </div>`;
         }
 
@@ -3889,6 +3911,7 @@ const CC_PART_FIELDS = {
 let ccSelected = { ratchet: [], bit: [], assist: [] };
 let ccMode = 'edit'; // 'edit' = 覆蓋既有內容；'add' = 附加保留原有
 let ccExistingRaw = ''; // 該戰刃目前 P 欄的原始內容（add 模式用）
+let ccPrefixRaw = ''; // 編輯模式下，「最後一組」之前需要保留的歷史內容
 
 function ccSetMode(mode) {
   ccMode = mode;
@@ -3915,6 +3938,7 @@ function openCcModal() {
   document.getElementById('ccModeRow').style.display = 'none';
   ccMode = 'edit';
   ccExistingRaw = '';
+  ccPrefixRaw = '';
   ccSelected = { ratchet: [], bit: [], assist: [] };
   ['ratchet','bit','assist'].forEach(cat => {
     document.getElementById(CC_PART_FIELDS[cat].inputId).value = '';
@@ -3956,7 +3980,7 @@ function ccSelectBlade(id, name) {
 }
 
 // 解析既有 P 欄內容，回填到表單方便編輯
-// 格式範例：蛟龍、雙頭龍 ｜ 固鎖：7-70 / 5-70 | 軸心：L / E（備註文字）
+// 格式範例：蛟龍、雙頭龍 | 固鎖：7-70 / 5-70 | 軸心：L / E（備註文字）
 function ccLoadExisting(bladeId) {
   ccSelected = { ratchet: [], bit: [], assist: [] };
   document.getElementById('ccNote').value = '';
@@ -3974,6 +3998,7 @@ function ccLoadExisting(bladeId) {
     msgEl.textContent = '';
     modeRow.style.display = 'none';
     ccMode = 'edit';
+    ccPrefixRaw = '';
     return;
   }
 
@@ -3992,33 +4017,61 @@ function ccLoadExisting(bladeId) {
     text = text.slice(0, noteMatch.index).trim();
   }
 
-  // 用全形｜分割：可能是 [輔助戰刃] ｜ 固鎖：... ｜ 軸心：...
-  // 或沒有輔助戰刃時：固鎖：... ｜ 軸心：...
-  const segments = text.split('｜').map(s => s.trim()).filter(Boolean);
-  let assistPart = '';
-  let ratchetSeg = '';
-  let bitSeg = '';
+  // 用半形 | 分割：每筆組合可能是 [輔助戰刃] | 固鎖：... | 軸心：... 或省略輔助戰刃
+  const segments = text.split('|').map(s => s.trim()).filter(Boolean);
 
+  // 先依「固鎖+軸心是否收齊」把段落正確分組成多筆組合（與卡片顯示用同一套規則）
+  const entries = [];
+  let buffer = [];
+  let sawRatchet = false, sawBit = false;
   segments.forEach(seg => {
-    if (seg.startsWith('固鎖：')) ratchetSeg = seg.replace('固鎖：', '');
-    else if (seg.startsWith('軸心：')) bitSeg = seg.replace('軸心：', '');
-    else if (!ratchetSeg && !bitSeg) assistPart = seg; // 還沒遇到固鎖/軸心，視為輔助戰刃段
+    if ((sawRatchet && sawBit) && buffer.length) {
+      entries.push(buffer);
+      buffer = [];
+      sawRatchet = false; sawBit = false;
+    }
+    buffer.push(seg);
+    if (seg.startsWith('固鎖：')) sawRatchet = true;
+    if (seg.startsWith('軸心：')) sawBit = true;
+  });
+  if (buffer.length) entries.push(buffer);
+
+  // 編輯模式只精準回填「最後一組」（最近新增的一筆），較早的歷史紀錄保留在原始字串中不被觸碰
+  const lastEntry = entries[entries.length - 1] || [];
+  let assistPart = '';
+  let lastRatchetSeg = '';
+  let lastBitSeg = '';
+  lastEntry.forEach(seg => {
+    if (seg.startsWith('固鎖：')) lastRatchetSeg = seg.replace('固鎖：', '');
+    else if (seg.startsWith('軸心：')) lastBitSeg = seg.replace('軸心：', '');
+    else assistPart = seg;
   });
 
   if (assistPart) {
     ccSelected.assist = assistPart.split('、').map(s => s.trim()).filter(Boolean);
   }
-  if (ratchetSeg) {
-    ccSelected.ratchet = ratchetSeg.split('/').map(s => s.trim()).filter(Boolean);
+  if (lastRatchetSeg) {
+    ccSelected.ratchet = lastRatchetSeg.split('/').map(s => s.trim()).filter(Boolean);
   }
-  if (bitSeg) {
-    ccSelected.bit = bitSeg.split('/').map(s => s.trim()).filter(Boolean);
+  if (lastBitSeg) {
+    ccSelected.bit = lastBitSeg.split('/').map(s => s.trim()).filter(Boolean);
   }
 
   ['ratchet','bit','assist'].forEach(cat => ccRenderChips(cat));
 
   msgEl.className = '';
-  msgEl.innerHTML = `<div style="font-size:0.74rem;color:var(--accent);padding:6px 2px;">📝 已載入此戰刃現有的海巡配置，可直接編輯，或切換成「新增獨立組合」</div>`;
+  const comboCount = entries.length;
+  // 「最後一組之前」的所有組合都要原樣保留，編輯只動最後一組
+  if (entries.length > 1) {
+    ccPrefixRaw = entries.slice(0, -1).map(e => e.join(' | ')).join(' | ');
+  } else {
+    ccPrefixRaw = '';
+  }
+
+  const hintExtra = comboCount > 1
+    ? `<br><span style="opacity:0.7;">⚠️ 此戰刃已有 ${comboCount} 組配置，編輯模式僅會更動「最後一組」，較早的組合不受影響</span>`
+    : '';
+  msgEl.innerHTML = `<div style="font-size:0.74rem;color:var(--accent);padding:6px 2px;">📝 已載入此戰刃現有的海巡配置，可直接編輯，或切換成「新增獨立組合」${hintExtra}</div>`;
 }
 
 function ccRenderChips(cat) {
@@ -4088,14 +4141,17 @@ async function submitCommunityCombo() {
 
   // 多選格式：固鎖：A / B | 軸心：C / D（備註）
   let comboStr = '';
-  if (assists.length) comboStr += assists.join('、') + ' ｜ ';
-  comboStr += '固鎖：' + ratchets.join(' / ') + ' ｜ 軸心：' + bits.join(' / ');
+  if (assists.length) comboStr += assists.join('、') + ' | ';
+  comboStr += '固鎖：' + ratchets.join(' / ') + ' | 軸心：' + bits.join(' / ');
   if (note) comboStr += `（${note}）`;
 
-  // add 模式：保留既有內容，用 / 附加新組合在後面；edit 模式：直接覆蓋
+  // add 模式：保留既有完整內容，用 | 附加新組合在後面
+  // edit 模式：保留「最後一組之前」的歷史內容，只替換最後一組
   let finalStr = comboStr;
   if (ccMode === 'add' && ccExistingRaw) {
-    finalStr = ccExistingRaw + ' ｜ ' + comboStr;
+    finalStr = ccExistingRaw + ' | ' + comboStr;
+  } else if (ccMode === 'edit' && ccPrefixRaw) {
+    finalStr = ccPrefixRaw + ' | ' + comboStr;
   }
 
   try {
