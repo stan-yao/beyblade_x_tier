@@ -509,8 +509,8 @@ main { padding: 1.2rem 2rem 4rem; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
   padding: 6px;
+  box-sizing: border-box;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
   backdrop-filter: blur(20px);
@@ -519,6 +519,7 @@ main { padding: 1.2rem 2rem 4rem; }
   box-shadow:
     0 8px 32px rgba(0,0,0,0.5),
     0 0 0 0.5px rgba(255,255,255,0.05);
+  transition: padding 0.2s ease;
 }
 .float-island::before {
   content: "";
@@ -539,6 +540,7 @@ main { padding: 1.2rem 2rem 4rem; }
 .fi-btn {
   position: relative;
   width: 44px; height: 44px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: none;
   border: none;
@@ -577,6 +579,44 @@ main { padding: 1.2rem 2rem 4rem; }
   background: rgba(255,255,255,0.2);
   border: 1px solid rgba(255,255,255,0.1);
 }
+
+/* ── 浮島展開按鈕（倉庫/分享卡/首頁）── */
+.fi-expand-btn {
+  width: 44px;
+  max-height: 0;
+  opacity: 0;
+  transform: scale(0.5);
+  pointer-events: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: max-height 0.28s cubic-bezier(0.34,1.1,0.64,1),
+              opacity 0.2s ease,
+              transform 0.22s cubic-bezier(0.34,1.4,0.64,1),
+              margin-top 0.28s ease;
+}
+.float-island.fi-open .fi-expand-btn {
+  max-height: 44px;
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  margin-top: 2px;
+}
+.float-island.fi-open .fi-expand-btn:nth-of-type(1) { transition-delay: 0.10s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(2) { transition-delay: 0.06s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(3) { transition-delay: 0.02s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(4) { transition-delay: 0.14s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(5) { transition-delay: 0.18s; }
+
+/* 九點漢堡 → X 圖示切換 */
+.fi-dots-icon, .fi-x-icon {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.fi-x-icon { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+.fi-dots-icon { opacity: 1; transform: rotate(0) scale(1); }
+.float-island.fi-open .fi-dots-icon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+.float-island.fi-open .fi-x-icon { opacity: 1; transform: rotate(0) scale(1); }
 
 html, body { scrollbar-width: none; background: #0a0b10; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
@@ -1176,39 +1216,40 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 
 <main id="main"></main>
 
-<div class="float-island">
-  <button class="fi-btn fi-btn--active" onclick="goHome()" title="天梯表">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
-      <path d="M9 21V12h6v9"/>
-    </svg>
-  </button>
-  <button class="fi-btn" onclick="openVault()" title="我的倉庫" id="vaultFiBtn">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-      <line x1="12" y1="22.08" x2="12" y2="12"/>
-    </svg>
-  </button>
-  <button class="fi-btn" onclick="openShare()" title="組合分享卡" id="shareFiBtn">
+<div class="float-island" id="floatIsland">
+  <button class="fi-btn fi-expand-btn" onclick="openShare(); closeFiIsland();" title="組合分享卡" id="shareFiBtn">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
     </svg>
   </button>
-  <button class="fi-btn" onclick="
-    const vaultPage = document.getElementById('vaultPage');
-    const sharePage = document.getElementById('sharePage');
-    if (vaultPage && vaultPage.classList.contains('active')) vaultPage.scrollTo({top:0,behavior:'smooth'});
-    else if (sharePage && sharePage.classList.contains('active')) sharePage.scrollTo({top:0,behavior:'smooth'});
-    else window.scrollTo({top:0,behavior:'smooth'});
-    this.blur(); setTimeout(() => this.blur(), 100);
-  " title="回到頂部" id="scrollTopBtn">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="19 13 12 4 5 13"/>
-      <line x1="12" y1="4" x2="12" y2="22"/>
+  <button class="fi-btn fi-expand-btn" onclick="openVault(); closeFiIsland();" title="我的倉庫" id="vaultFiBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+      <line x1="12" y1="22.08" x2="12" y2="12"/>
     </svg>
+  </button>
+  <button class="fi-btn fi-btn--active fi-expand-btn" onclick="goHome(); closeFiIsland();" title="天梯表" id="homeFiBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+  </button>
+  <button class="fi-btn" onclick="toggleFiIsland()" title="更多選項" id="fiToggleBtn" style="position:relative;">
+    <span class="fi-dots-icon">
+      <svg width="18" height="18" viewBox="1 1 22 22" fill="currentColor">
+        <circle cx="5" cy="5" r="1.8"/><circle cx="12" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/>
+        <circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/>
+        <circle cx="5" cy="19" r="1.8"/><circle cx="12" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/>
+      </svg>
+    </span>
+    <span class="fi-x-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </span>
   </button>
 </div>
 
@@ -2053,13 +2094,34 @@ function goHome() {
   document.getElementById("vaultPage").classList.remove("active");
   document.getElementById("sharePage").classList.remove("active");
   document.body.style.overflow = "";
-  setIslandActive(0);
+  setIslandActive("home");
 }
 function setIslandActive(which) {
-  document.querySelectorAll('.fi-btn').forEach((b,i) => {
-    b.classList.toggle('fi-btn--active', i === which);
-  });
+  // which: 'home' | 'vault' | 'share'
+  document.querySelectorAll('.fi-btn').forEach(b => b.classList.remove('fi-btn--active'));
+  if (which === 'vault') {
+    document.getElementById('vaultFiBtn')?.classList.add('fi-btn--active');
+  } else if (which === 'share') {
+    document.getElementById('shareFiBtn')?.classList.add('fi-btn--active');
+  } else {
+    document.getElementById('homeFiBtn')?.classList.add('fi-btn--active');
+  }
 }
+
+function toggleFiIsland() {
+  document.getElementById('floatIsland').classList.toggle('fi-open');
+}
+
+function closeFiIsland() {
+  document.getElementById('floatIsland').classList.remove('fi-open');
+}
+
+document.addEventListener('click', (e) => {
+  const island = document.getElementById('floatIsland');
+  if (island && island.classList.contains('fi-open') && !island.contains(e.target)) {
+    closeFiIsland();
+  }
+});
 
 function openVault() {
   document.getElementById("sharePage").classList.remove("active");
@@ -2067,13 +2129,13 @@ function openVault() {
   vp.scrollTop = 0;
   vp.classList.add("active");
   document.body.style.overflow = "hidden";
-  setIslandActive(1);
+  setIslandActive("vault");
   renderVaultMain();
 }
 function closeVault() {
   document.getElementById("vaultPage").classList.remove("active");
   document.body.style.overflow = "";
-  setIslandActive(0);
+  setIslandActive("home");
 }
 function showShareHint() {}
 
@@ -2273,14 +2335,14 @@ function openShare() {
   sp.scrollTop = 0;
   sp.classList.add("active");
   document.body.style.overflow = "hidden";
-  setIslandActive(2);
+  setIslandActive("share");
   loadSpecialThemes().then(() => renderSharePage());
   loadPartVariants();
 }
 function closeShare() {
   document.getElementById("sharePage").classList.remove("active");
   document.body.style.overflow = "";
-  setIslandActive(0);
+  setIslandActive("home");
 }
 async function shareImage(dataUrl) {
   // 判斷是否為手機裝置
