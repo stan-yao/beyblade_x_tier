@@ -601,11 +601,11 @@ main { padding: 1.2rem 2rem 4rem; }
   pointer-events: auto;
   margin-top: 2px;
 }
-.float-island.fi-open .fi-expand-btn:nth-of-type(1) { transition-delay: 0.10s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(2) { transition-delay: 0.06s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(3) { transition-delay: 0.02s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(4) { transition-delay: 0.14s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(5) { transition-delay: 0.18s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(1) { transition-delay: 0.18s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(2) { transition-delay: 0.14s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(3) { transition-delay: 0.06s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(4) { transition-delay: 0.02s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(5) { transition-delay: 0.22s; }
 
 /* 九點漢堡 → X 圖示切換 */
 .fi-dots-icon, .fi-x-icon {
@@ -1072,6 +1072,232 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .part-link { border-radius: 4px; padding: 1px 3px; transition: background 0.15s, color 0.15s; }
 .part-link[onclick]:hover { background: rgba(18,239,206,0.15); color: var(--accent); }
 
+/* ══════════════ 計分器頁面 ══════════════ */
+.scorer-page {
+  display: none;
+  position: fixed; inset: 0; z-index: 5000;
+  background: #060608;
+  overflow: hidden;
+}
+.scorer-page.active { display: block; }
+
+.scorer-page::before {
+  content: "";
+  position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--scorer-c1) 15%,
+    var(--scorer-c2) 50%,
+    var(--scorer-c3) 85%,
+    transparent);
+  opacity: 0.4;
+  z-index: 1;
+  box-shadow: 0 0 20px 1px var(--scorer-glow);
+}
+.scorer-page::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 35% at 15% 100%, var(--scorer-glow) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 35% at 85% 100%, var(--scorer-glow) 0%, transparent 70%);
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.scorer-stage {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+}
+
+/* 手機直向時：直接用 CSS 旋轉畫面成橫向顯示，不需使用者轉動裝置 */
+@media (max-width: 900px) and (orientation: portrait) {
+  .scorer-stage {
+    width: 100vh; height: 100vw;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+    box-sizing: border-box;
+  }
+}
+
+.scorer-board {
+  width: 100%; height: 100%;
+  display: grid;
+  grid-template-columns: 90px 1fr auto 1fr 90px;
+  align-items: center;
+  position: relative;
+}
+
+/* 關閉鈕 */
+.scorer-close {
+  position: absolute; top: 18px; right: 18px; z-index: 20;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.scorer-close:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95); }
+
+/* 主題切換鈕 */
+.scorer-theme-btn {
+  position: absolute; top: 18px; left: 18px; z-index: 20;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.scorer-theme-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95); }
+
+/* 滑桿欄位（獨立 grid 欄，固定寬度，不佔分數空間） */
+.scorer-stepper-col {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%;
+}
+
+/* 隊伍欄（分數） */
+.scorer-team {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%;
+}
+.scorer-team-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: clamp(0.85rem, 1.8vw, 1.3rem); font-weight: 100; letter-spacing: 0.16em;
+  color: rgba(180,190,210,0.5); text-transform: uppercase; margin-bottom: 8px;
+}
+.scorer-team-underline {
+  width: 40px; height: 1.5px; border-radius: 1px; margin-bottom: 22px;
+  background: linear-gradient(90deg, var(--scorer-c1), var(--scorer-c3));
+  opacity: 0.85;
+}
+.scorer-score {
+  font-family: 'Roboto', sans-serif;
+  font-size: clamp(5.5rem, 50vw, 25rem); font-weight: 270; line-height: 1;
+  background: linear-gradient(135deg, var(--scorer-c1), var(--scorer-c2), var(--scorer-c3));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 22px var(--scorer-glow)) drop-shadow(0 0 50px var(--scorer-glow));
+  user-select: none; -webkit-user-select: none;
+  transition: transform 0.12s ease;
+}
+.scorer-score.bump { transform: scale(1.08); }
+
+/* +/- 膠囊滑桿 */
+.scorer-stepper {
+  width: 56px; height: 200px;
+  border-radius: 999px;
+  border: 1.5px solid var(--scorer-c2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+  box-shadow:
+    0 0 16px var(--scorer-glow),
+    inset 0 0 16px rgba(255,255,255,0.04);
+}
+.scorer-stepper-col:first-of-type .scorer-stepper { border-color: var(--scorer-c1); }
+.scorer-stepper-col:last-of-type .scorer-stepper { border-color: var(--scorer-c3); }
+.scorer-stepper button {
+  flex: 1; background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.85); font-family: 'Roboto', sans-serif;
+  font-size: 1.6rem; font-weight: 100;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.scorer-stepper button:active { background: rgba(255,255,255,0.1); }
+.scorer-stepper .ss-divider { height: 1px; background: rgba(255,255,255,0.08); }
+
+/* 中央控制軸 */
+.scorer-center {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 22px; padding: 0 18px;
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.scorer-reset-btn {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.78rem; font-weight: 100; letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+  padding: 9px 24px; cursor: pointer; transition: background 0.15s;
+}
+.scorer-reset-btn:hover { background: rgba(255,255,255,0.1); }
+.scorer-dots { display: flex; flex-direction: column; gap: 7px; align-items: center; margin-top: 36px; }
+.scorer-dots span { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
+.scorer-start-btn {
+  width: 86px; height: 86px; border-radius: 50%;
+  border: 2px solid transparent;
+  background:
+    linear-gradient(#0a0a0c, #0a0a0c) padding-box,
+    linear-gradient(135deg, var(--scorer-c1), var(--scorer-c2), var(--scorer-c3)) border-box;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.15s;
+  box-shadow:
+    0 0 24px var(--scorer-glow),
+    0 0 50px var(--scorer-glow),
+    inset 0 0 20px rgba(255,255,255,0.03);
+  margin-top: 6px;
+}
+.scorer-start-btn:active { transform: scale(0.94); }
+.scorer-start-btn svg { width: 28px; height: 28px; fill: white; margin-left: 2px; opacity: 0.9; }
+.scorer-start-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.78rem; font-weight: 100; letter-spacing: 0.16em;
+  color: rgba(255,255,255,0.5);
+}
+
+/* 倒數疊層 */
+.scorer-countdown {
+  position: absolute; inset: 0; z-index: 30;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(8,8,10,0.92);
+  border-radius: 28px;
+  pointer-events: none;
+}
+.scorer-countdown.show { display: flex; }
+.scorer-countdown-text {
+  font-family: 'Roboto', sans-serif;
+  font-size: clamp(1.6rem, 5vw, 2.8rem); font-weight: 270;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--scorer-c1), var(--scorer-c2), var(--scorer-c3));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 30px var(--scorer-glow)) drop-shadow(0 0 70px var(--scorer-glow));
+  animation: scorerCountPop 0.5s cubic-bezier(0.18,1.4,0.4,1);
+}
+@keyframes scorerCountPop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 主題選擇彈窗 */
+.scorer-theme-popover {
+  position: absolute; top: 64px; left: 18px; z-index: 25;
+  display: none;
+  background: rgba(20,22,30,0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px; padding: 12px;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.scorer-theme-popover.show { display: flex; gap: 8px; }
+.scorer-theme-swatch {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s;
+}
+.scorer-theme-swatch.active { border-color: rgba(255,255,255,0.8); transform: scale(1.1); }
+.scorer-theme-swatch:hover { transform: scale(1.1); }
+
+@media (max-width: 700px) {
+  .scorer-board { grid-template-columns: 80px 1fr auto 1fr 80px; }
+  .scorer-score { font-size: clamp(4rem, 47vw, 12rem); }
+  .scorer-stepper { width: 40px; height: 130px; }
+  .scorer-stepper button { font-size: 1.2rem; }
+  .scorer-start-btn { width: 68px; height: 68px; }
+  .scorer-start-btn svg { width: 24px; height: 24px; }
+}
+
 /* ── 海巡配置 隱藏新增表單 ── */
 #ccOverlay {
   display: none;
@@ -1217,6 +1443,14 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 <main id="main"></main>
 
 <div class="float-island" id="floatIsland">
+  <button class="fi-btn fi-expand-btn" onclick="openScorer()" title="計分器" id="scorerFiBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <line x1="12" y1="4" x2="12" y2="20"/>
+      <line x1="7" y1="9" x2="7" y2="9.01"/>
+      <line x1="17" y1="9" x2="17" y2="9.01"/>
+    </svg>
+  </button>
   <button class="fi-btn fi-expand-btn" onclick="openShare(); closeFiIsland();" title="組合分享卡" id="shareFiBtn">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
@@ -4254,6 +4488,163 @@ document.addEventListener('click', (e) => {
 
 ccAttachTrigger();
 
+// ══════════════ 計分器 ══════════════
+const SCORER_THEMES = [
+  { id:'sunset',  c1:'#ff8a3d', c2:'#ff3d8f', c3:'#8b6bff', glow:'rgba(255,61,143,0.35)' },
+  { id:'ocean',   c1:'#3ddbff', c2:'#3d8bff', c3:'#6b5bff', glow:'rgba(61,139,255,0.35)' },
+  { id:'mint',    c1:'#3dffc4', c2:'#3dff8b', c3:'#aaff3d', glow:'rgba(61,255,140,0.32)' },
+  { id:'fire',    c1:'#ffd23d', c2:'#ff7a3d', c3:'#ff3d3d', glow:'rgba(255,90,61,0.35)' },
+  { id:'mono',    c1:'#ffffff', c2:'#aab0bd', c3:'#6b7280', glow:'rgba(255,255,255,0.2)' },
+];
+
+let scorerState = { a: 0, b: 0, themeId: 'sunset' };
+
+function loadScorerState() {
+  try {
+    const saved = localStorage.getItem('bey_scorer_state_v1');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      scorerState.themeId = parsed.themeId || 'sunset';
+    }
+  } catch(e) {}
+}
+
+function saveScorerTheme() {
+  try {
+    localStorage.setItem('bey_scorer_state_v1', JSON.stringify({ themeId: scorerState.themeId }));
+  } catch(e) {}
+}
+
+function applyScorerTheme() {
+  const theme = SCORER_THEMES.find(t => t.id === scorerState.themeId) || SCORER_THEMES[0];
+  const page = document.getElementById('scorerPage');
+  page.style.setProperty('--scorer-c1', theme.c1);
+  page.style.setProperty('--scorer-c2', theme.c2);
+  page.style.setProperty('--scorer-c3', theme.c3);
+  page.style.setProperty('--scorer-glow', theme.glow);
+}
+
+function renderScorerThemePopover() {
+  const pop = document.getElementById('scorerThemePopover');
+  pop.innerHTML = SCORER_THEMES.map(t => `
+    <div class="scorer-theme-swatch${t.id===scorerState.themeId?' active':''}"
+      style="background:linear-gradient(135deg, ${t.c1}, ${t.c2}, ${t.c3});"
+      onclick="scorerSelectTheme('${t.id}')" title="${t.id}"></div>
+  `).join('');
+}
+
+function scorerSelectTheme(id) {
+  scorerState.themeId = id;
+  saveScorerTheme();
+  applyScorerTheme();
+  renderScorerThemePopover();
+}
+
+function toggleScorerThemePopover() {
+  document.getElementById('scorerThemePopover').classList.toggle('show');
+}
+
+function scorerFormatScore(n) {
+  const clamped = Math.max(0, Math.min(99, n));
+  return clamped.toString().padStart(2, '0');
+}
+
+function scorerRender() {
+  document.getElementById('scorerScoreA').textContent = scorerFormatScore(scorerState.a);
+  document.getElementById('scorerScoreB').textContent = scorerFormatScore(scorerState.b);
+}
+
+function scorerAdjust(team, delta) {
+  const key = team === 'A' ? 'a' : 'b';
+  scorerState[key] = Math.max(0, Math.min(99, scorerState[key] + delta));
+  const el = document.getElementById('scorerScore' + team);
+  el.textContent = scorerFormatScore(scorerState[key]);
+  el.classList.remove('bump');
+  requestAnimationFrame(() => el.classList.add('bump'));
+  setTimeout(() => el.classList.remove('bump'), 160);
+}
+
+function scorerReset() {
+  scorerState.a = 0;
+  scorerState.b = 0;
+  scorerRender();
+}
+
+const SCORER_SOUND_URL = "https://raw.githubusercontent.com/stan-yao/beyblade_x_tier/main/321goshoot_Voice.wav";
+let scorerAudioEl = null;
+
+function scorerGetAudio() {
+  if (!scorerAudioEl) {
+    scorerAudioEl = new Audio(SCORER_SOUND_URL);
+  }
+  return scorerAudioEl;
+}
+
+let scorerCountdownRunning = false;
+function scorerStart() {
+  if (scorerCountdownRunning) return;
+  scorerCountdownRunning = true;
+
+  const overlay = document.getElementById('scorerCountdown');
+  const textEl = document.getElementById('scorerCountdownText');
+
+  // 每個數字對應在音檔裡出現的時間點（秒），可依實際聽感微調
+  const sequence = [
+    { label: '3',      at: 0.0 },
+    { label: '2',      at: 1.2 },
+    { label: '1',      at: 2.4 },
+    { label: 'GO',     at: 3.6 },
+    { label: 'SHOOT!', at: 4.5 },
+  ];
+  const totalDuration = 5.5; // 整段音檔大約秒數，結束後自動隱藏疊層（可依實際長度微調）
+
+  const audio = scorerGetAudio();
+  audio.currentTime = 0;
+  audio.play().catch(e => console.warn('音效播放失敗（可能需要使用者先互動過頁面）', e));
+
+  overlay.classList.add('show');
+
+  const timers = [];
+  sequence.forEach(item => {
+    const t = setTimeout(() => {
+      textEl.textContent = item.label;
+      textEl.style.animation = 'none';
+      requestAnimationFrame(() => { textEl.style.animation = ''; });
+    }, item.at * 1000);
+    timers.push(t);
+  });
+
+  const endTimer = setTimeout(() => {
+    overlay.classList.remove('show');
+    scorerCountdownRunning = false;
+  }, totalDuration * 1000);
+  timers.push(endTimer);
+}
+
+function openScorer() {
+  loadScorerState();
+  applyScorerTheme();
+  renderScorerThemePopover();
+  scorerRender();
+  document.getElementById('scorerPage').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  closeFiIsland();
+}
+
+function closeScorer() {
+  document.getElementById('scorerPage').classList.remove('active');
+  document.body.style.overflow = '';
+  document.getElementById('scorerThemePopover').classList.remove('show');
+}
+
+document.addEventListener('click', (e) => {
+  const pop = document.getElementById('scorerThemePopover');
+  const btn = document.querySelector('.scorer-theme-btn');
+  if (pop && pop.classList.contains('show') && !pop.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    pop.classList.remove('show');
+  }
+});
+
 function hideSplash() {
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
@@ -4434,6 +4825,66 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 
     <button class="cc-submit" id="ccSubmitBtn" onclick="submitCommunityCombo()">寫入天梯資料庫 →</button>
     <div id="ccMsg"></div>
+  </div>
+</div>
+<!-- 計分器頁面 -->
+<div class="scorer-page" id="scorerPage" style="--scorer-c1:#ff8a3d; --scorer-c2:#ff3d8f; --scorer-c3:#8b6bff; --scorer-glow:rgba(255,61,143,0.35);">
+  <div class="scorer-stage">
+    <button class="scorer-close" onclick="closeScorer()" title="關閉">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+
+    <button class="scorer-theme-btn" onclick="toggleScorerThemePopover()" title="切換主題">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="12.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><circle cx="12" cy="19" r="2.5"/>
+      </svg>
+    </button>
+    <div class="scorer-theme-popover" id="scorerThemePopover"></div>
+
+    <div class="scorer-board">
+      <div class="scorer-stepper-col">
+        <div class="scorer-stepper">
+          <button onclick="scorerAdjust('A',1)">+</button>
+          <div class="ss-divider"></div>
+          <button onclick="scorerAdjust('A',-1)">−</button>
+        </div>
+      </div>
+
+      <div class="scorer-team">
+        <div class="scorer-team-label">Team A</div>
+        <div class="scorer-team-underline"></div>
+        <div class="scorer-score" id="scorerScoreA">00</div>
+      </div>
+
+      <div class="scorer-center">
+        <button class="scorer-reset-btn" onclick="scorerReset()">RESET</button>
+        <div class="scorer-dots"><span></span><span></span></div>
+        <button class="scorer-start-btn" onclick="scorerStart()" id="scorerStartBtn">
+          <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
+        </button>
+        <div class="scorer-start-label">START</div>
+
+        <div class="scorer-countdown" id="scorerCountdown">
+          <div class="scorer-countdown-text" id="scorerCountdownText"></div>
+        </div>
+      </div>
+
+      <div class="scorer-team">
+        <div class="scorer-team-label">Team B</div>
+        <div class="scorer-team-underline"></div>
+        <div class="scorer-score" id="scorerScoreB">00</div>
+      </div>
+
+      <div class="scorer-stepper-col">
+        <div class="scorer-stepper">
+          <button onclick="scorerAdjust('B',1)">+</button>
+          <div class="ss-divider"></div>
+          <button onclick="scorerAdjust('B',-1)">−</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </body>
