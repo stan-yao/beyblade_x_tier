@@ -1272,7 +1272,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .scorer-countdown.show { display: flex; }
 .scorer-countdown-text {
   font-family: 'Roboto', sans-serif;
-  font-size: clamp(1.6rem, 24vw, 6.5rem); font-weight: 300;
+  font-size: clamp(1.6rem, 24vw, 6.5rem); font-weight: 650;
   white-space: nowrap;
   letter-spacing: 0.04em;
   background: linear-gradient(135deg, var(--scorer-c1), var(--scorer-c2), var(--scorer-c3));
@@ -4628,15 +4628,16 @@ function scorerStart() {
   scorerCountdownTimers.forEach(t => clearTimeout(t));
   scorerCountdownTimers = [];
 
-  // 立即重置文字並顯示第一個數字，不等 setTimeout(0.3s) 才出現
-  textEl.textContent = '3';
+  // 清空文字並顯示疊層，「3」延遲一點才出現（見下方 sequence 的 at 數值）
+  textEl.textContent = '';
   overlay.classList.add('show');
   board.classList.add('counting');
 
   // 每個數字對應在音檔裡出現的時間點（秒），可依實際聽感微調
   const sequence = [
-    { label: '2',      at: 1.3 },
-    { label: '1',      at: 2.6 },
+    { label: '3',      at: 0.4 },
+    { label: '2',      at: 1.5 },
+    { label: '1',      at: 2.7 },
     { label: 'GO',     at: 3.9 },
     { label: 'SHOOT!', at: 4.9 },
   ];
