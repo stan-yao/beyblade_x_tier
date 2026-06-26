@@ -1072,6 +1072,35 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .part-link { border-radius: 4px; padding: 1px 3px; transition: background 0.15s, color 0.15s; }
 .part-link[onclick]:hover { background: rgba(18,239,206,0.15); color: var(--accent); }
 
+/* ── 版本更新提示 Banner ── */
+#updateBanner {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+  padding: 10px 16px calc(10px + env(safe-area-inset-top));
+  background: rgba(18,239,206,0.95);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: updateBannerSlideDown 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+#updateBanner.show { display: block; }
+@keyframes updateBannerSlideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+#updateBanner .ub-inner {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  max-width: 480px; margin: 0 auto;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.02em;
+  color: #06120f; text-align: center;
+}
+#updateBanner .ub-btn {
+  background: rgba(6,18,15,0.15); border: 1px solid rgba(6,18,15,0.3);
+  border-radius: 999px; padding: 4px 14px;
+  font-size: 0.78rem; font-weight: 700; cursor: pointer;
+  color: #06120f; flex-shrink: 0;
+}
+
 /* ══════════════ 計分器頁面 ══════════════ */
 .scorer-page {
   display: none;
@@ -1440,6 +1469,14 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 #ccBox .cc-msg.err { background: rgba(255,94,122,0.1); border:1px solid rgba(255,94,122,0.25); color: var(--danger); }
 </style>
 <body>
+
+<!-- 版本更新提示 Banner -->
+<div id="updateBanner">
+  <div class="ub-inner">
+    <span>🎉 網站有新版本</span>
+    <button class="ub-btn" onclick="applyUpdate()">立即更新</button>
+  </div>
+</div>
 
 <!-- Splash 載入畫面：放在最前面，DOM parse 到這裡就立刻顯示 -->
 <div id="splashScreen">
@@ -4216,6 +4253,7 @@ function closeAnnouncement() {
 
 loadSpecialThemes();
 loadAnnouncement();
+checkForUpdate();
 
 // ══════════════ 海巡配置：隱藏新增功能 ══════════════
 const CC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydGtXtIYGRjUhTk6oKmIKo2mC0SiGP6ii1B-nJY7nalSa7XLnEW4bLmySARYiiW3uo/exec"; // ← 部署後填入
@@ -4698,6 +4736,57 @@ document.addEventListener('click', (e) => {
     pop.classList.remove('show');
   }
 });
+
+// ══════════════ 版本更新偵測 ══════════════
+const VERSION_CHECK_URL = "https://stan-yao.github.io/beyblade_x_tier/version.json";
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(VERSION_CHECK_URL + "?t=" + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    const latestVersion = data.version;
+    const currentVersion = localStorage.getItem('bey_app_version');
+
+    if (!currentVersion) {
+      // 第一次造訪：直接記錄目前版本，不顯示提示
+      localStorage.setItem('bey_app_version', latestVersion);
+      return;
+    }
+
+    if (currentVersion !== latestVersion) {
+      document.getElementById('updateBanner').classList.add('show');
+    }
+  } catch(e) {
+    console.warn('版本檢查失敗', e);
+  }
+}
+
+async function applyUpdate() {
+  try {
+    const res = await fetch(VERSION_CHECK_URL + "?t=" + Date.now(), { cache: 'no-store' });
+    const data = await res.json();
+    localStorage.setItem('bey_app_version', data.version);
+  } catch(e) {}
+
+  // 清除所有資料快取，強制重新抓取最新內容
+  localStorage.removeItem('bey_db_v2');
+  localStorage.removeItem('bey_img_v2');
+  localStorage.removeItem('bey_parts_img_v2');
+  localStorage.removeItem('bey_date_v2');
+  localStorage.removeItem('bey_combo_stats_v1');
+  localStorage.removeItem('bey_parts_count_v2');
+
+  // 嘗試清除瀏覽器層級快取（Cache Storage API，部分瀏覽器支援）
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch(e) {}
+  }
+
+  // 強制重新載入頁面（加時間戳避免 HTML 本身被快取）
+  window.location.href = window.location.pathname + '?_=' + Date.now();
+}
 
 function hideSplash() {
   const splash = document.getElementById('splashScreen');
