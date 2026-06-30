@@ -1490,9 +1490,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     <h1 onclick="resetHome(); loadData(true);" style="cursor:pointer;" title="返回首頁並強制同步最新資料">Beyblade X</h1>
     <span class="subtitle">
       <span class="st-main">天梯表</span>
-      <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">
-        <span style="color:#99ff00; font-weight:700;" class="update-blink"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>
-      </span>
+      <span class="st-date" id="updateDateDisplay" onclick="loadData(true)" style="cursor: pointer; display: inline-block; transition: opacity 0.3s;" title="點擊強制同步最新資料庫">載入中...</span>
     </span>
   </div>
   <div class="controls-container" style="display: inline-flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-width: 100%;">
@@ -1739,23 +1737,56 @@ async function backgroundCheck(currentCachedDate) {
       }
       
       if (latestDate && latestDate !== currentCachedDate) {
-          const dateEl = document.getElementById("updateDateDisplay");
-          dateEl.innerHTML = `<span style="color:#99ff00; font-weight:700;" class="update-blink"><span id="refreshIcon" style="display:inline-block; transition:transform 0.5s ease;">🔄</span> 點擊更新資料</span>`;
-          dateEl.style.cursor = "pointer";
-          
-          dateEl.onclick = () => {
-              const rIcon = document.getElementById("refreshIcon");
-              if (rIcon) rIcon.style.transform = "rotate(360deg)";
-              
-              setTimeout(async () => {
-                  const fullData = await fetchBothSheets();
-                  processData(fullData.dataMain, fullData.dataParts, latestDate);
-              }, 400);
-          };
+          // 偵測到資料有更新：直接在背景自動抓取最新資料，不需要使用者點擊
+          const fullData = await fetchBothSheets();
+          processData(fullData.dataMain, fullData.dataParts, latestDate);
+          showDataUpdatedToast();
       }
   } catch (e) {
       console.log("背景檢查更新失敗 (可能處於離線狀態)", e);
   }
+}
+
+function showDataUpdatedToast() {
+  const existing = document.getElementById('dataUpdatedToast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'dataUpdatedToast';
+  toast.innerHTML = `
+    <span style="font-size:1rem;">✓</span>
+    <span>天梯資料已自動更新</span>
+  `;
+  toast.style.cssText = `
+    position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 99998;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.85rem; font-weight: 600; letter-spacing: 0.02em;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+  `;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+    setTimeout(() => toast.remove(), 400);
+  }, 3000);
 }
 
 async function fetchAndProcess() {
@@ -4253,7 +4284,6 @@ function closeAnnouncement() {
 
 loadSpecialThemes();
 loadAnnouncement();
-checkForUpdate();
 
 // ══════════════ 海巡配置：隱藏新增功能 ══════════════
 const CC_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydGtXtIYGRjUhTk6oKmIKo2mC0SiGP6ii1B-nJY7nalSa7XLnEW4bLmySARYiiW3uo/exec"; // ← 部署後填入
@@ -4803,6 +4833,8 @@ setTimeout(hideSplash, 8000);
   await loadPartVariants();
   hideSplash();
 })();
+
+checkForUpdate();
 
 document.getElementById('searchInput').addEventListener('input', function(e) {
   document.getElementById('clearSearchBtn').style.display = e.target.value ? 'block' : 'none';
