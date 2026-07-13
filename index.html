@@ -383,6 +383,9 @@ main { padding: 1.2rem 2rem 4rem; }
 .parts-products-scroll::-webkit-scrollbar-thumb { background-color: var(--muted); border-radius: 10px; }
 .product-mini-card { flex: 0 0 70px; display: flex; flex-direction: column; align-items: center; background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015)); padding: 8px 6px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
 .product-mini-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); }
+.product-mini-card.ghost { opacity: 0.5; cursor: default; border-style: dashed; }
+.product-mini-card.ghost:hover { transform: none; border-color: var(--border); }
+.product-mini-card.ghost .product-mini-id { color: var(--warn); font-size: 0.5rem; }
 .product-mini-img { width: 44px; height: 44px; object-fit: contain; border-radius: 4px; background: #0d0d14; margin-bottom: 4px; }
 .product-mini-ph { width: 44px; height: 44px; border-radius: 4px; background: #151520; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: var(--muted); margin-bottom: 4px; text-align:center; padding:2px; }
 .product-mini-name { font-size: 0.6rem; color: var(--text); font-weight: 600; text-align: center; width:100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.1; }
@@ -2326,7 +2329,10 @@ function openModal(d) {
       if (d.products && d.products.length > 0) {
           const sectionLabel = d.cat === 'assist' ? '搭載此輔助戰刃的產品' : d.cat === 'ratchet' ? '包含此固鎖的產品' : '包含此軸心的產品';
           let productsHtml = "";
+          const shownProductIds = new Set();
+
           d.products.forEach(prod => {
+              shownProductIds.add(prod.id);
               const variants = PART_VARIANTS[d.id] || [];
               const matchedVariant = variants.find(v => v.productCode === prod.id);
               const pImg = (matchedVariant && matchedVariant.img) ? matchedVariant.img : getImgUrl(prod);
@@ -2342,10 +2348,32 @@ function openModal(d) {
                 </div>
               `;
           });
-          
+
+          // 掃描 PART_VARIANTS 找出有零件顏色資料但沒有天梯資料的額外產品
+          const variants = PART_VARIANTS[d.id] || [];
+          const extraCodes = [...new Set(
+            variants
+              .filter(v => v.productCode && !shownProductIds.has(v.productCode))
+              .map(v => v.productCode)
+          )];
+          extraCodes.forEach(code => {
+            const variant = variants.find(v => v.productCode === code);
+            const pImgHtml = (variant && variant.img)
+              ? `<img class="product-mini-img" src="${variant.img}">`
+              : `<div class="product-mini-ph">${code}</div>`;
+            productsHtml += `
+              <div class="product-mini-card ghost" title="${code}：零件顏色資料存在，但天梯資料尚未收錄">
+                ${pImgHtml}
+                <div class="product-mini-name">${code}</div>
+                <div class="product-mini-id">缺天梯資料</div>
+              </div>
+            `;
+          });
+
+          const totalCount = d.products.length + extraCodes.length;
           detailsHtml += `
             <div class="parts-products-wrapper">
-              <div class="parts-products-title">${sectionLabel} (${d.products.length})：</div>
+              <div class="parts-products-title">${sectionLabel} (${totalCount})：</div>
               <div class="parts-products-scroll">
                 ${productsHtml}
               </div>
@@ -2353,6 +2381,34 @@ function openModal(d) {
           `;
       }
   }
+      // 如果主表沒有任何 products，但 PART_VARIANTS 有顏色資料，也要顯示幽靈卡片
+      if ((!d.products || d.products.length === 0) && (d.cat === 'ratchet' || d.cat === 'bit' || d.cat === 'assist')) {
+          const variants = PART_VARIANTS[d.id] || [];
+          const extraCodes = [...new Set(variants.filter(v => v.productCode).map(v => v.productCode))];
+          if (extraCodes.length > 0) {
+            const sectionLabel = d.cat === 'assist' ? '搭載此輔助戰刃的產品' : d.cat === 'ratchet' ? '包含此固鎖的產品' : '包含此軸心的產品';
+            let productsHtml = "";
+            extraCodes.forEach(code => {
+              const variant = variants.find(v => v.productCode === code);
+              const pImgHtml = (variant && variant.img)
+                ? `<img class="product-mini-img" src="${variant.img}">`
+                : `<div class="product-mini-ph">${code}</div>`;
+              productsHtml += `
+                <div class="product-mini-card ghost" title="${code}：零件顏色資料存在，但天梯資料尚未收錄">
+                  ${pImgHtml}
+                  <div class="product-mini-name">${code}</div>
+                  <div class="product-mini-id">缺天梯資料</div>
+                </div>
+              `;
+            });
+            detailsHtml += `
+              <div class="parts-products-wrapper">
+                <div class="parts-products-title">${sectionLabel} (${extraCodes.length})：</div>
+                <div class="parts-products-scroll">${productsHtml}</div>
+              </div>
+            `;
+          }
+      }
 
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
