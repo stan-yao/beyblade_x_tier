@@ -735,6 +735,80 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .vault-part-chip.owned { background: rgba(18,239,206,0.1); border-color: rgba(18,239,206,0.3); color: var(--accent); }
 .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; }
 .vault-part-chip.owned .chip-dot { background: var(--accent); }
+.chip-variant-thumb {
+  width: 18px; height: 18px; border-radius: 4px; object-fit: contain;
+  background: rgba(255,255,255,0.06); flex-shrink: 0;
+}
+
+/* 零件顏色選擇器 Modal */
+/* 零件顏色選擇器彈窗 */
+#partVariantPickerOverlay {
+  display: none; position: fixed; inset: 0; z-index: 9997;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;
+}
+#partVariantPickerOverlay.show { display: flex; }
+#partVariantPickerBox {
+  max-width: 380px; width: 100%; max-height: 75vh;
+  display: flex; flex-direction: column;
+  background: rgba(14,16,24,0.95);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 20px;
+  padding: 20px; box-sizing: border-box;
+  backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 16px 56px rgba(0,0,0,0.6);
+}
+.pvp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px; flex-shrink: 0;
+}
+.pvp-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.pvp-subtitle {
+  font-size: 0.72rem; color: var(--muted); margin-bottom: 14px;
+  flex-shrink: 0;
+}
+.pvp-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  overflow-y: auto; flex: 1; padding-right: 2px;
+}
+.pvp-card {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,0.03); border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 8px 6px; cursor: pointer; transition: all 0.15s;
+  position: relative;
+}
+.pvp-card:hover { border-color: rgba(255,255,255,0.22); transform: translateY(-2px); }
+.pvp-card.active {
+  border-color: var(--accent); background: rgba(18,239,206,0.08);
+}
+.pvp-card.active::after {
+  content: '✓';
+  position: absolute; top: 4px; right: 6px;
+  font-size: 0.6rem; color: var(--accent); font-weight: 700;
+}
+.pvp-card img { width: 54px; height: 54px; object-fit: contain; border-radius: 6px; background: #0d0d14; margin-bottom: 5px; }
+.pvp-card .pvp-no-img { width: 54px; height: 54px; border-radius: 6px; background: #151520; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: var(--muted); margin-bottom: 5px; text-align: center; padding: 4px; }
+.pvp-card .pvp-label { font-size: 0.6rem; color: var(--text); font-weight: 600; text-align: center; line-height: 1.2; word-break: break-all; }
+.pvp-card .pvp-source { font-size: 0.52rem; color: var(--muted); text-align: center; margin-top: 2px; }
+.pvp-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; flex-shrink: 0;
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07);
+}
+.pvp-selected-count { font-size: 0.75rem; color: var(--muted); }
+.pvp-selected-count span { color: var(--accent); font-weight: 700; }
+.pvp-save-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em;
+  background: var(--accent); color: #060a08;
+  border: none; border-radius: 999px; padding: 8px 22px;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.pvp-save-btn:hover { opacity: 0.85; }
+
 
 .analysis-summary {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
@@ -3736,9 +3810,57 @@ function renderOverview(inv, fromBlades) {
                  || (cat==='bit'&&fromBlades.bit.has(id))
                  || (cat==='assist'&&fromBlades.assist.has(id))
                  || (cat==='bladeCover'&&fromBlades.bladeCover.has(id));
+
+      // 每個已選顏色各自輸出一張獨立卡片
+      const variants = PART_VARIANTS[id] || [];
+      const selectedIndices = (inv.partVariants || {})[`${cat}_${id}`] || [];
+
+      // 原裝自動帶入：找哪些陀螺包含這個零件，再從 PART_VARIANTS 找對應顏色
+      const autoColorIndices = [];
+      if (fromB && selectedIndices.length === 0 && variants.length > 0) {
+        const sourceBladeIds = (inv.ownedBlades || []).filter(bid => {
+          const b = DB.find(x => x.cat === 'blade' && x.id === bid);
+          if (!b) return false;
+          if (cat === 'ratchet') return b.ratchet === id;
+          if (cat === 'bit') return b.bit === id;
+          if (cat === 'assist') return '輔助' + b.assistBlade === id;
+          if (cat === 'bladeCover') return b.id === id;
+          return false;
+        });
+        sourceBladeIds.forEach(bid => {
+          variants.forEach((v, i) => {
+            if (v.productCode === bid && !autoColorIndices.includes(i)) {
+              autoColorIndices.push(i);
+            }
+          });
+        });
+      }
+
+      const displayIndices = selectedIndices.length > 0 ? selectedIndices : autoColorIndices;
+
+      if (displayIndices.length > 0) {
+        const isAuto = fromB && selectedIndices.length === 0;
+        return displayIndices.map(i => {
+          const v = variants[i];
+          if (!v) return '';
+          const colorThumb = v.img
+            ? `<img class="owned-blade-thumb" src="${v.img}" alt="${v.color||''}" loading="lazy">`
+            : `<div class="owned-blade-thumb-ph">${v.color||id}</div>`;
+          return `<div class="owned-blade-card owned overview-card" style="cursor:default;${isAuto?'opacity:0.75':''}">
+            ${colorThumb}
+            <div class="owned-blade-info" style="flex:1;min-width:0;">
+              <div class="owned-blade-name">${id}</div>
+              <div class="owned-blade-id">${v.productCode || (v.color || '')}</div>
+              ${isAuto ? `<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      // 沒選顏色（或無顏色資料）：輸出原本單張卡片
       return `<div class="owned-blade-card owned overview-card" style="cursor:default;${fromB?'opacity:0.75':''}">
         ${thumb}
-        <div class="owned-blade-info">
+        <div class="owned-blade-info" style="flex:1;min-width:0;">
           <div class="owned-blade-name">${item?.name || id}</div>
           <div class="owned-blade-id">${item?.id || ''}</div>
           ${fromB ? `<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>` : ''}
@@ -3763,7 +3885,7 @@ function renderOverview(inv, fromBlades) {
         <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個</div>
         <button onclick="
           if(confirm('確定要清除所有倉庫資料嗎？此操作無法復原。')) {
-            localStorage.removeItem('bey_inventory');
+            localStorage.removeItem('bey_inventory_v1');
             renderVaultTab();
           }
         " style="
@@ -3915,7 +4037,11 @@ function renderLooseParts(inv, fromBlades, searchVal = '') {
         }
         return `<span class="vault-part-chip from-blade" title="來自原裝陀螺：${srcName}"><span class="chip-dot"></span>${id}<span class="chip-source">原裝</span></span>`;
       }
-      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="togglePart('${cat}','${id}')"><span class="chip-dot"></span>${id}</span>`;
+      const hasVariants = (PART_VARIANTS[id] || []).length > 0;
+      const clickFn = hasVariants ? `openPartVariantPicker('${cat}','${id}')` : `togglePart('${cat}','${id}')`;
+      const selectedCount = ((inv.partVariants||{})[`${cat}_${id}`]||[]).length;
+      const countBadge = (manualOwned && hasVariants && selectedCount > 0) ? `<span style="font-size:0.6rem;opacity:0.7;margin-left:2px;">(${selectedCount})</span>` : '';
+      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="${clickFn}"><span class="chip-dot"></span>${id}${countBadge}</span>`;
     }).join('');
   }
 
@@ -4000,7 +4126,11 @@ function filterLooseParts(val) {
       if (autoOwned) {
         return `<span class="vault-part-chip from-blade"><span class="chip-dot"></span>${id}<span class="chip-source">原裝</span></span>`;
       }
-      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="togglePart('${cat}','${id}')"><span class="chip-dot"></span>${id}</span>`;
+      const hasVariants = (PART_VARIANTS[id] || []).length > 0;
+      const clickFn = hasVariants ? `openPartVariantPicker('${cat}','${id}')` : `togglePart('${cat}','${id}')`;
+      const selectedCount = ((inv.partVariants||{})[`${cat}_${id}`]||[]).length;
+      const countBadge = (manualOwned && hasVariants && selectedCount > 0) ? `<span style="font-size:0.6rem;opacity:0.7;margin-left:2px;">(${selectedCount})</span>` : '';
+      return `<span class="vault-part-chip${manualOwned?' owned':''}" onclick="${clickFn}"><span class="chip-dot"></span>${id}${countBadge}</span>`;
     }).join('');
 
     // 更新 section 顯示/隱藏
@@ -4020,15 +4150,117 @@ function filterLooseParts(val) {
   }
 }
 
+// ══════════════ 零件顏色選擇器 ══════════════
+let _pvpCat = null, _pvpId = null, _pvpTempSelected = [];
+
+function openPartVariantPicker(cat, id) {
+  const variants = PART_VARIANTS[id] || [];
+  if (variants.length === 0) {
+    // 沒有顏色資料 → 直接 togglePart
+    togglePart(cat, id);
+    return;
+  }
+
+  _pvpCat = cat; _pvpId = id;
+  const inv = loadInventory();
+  // 載入目前已存的選擇作為初始狀態
+  _pvpTempSelected = [...((inv.partVariants || {})[`${cat}_${id}`] || [])];
+
+  document.getElementById('pvpTitle').textContent = `${id}`;
+  renderPvpGrid(variants);
+  document.getElementById('partVariantPickerOverlay').classList.add('show');
+}
+
+function renderPvpGrid(variants) {
+  const grid = document.getElementById('pvpGrid');
+  grid.innerHTML = variants.map((v, i) => {
+    const isActive = _pvpTempSelected.includes(i);
+    const label = v.productCode
+      ? (v.productName ? `${v.productCode}` : v.productCode)
+      : (v.color || '未知');
+    const imgHtml = v.img
+      ? `<img src="${v.img}" alt="${v.color||''}">`
+      : `<div class="pvp-no-img">${v.color || '?'}</div>`;
+    return `
+      <div class="pvp-card${isActive ? ' active' : ''}" onclick="pvpToggle(${i})">
+        ${imgHtml}
+        <div class="pvp-label">${label}</div>
+        ${v.color && v.productCode ? `<div class="pvp-source">${v.color}</div>` : ''}
+      </div>`;
+  }).join('');
+  document.getElementById('pvpCount').textContent = _pvpTempSelected.length;
+}
+
+function pvpToggle(index) {
+  const pos = _pvpTempSelected.indexOf(index);
+  if (pos === -1) _pvpTempSelected.push(index);
+  else _pvpTempSelected.splice(pos, 1);
+  const variants = PART_VARIANTS[_pvpId] || [];
+  renderPvpGrid(variants);
+}
+
+function savePartVariants() {
+  if (!_pvpCat || !_pvpId) return;
+  const inv = loadInventory();
+  if (!inv.partVariants) inv.partVariants = {};
+  const key = `${_pvpCat}_${_pvpId}`;
+
+  if (_pvpTempSelected.length === 0) {
+    // 一個都沒選 → 視同取消擁有這個零件
+    delete inv.partVariants[key];
+    if (inv[_pvpCat]) {
+      const idx = inv[_pvpCat].indexOf(_pvpId);
+      if (idx !== -1) inv[_pvpCat].splice(idx, 1);
+    }
+  } else {
+    inv.partVariants[key] = [..._pvpTempSelected];
+    // 確保零件被標記為擁有
+    if (!inv[_pvpCat]) inv[_pvpCat] = [];
+    if (!inv[_pvpCat].includes(_pvpId)) inv[_pvpCat].push(_pvpId);
+  }
+
+  saveInventory(inv);
+  document.getElementById('partVariantPickerOverlay').classList.remove('show');
+  _pvpCat = null; _pvpId = null; _pvpTempSelected = [];
+
+  const q = document.getElementById('looseSearchInput')?.value || '';
+  renderLooseParts(inv, getPartsFromOwnedBlades(inv), q);
+}
+
+// 點外部區域不關閉（強迫使用者按儲存），但可按 ESC
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('partVariantPickerOverlay')?.classList.contains('show')) {
+    document.getElementById('partVariantPickerOverlay').classList.remove('show');
+    _pvpCat = null; _pvpId = null; _pvpTempSelected = [];
+  }
+});
+
+function togglePartVariant(cat, id, variantIndex) {
+  const inv = loadInventory();
+  if (!inv.partVariants) inv.partVariants = {};
+  const key = `${cat}_${id}`;
+  if (!inv.partVariants[key]) inv.partVariants[key] = [];
+  const arr = inv.partVariants[key];
+  const pos = arr.indexOf(variantIndex);
+  if (pos === -1) arr.push(variantIndex);
+  else arr.splice(pos, 1);
+  if (arr.length === 0) delete inv.partVariants[key];
+  saveInventory(inv);
+  renderOverview(inv, getPartsFromOwnedBlades(inv));
+}
+
 function togglePart(cat, id) {
   const inv = loadInventory();
   if (!inv[cat]) inv[cat]=[];
   const idx = inv[cat].indexOf(id);
   if (idx===-1) inv[cat].push(id); else inv[cat].splice(idx,1);
+  // 取消勾選時也清除顏色記憶
+  if (idx !== -1 && inv.partVariants) delete inv.partVariants[`${cat}_${id}`];
   saveInventory(inv);
   const q = document.getElementById('looseSearchInput')?.value || '';
   renderLooseParts(inv, getPartsFromOwnedBlades(inv), q);
 }
+
 function clearInventory() {
   if (!confirm("確定要清除所有收藏的零件嗎？")) return;
   saveInventory({ownedBlades:[],blade:[],ratchet:[],bit:[],assist:[],bladeCover:[]});
@@ -5006,6 +5238,22 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   setTimeout(show, 1200);
 })();
 </script>
+
+<!-- 零件顏色選擇器 -->
+<div id="partVariantPickerOverlay">
+  <div id="partVariantPickerBox">
+    <div class="pvp-header">
+      <div class="pvp-title" id="pvpTitle">選擇顏色版本</div>
+    </div>
+    <div class="pvp-subtitle">可多選，點選後按儲存確認</div>
+    <div class="pvp-grid" id="pvpGrid"></div>
+    <div class="pvp-footer">
+      <div class="pvp-selected-count">已選 <span id="pvpCount">0</span> 個顏色</div>
+      <button class="pvp-save-btn" onclick="savePartVariants()">儲存</button>
+    </div>
+  </div>
+</div>
+
 <!-- 海巡配置 隱藏新增表單 -->
 <div id="ccOverlay" onclick="if(event.target===this)closeCcModal()">
   <div id="ccBox">
