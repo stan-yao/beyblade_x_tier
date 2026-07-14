@@ -1123,6 +1123,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   border-top: 1px solid rgba(255,255,255,0.08);
   padding-top: 14px; margin-bottom: 22px;
 }
+#annList { margin-bottom: 22px; }
+#annList .ann-item { padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+#annList .ann-item:last-child { border-bottom: none; }
+#annList .ann-item .ann-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+#annList .ann-item .ann-content { font-size: 0.88rem; color: rgba(255,255,255,0.7); line-height: 1.8; white-space: pre-line; margin: 0; border: none; padding: 0; }
 #announcementBox .ann-close {
   width: 100%; padding: 12px;
   background: rgba(18,239,206,0.08);
@@ -4539,7 +4544,7 @@ async function loadAnnouncement() {
     if (iTitle === -1 || iContent === -1) return;
 
     const now = new Date();
-    let target = null;
+    const targets = [];
 
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
@@ -4552,14 +4557,17 @@ async function loadAnnouncement() {
       if (start && now < start) continue;
       if (end   && now > end)   continue;
 
-      target = { title: r[iTitle].trim(), content: (r[iContent]||"").trim().replace(/\\n/g,"\n") };
-      break; // 只取第一筆有效公告
+      targets.push({ title: r[iTitle].trim(), content: (r[iContent]||"").trim().replace(/\\n/g,"\n") });
     }
 
-    if (!target) return;
+    if (targets.length === 0) return;
 
-    document.getElementById("annTitle").textContent   = target.title;
-    document.getElementById("annContent").textContent = target.content;
+    document.getElementById("annList").innerHTML = targets.map(t => `
+      <div class="ann-item">
+        <div class="ann-title">${t.title}</div>
+        <div class="ann-content">${t.content}</div>
+      </div>
+    `).join('');
     document.getElementById("announcementOverlay").classList.add("show");
   } catch(e) {
     console.log("公告載入失敗", e);
@@ -5135,8 +5143,7 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
   <div id="announcementBox">
     <button class="ann-x" onclick="closeAnnouncement()">✕</button>
     <div class="ann-badge">公告</div>
-    <div class="ann-title" id="annTitle"></div>
-    <div class="ann-content" id="annContent"></div>
+    <div id="annList"></div>
     <button class="ann-close" onclick="closeAnnouncement()">我知道了</button>
   </div>
 </div>
