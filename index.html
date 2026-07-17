@@ -1933,7 +1933,21 @@ function processData(dataMain, dataParts, latestDate) {
       const noteText = row[14] ? row[14].trim() : "";
       const communityCombo = row[15] ? row[15].trim() : "";
       
-      if (imgUrl) IMG[id.split(" ")[0]] = imgUrl; 
+      if (imgUrl) {
+        if (IMG[id]) {
+          // 代號已存在（重複代號）：把原本那筆也升級成 id+name 的 key
+          // 找到原本那筆的名稱
+          const existingBlade = DB.find(x => x.id === id && x.cat === 'blade');
+          if (existingBlade && existingBlade.name) {
+            IMG[`${id}_${existingBlade.name}`] = IMG[id];
+          }
+          // 新這筆也用 id+name 存
+          IMG[`${id}_${name}`] = imgUrl;
+          // 保留原始 id key 作為 fallback（指向第一筆）
+        } else {
+          IMG[id] = imgUrl;
+        }
+      }
 
       let finalBuy = "no";
       if (["yes", "maybe", "no"].includes(manualBuy)) {
@@ -2085,6 +2099,10 @@ function getImgUrl(d) {
   if ((d.cat === "ratchet" || d.cat === "bit" || d.cat === "assist") && PARTS_IMG[d.id]) {
       return PARTS_IMG[d.id];
   }
+  // 有中文名稱時，先用「代號_名稱」查（處理同代號不同版本的情況）
+  if (d.name && IMG[`${d.id}_${d.name}`]) return IMG[`${d.id}_${d.name}`];
+  // fallback：純代號
+  if (IMG[d.id]) return IMG[d.id];
   const key = d.id.split(" ")[0];
   if (IMG[key]) return IMG[key];
   const base = key.replace(/-\d+$/, "");
