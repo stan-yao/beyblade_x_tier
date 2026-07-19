@@ -3885,6 +3885,9 @@ function renderVaultTab() {
 }
 
 let invSubTab = "owned";
+let overviewMode = "loose"; // "loose" | "blade"
+let overviewDeleteMode = false; // 是否進入刪除選擇模式
+let overviewDeleteSelected = new Set(); // 已選要刪除的 key（格式：cat_id）
 
 // ── PATCH 2: 加入 bladeCover 到 fromBlades ──
 function getPartsFromOwnedBlades(inv) {
@@ -3999,18 +4002,161 @@ function renderInvSubTab(inv, fromBlades) {
   else renderOverview(inv, fromBlades);
 }
 
+function overviewDeletePart(cat, id) {
+  // 舊的單點刪除（保留備用）
+  const name = DB.find(x => x.id === id && x.cat === cat)?.name || id;
+  if (!confirm(`確定要從倉庫移除「${id}」嗎？`)) return;
+  const inv = loadInventory();
+  if (inv[cat]) { const idx = inv[cat].indexOf(id); if (idx !== -1) inv[cat].splice(idx, 1); }
+  if (inv.partVariants) delete inv.partVariants[`${cat}_${id}`];
+  saveInventory(inv);
+  renderOverview(inv, getPartsFromOwnedBlades(inv));
+}
+
+function overviewToggleDeleteMode() {
+  overviewDeleteMode = !overviewDeleteMode;
+  overviewDeleteSelected = new Set();
+  renderOverview(loadInventory(), getPartsFromOwnedBlades(loadInventory()));
+}
+
+function overviewToggleSelect(key) {
+  if (overviewDeleteSelected.has(key)) overviewDeleteSelected.delete(key);
+  else overviewDeleteSelected.add(key);
+  renderOverview(loadInventory(), getPartsFromOwnedBlades(loadInventory()));
+}
+
+function overviewConfirmDelete() {
+  if (overviewDeleteSelected.size === 0) return;
+  if (!confirm(`確定要刪除 ${overviewDeleteSelected.size} 個零件嗎？`)) return;
+  const inv = loadInventory();
+  overviewDeleteSelected.forEach(key => {
+    const parts = key.split('|');
+    const cat = parts[0], id = parts[1];
+    if (inv[cat]) { const idx = inv[cat].indexOf(id); if (idx !== -1) inv[cat].splice(idx, 1); }
+    if (inv.partVariants) delete inv.partVariants[`${cat}_${id}`];
+  });
+  saveInventory(inv);
+  overviewDeleteMode = false;
+  overviewDeleteSelected = new Set();
+  renderOverview(inv, getPartsFromOwnedBlades(inv));
+}
+
 function renderOverview(inv, fromBlades) {
   const ownedBladeIds = new Set(inv.ownedBlades || []);
-  const looseBlades  = new Set(inv.blade || []);
   const ownedR = new Set([...(inv.ratchet||[]), ...fromBlades.ratchet]);
   const ownedB = new Set([...(inv.bit||[]),     ...fromBlades.bit]);
   const ownedA = new Set([...(inv.assist||[]),  ...fromBlades.assist]);
   const ownedC = new Set([...(inv.bladeCover||[]), ...fromBlades.bladeCover]);
-
   const total = ownedC.size + ownedA.size + ownedR.size + ownedB.size;
 
+  const tabsHtml = `
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button onclick="overviewMode='loose'; overviewDeleteMode=false; overviewDeleteSelected=new Set(); renderOverview(loadInventory(), getPartsFromOwnedBlades(loadInventory()))" style="
+        font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.05em;
+        padding:5px 14px; border-radius:999px; cursor:pointer; transition:all 0.15s;
+        border:1px solid ${overviewMode==='loose'?'var(--accent)':'rgba(255,255,255,0.12)'};
+        background:${overviewMode==='loose'?'rgba(18,239,206,0.1)':'rgba(255,255,255,0.04)'};
+        color:${overviewMode==='loose'?'var(--accent)':'var(--muted)'};
+      ">散件零件</button>
+      <button onclick="overviewMode='blade'; overviewDeleteMode=false; overviewDeleteSelected=new Set(); renderOverview(loadInventory(), getPartsFromOwnedBlades(loadInventory()))" style="
+        font-family:'Barlow Condensed',sans-serif; font-size:0.8rem; font-weight:700; letter-spacing:0.05em;
+        padding:5px 14px; border-radius:999px; cursor:pointer; transition:all 0.15s;
+        border:1px solid ${overviewMode==='blade'?'var(--accent)':'rgba(255,255,255,0.12)'};
+        background:${overviewMode==='blade'?'rgba(18,239,206,0.1)':'rgba(255,255,255,0.04)'};
+        color:${overviewMode==='blade'?'var(--accent)':'var(--muted)'};
+      ">原裝陀螺</button>
+    </div>`;
+
+  // ── 原裝陀螺模式 ──
+  if (overviewMode === 'blade') {
+    const bladeCount = ownedBladeIds.size;
+
+    // 刪除模式底部確認欄
+    const delBarHtml = overviewDeleteMode ? `
+      <div style="position:sticky;bottom:0;left:0;right:0;z-index:10;padding:10px 0;background:linear-gradient(transparent,rgba(6,6,10,0.98));display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;">
+        <button onclick="overviewDeleteMode=false;overviewDeleteSelected=new Set();renderOverview(loadInventory(),getPartsFromOwnedBlades(loadInventory()))" style="font-size:0.78rem;color:var(--muted);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:7px 16px;cursor:pointer;">取消</button>
+        <button onclick="overviewConfirmDelete()" style="font-size:0.78rem;color:#fff;background:var(--danger);border:none;border-radius:999px;padding:7px 18px;cursor:pointer;font-weight:700;">確認刪除（<span id='overviewDelCount'>${overviewDeleteSelected.size}</span>）</button>
+      </div>` : '';
+
+    const headerHtml = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:0.8rem;color:var(--muted);">${overviewDeleteMode ? '點選卡片標記刪除' : '原裝陀螺配件一覽'}</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${bladeCount} 顆</div>
+          <button onclick="overviewToggleDeleteMode()" style="font-size:0.68rem;color:${overviewDeleteMode?'var(--danger)':'var(--muted)'};background:${overviewDeleteMode?'rgba(255,94,122,0.08)':'rgba(255,255,255,0.04)'};border:1px solid ${overviewDeleteMode?'rgba(255,94,122,0.3)':'rgba(255,255,255,0.12)'};border-radius:999px;padding:3px 10px;cursor:pointer;">
+            ${overviewDeleteMode ? '✕ 取消' : '選擇刪除'}
+          </button>
+        </div>
+      </div>`;
+
+    if (bladeCount === 0) {
+      document.getElementById("invSubContent").innerHTML = tabsHtml + headerHtml +
+        `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:0.85rem;">📦 還沒有收藏任何原裝陀螺</div>`;
+      return;
+    }
+
+    const bladeRows = [...ownedBladeIds].sort().map(bid => {
+      const blade = DB.find(x => x.id === bid && x.cat === 'blade');
+      if (!blade) return '';
+      const bladeImg = getImgUrl(blade);
+
+      // 戰刃卡片（跟散件零件同款 owned-blade-card）
+      const bladeKey = `blade|${bid}`;
+      const bladeCard = `<div class="owned-blade-card owned overview-card" style="cursor:default;position:relative;">
+        ${bladeImg ? `<img class="owned-blade-thumb" src="${bladeImg}" loading="lazy">` : `<div class="owned-blade-thumb-ph">${bid}</div>`}
+        <div class="owned-blade-info" style="flex:1;min-width:0;">
+          <div class="owned-blade-name">${blade.name}</div>
+          <div class="owned-blade-id">${bid}</div>
+          <div class="owned-blade-parts"><span class="part-tag">原裝</span></div>
+        </div>
+      </div>`;
+
+      // 配件卡片（同款風格，圖片透明去背）
+      const partCats = [
+        { cat: 'ratchet', val: blade.ratchet },
+        { cat: 'bit',     val: blade.bit },
+        { cat: 'assist',  val: blade.assistBlade ? '輔助' + blade.assistBlade : null },
+      ].filter(p => p.val);
+
+      const partCards = partCats.map(p => {
+        const variants = PART_VARIANTS[p.val] || [];
+        const matched = variants.find(v => v.productCode === bid);
+        const img = matched?.img || (() => { const item = DB.find(x => x.id === p.val && x.cat === p.cat); return item ? getImgUrl(item) : ''; })();
+        const key = `${p.cat}|${p.val}`;
+        const isSelected = overviewDeleteSelected.has(key);
+        const isManual = (inv[p.cat] || []).includes(p.val);
+        const canDel = overviewDeleteMode && isManual;
+        return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}"
+          ${canDel ? `onclick="overviewToggleSelect('${key}')"` : ''}
+          style="cursor:${canDel?'pointer':'default'};position:relative;${isSelected?'border-color:var(--danger) !important;outline:1.5px solid var(--danger);':''}">
+          ${canDel ? `<div class="overview-del-badge" style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:${isSelected?'var(--danger)':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;font-weight:700;z-index:2;">✕</div>` : ''}
+          ${img ? `<img class="owned-blade-thumb" src="${img}" loading="lazy" style="background:transparent;">` : `<div class="owned-blade-thumb-ph">${p.val}</div>`}
+          <div class="owned-blade-info" style="flex:1;min-width:0;">
+            <div class="owned-blade-name">${p.val}</div>
+            ${matched?.productCode ? `<div class="owned-blade-id">${matched.productCode}</div>` : ''}
+            <div class="owned-blade-parts"><span class="part-tag">原裝</span></div>
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div style="margin-bottom:10px;padding:10px;border:1px solid rgba(255,255,255,0.08);border-radius:14px;background:rgba(255,255,255,0.02);">
+        <div class="owned-blades-grid" style="padding:0;">${bladeCard}${partCards}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById("invSubContent").innerHTML = tabsHtml + headerHtml + bladeRows + delBarHtml;
+    return;
+  }
+
+  // ── 散件零件模式 ──
+  const delBarHtml = overviewDeleteMode ? `
+    <div style="position:sticky;bottom:0;left:0;right:0;z-index:10;padding:10px 0;background:linear-gradient(transparent,rgba(6,6,10,0.98));display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px;">
+      <button onclick="overviewDeleteMode=false;overviewDeleteSelected=new Set();renderOverview(loadInventory(),getPartsFromOwnedBlades(loadInventory()))" style="font-size:0.78rem;color:var(--muted);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:999px;padding:7px 16px;cursor:pointer;">取消</button>
+      <button onclick="overviewConfirmDelete()" style="font-size:0.78rem;color:#fff;background:var(--danger);border:none;border-radius:999px;padding:7px 18px;cursor:pointer;font-weight:700;">確認刪除（<span id='overviewDelCount'>${overviewDeleteSelected.size}</span>）</button>
+    </div>` : '';
+
   if (total === 0) {
-    document.getElementById("invSubContent").innerHTML =
+    document.getElementById("invSubContent").innerHTML = tabsHtml +
       `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:0.85rem;">📦 還沒有收藏任何零件</div>`;
     return;
   }
@@ -4019,111 +4165,82 @@ function renderOverview(inv, fromBlades) {
     return [...ids].sort().map(id => {
       const item = DB.find(x => x.id === id && x.cat === cat) || DB.find(x => x.id === id);
       const imgUrl = item ? getImgUrl(item) : '';
-      const thumb = imgUrl
-        ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${id}" loading="lazy">`
-        : `<div class="owned-blade-thumb-ph">${id}</div>`;
-      const fromB = (cat==='ratchet'&&fromBlades.ratchet.has(id))
-                 || (cat==='bit'&&fromBlades.bit.has(id))
-                 || (cat==='assist'&&fromBlades.assist.has(id))
-                 || (cat==='bladeCover'&&fromBlades.bladeCover.has(id));
-
-      // 每個已選顏色各自輸出一張獨立卡片
+      const thumb = imgUrl ? `<img class="owned-blade-thumb" src="${imgUrl}" alt="${id}" loading="lazy">` : `<div class="owned-blade-thumb-ph">${id}</div>`;
+      const fromB = (cat==='ratchet'&&fromBlades.ratchet.has(id))||(cat==='bit'&&fromBlades.bit.has(id))||(cat==='assist'&&fromBlades.assist.has(id))||(cat==='bladeCover'&&fromBlades.bladeCover.has(id));
+      const isManual = (inv[cat] || []).includes(id);
       const variants = PART_VARIANTS[id] || [];
       const selectedIndices = (inv.partVariants || {})[`${cat}_${id}`] || [];
-
-      // 原裝自動帶入：找哪些陀螺包含這個零件，再從 PART_VARIANTS 找對應顏色
       const autoColorIndices = [];
       if (fromB && selectedIndices.length === 0 && variants.length > 0) {
-        const sourceBladeIds = (inv.ownedBlades || []).filter(bid => {
+        (inv.ownedBlades || []).filter(bid => {
           const b = DB.find(x => x.cat === 'blade' && x.id === bid);
           if (!b) return false;
           if (cat === 'ratchet') return b.ratchet === id;
           if (cat === 'bit') return b.bit === id;
           if (cat === 'assist') return '輔助' + b.assistBlade === id;
           if (cat === 'bladeCover') return b.id === id;
-          return false;
-        });
-        sourceBladeIds.forEach(bid => {
-          variants.forEach((v, i) => {
-            if (v.productCode === bid && !autoColorIndices.includes(i)) {
-              autoColorIndices.push(i);
-            }
-          });
-        });
+        }).forEach(bid => { variants.forEach((v, i) => { if (v.productCode === bid && !autoColorIndices.includes(i)) autoColorIndices.push(i); }); });
       }
-
       const displayIndices = selectedIndices.length > 0 ? selectedIndices : autoColorIndices;
+      const key = `${cat}|${id}`;
+      const isSelected = overviewDeleteSelected.has(key);
+      const canDel = overviewDeleteMode && isManual;
+      const delAttrs = canDel ? `onclick="overviewToggleSelect('${key}')" style="cursor:pointer;position:relative;${isSelected?'outline:1.5px solid var(--danger);':''}"`  : `style="cursor:default;position:relative;"`;
+      const delBadge = canDel ? `<div class="overview-del-badge" style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:${isSelected?'var(--danger)':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;font-weight:700;z-index:2;">✕</div>` : '';
 
       if (displayIndices.length > 0) {
         const isAuto = fromB && selectedIndices.length === 0;
         return displayIndices.map(i => {
-          const v = variants[i];
-          if (!v) return '';
-          const colorThumb = v.img
-            ? `<img class="owned-blade-thumb" src="${v.img}" alt="${v.color||''}" loading="lazy">`
-            : `<div class="owned-blade-thumb-ph">${v.color||id}</div>`;
-          return `<div class="owned-blade-card owned overview-card" style="cursor:default;${isAuto?'opacity:0.75':''}">
+          const v = variants[i]; if (!v) return '';
+          const colorThumb = v.img ? `<img class="owned-blade-thumb" src="${v.img}" alt="${v.color||''}" loading="lazy">` : `<div class="owned-blade-thumb-ph">${v.color||id}</div>`;
+          return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}" ${isAuto?'style="opacity:0.75;cursor:default;position:relative;"':delAttrs}>
+            ${!isAuto ? delBadge : ''}
             ${colorThumb}
             <div class="owned-blade-info" style="flex:1;min-width:0;">
               <div class="owned-blade-name">${id}</div>
-              <div class="owned-blade-id">${v.productCode || (v.color || '')}</div>
-              ${isAuto ? `<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>` : ''}
+              <div class="owned-blade-id">${v.productCode||(v.color||'')}</div>
+              ${isAuto?`<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>`:''}
             </div>
           </div>`;
         }).join('');
       }
-
-      // 沒選顏色（或無顏色資料）：輸出原本單張卡片
-      return `<div class="owned-blade-card owned overview-card" style="cursor:default;${fromB?'opacity:0.75':''}">
+      // 純原裝帶入（沒有手動加入）才鎖死不可刪除；有手動加入的即使同時是原裝帶入也可刪
+      const pureFromB = fromB && !isManual;
+      const finalAttrs = pureFromB ? `style="opacity:0.75;cursor:default;position:relative;"` : delAttrs;
+      return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}" ${finalAttrs}>
+        ${!pureFromB ? delBadge : ''}
         ${thumb}
         <div class="owned-blade-info" style="flex:1;min-width:0;">
-          <div class="owned-blade-name">${item?.name || id}</div>
-          <div class="owned-blade-id">${item?.id || ''}</div>
-          ${fromB ? `<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>` : ''}
+          <div class="owned-blade-name">${item?.name||id}</div>
+          <div class="owned-blade-id">${item?.id||''}</div>
+          ${fromB?`<div class="owned-blade-parts"><span class="part-tag">原裝</span></div>`:''}
         </div>
       </div>`;
     }).join('');
   }
 
-  const allBladeIds = new Set([...ownedBladeIds, ...looseBlades]);
-
   const sections = [
-    { label:'戰刃上蓋 BLADE COVER',  ids: ownedC,      cat:'bladeCover' },
-    { label:'輔助戰刃 ASSIST',       ids: ownedA,      cat:'assist' },
-    { label:'固鎖 RATCHET',          ids: ownedR,      cat:'ratchet' },
-    { label:'軸心 BIT',              ids: ownedB,      cat:'bit' },
+    { label:'戰刃上蓋 BLADE COVER', ids: ownedC, cat:'bladeCover' },
+    { label:'輔助戰刃 ASSIST',      ids: ownedA, cat:'assist' },
+    { label:'固鎖 RATCHET',         ids: ownedR, cat:'ratchet' },
+    { label:'軸心 BIT',             ids: ownedB, cat:'bit' },
   ].filter(s => s.ids.size > 0);
 
-  document.getElementById("invSubContent").innerHTML = `
+  document.getElementById("invSubContent").innerHTML = `${tabsHtml}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div style="font-size:0.8rem;color:var(--muted);">所有已收藏的零件</div>
-      <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:0.8rem;color:var(--muted);">${overviewDeleteMode ? '點選卡片標記刪除' : '所有已收藏的零件'}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
         <div style="font-size:0.8rem;color:var(--accent);font-weight:700;">共 ${total} 個</div>
-        <button onclick="
-          if(confirm('確定要清除所有倉庫資料嗎？此操作無法復原。')) {
-            localStorage.removeItem('bey_inventory_v1');
-            renderVaultTab();
-          }
-        " style="
-          font-size:0.7rem;color:var(--danger);
-          background:rgba(255,94,122,0.08);
-          border:1px solid rgba(255,94,122,0.25);
-          border-radius:8px;padding:3px 10px;
-          cursor:pointer;font-family:'Noto Sans TC',sans-serif;
-          transition:background 0.2s;
-        " onmouseover="this.style.background='rgba(255,94,122,0.16)'" onmouseout="this.style.background='rgba(255,94,122,0.08)'">清除倉庫</button>
+        <button onclick="overviewToggleDeleteMode()" style="font-size:0.68rem;color:${overviewDeleteMode?'var(--danger)':'var(--muted)'};background:${overviewDeleteMode?'rgba(255,94,122,0.08)':'rgba(255,255,255,0.04)'};border:1px solid ${overviewDeleteMode?'rgba(255,94,122,0.3)':'rgba(255,255,255,0.12)'};border-radius:999px;padding:3px 10px;cursor:pointer;">
+          ${overviewDeleteMode ? '✕ 取消' : '選擇刪除'}
+        </button>
+        <button onclick="if(confirm('確定要清除所有倉庫資料嗎？此操作無法復原。')){localStorage.removeItem('bey_inventory_v1');renderVaultTab();}" style="font-size:0.7rem;color:var(--danger);background:rgba(255,94,122,0.08);border:1px solid rgba(255,94,122,0.25);border-radius:8px;padding:3px 10px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;" onmouseover="this.style.background='rgba(255,94,122,0.16)'" onmouseout="this.style.background='rgba(255,94,122,0.08)'">清除倉庫</button>
       </div>
     </div>
-    ${sections.map(s => `
-      <div class="vault-section" style="margin-bottom:10px;">
-        <div class="vault-section-head">
-          <span class="vault-section-title">${s.label}</span>
-          <span class="vault-section-count">${s.ids.size} 個</span>
-        </div>
-        <div class="owned-blades-grid" style="padding:0 10px 12px;">${makeCards(s.ids, s.cat)}</div>
-      </div>
-    `).join('')}`;
+    ${sections.map(s => `<div class="vault-section" style="margin-bottom:10px;"><div class="vault-section-head"><span class="vault-section-title">${s.label}</span><span class="vault-section-count">${s.ids.size} 個</span></div><div class="owned-blades-grid" style="padding:0 10px 12px;">${makeCards(s.ids, s.cat)}</div></div>`).join('')}
+    ${delBarHtml}`;
 }
+
 
 function renderOwnedBlades(inv, fromBlades, searchVal = '') {
   const allBlades = DB.filter(x => x.cat === 'blade');
