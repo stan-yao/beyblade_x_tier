@@ -1687,11 +1687,17 @@ const announcementUrl = sheetUrl + "&sheet=公告";
 
 // 賽事統計資料：{ [site_blade_id]: [ { ratchet, bit, champion_rate, total_wins }, ... ] }
 let COMBO_STATS = {};
+let COMBO_STATS_FULL = {}; // 未截斷的完整賽事資料，供反向查詢用
 
 async function loadComboStats() {
   try {
-    const cached = localStorage.getItem('bey_combo_stats_v1');
-    if (cached) { COMBO_STATS = JSON.parse(cached); return; }
+    const cached     = localStorage.getItem('bey_combo_stats_v1');
+    const cachedFull = localStorage.getItem('bey_combo_stats_full_v1');
+    if (cached && cachedFull) {
+      COMBO_STATS      = JSON.parse(cached);
+      COMBO_STATS_FULL = JSON.parse(cachedFull);
+      return;
+    }
   } catch(e) {}
 
   try {
@@ -1726,11 +1732,15 @@ async function loadComboStats() {
     }
     Object.keys(map).forEach(k => {
       map[k].sort((a, b) => a.rank - b.rank);
-      map[k] = map[k].slice(0, 5);
     });
 
-    COMBO_STATS = map;
-    localStorage.setItem('bey_combo_stats_v1', JSON.stringify(COMBO_STATS));
+    COMBO_STATS_FULL = map; // 完整版，供反向查詢用
+    COMBO_STATS = {};
+    Object.keys(map).forEach(k => {
+      COMBO_STATS[k] = map[k].slice(0, 5); // 截斷版，供戰刃卡片用
+    });
+    localStorage.setItem('bey_combo_stats_v1',      JSON.stringify(COMBO_STATS));
+    localStorage.setItem('bey_combo_stats_full_v1', JSON.stringify(COMBO_STATS_FULL));
   } catch(e) {
     console.log("賽事資料載入失敗", e);
   }
@@ -2304,6 +2314,166 @@ function linkifyParts(text) {
   }).join('');
 }
 
+// ══════════════ 反向查詢：配件應用組合 ══════════════
+function openPartComboSearch(partCat, partId) {
+  const norm = s => (s || '').replace(/-/g, '').toLowerCase();
+  const nid = norm(partId);
+
+  // ── 賽事統計（掃描完整版） ──
+  const statsResults = [];
+  Object.entries(COMBO_STATS_FULL).forEach(([bladeId, combos]) => {
+    const blade = DB.find(x => x.id === bladeId && x.cat === 'blade');
+    if (!blade) return;
+    combos.forEach(c => {
+      if (!c.championRate || c.championRate <= 0) return; // 只取有冠軍率的
+      const match = (partCat === 'ratchet' && norm(c.ratchet) === nid)
+                 || (partCat === 'bit'     && norm(c.bit)     === nid);
+      if (match) statsResults.push({ blade, combo: c });
+    });
+  });
+  statsResults.sort((a, b) => (b.combo.totalWins || 0) - (a.combo.totalWins || 0));
+
+  // ── 海巡配置（掃描 communityCombo） ──
+  const communityResults = [];
+  DB.filter(x => x.cat === 'blade' && x.communityCombo).forEach(blade => {
+    const segs = blade.communityCombo.split('|').map(s => s.trim());
+    const entries = [];
+    let buf = [], sawR = false, sawB = false;
+    segs.forEach(seg => {
+      if ((sawR && sawB) && buf.length) { entries.push(buf); buf = []; sawR = false; sawB = false; }
+      buf.push(seg);
+      if (seg.startsWith('固鎖：')) sawR = true;
+      if (seg.startsWith('軸心：')) sawB = true;
+    });
+    if (buf.length) entries.push(buf);
+
+    entries.forEach(entry => {
+      const text = entry.join(' | ');
+      let match = false;
+      if (partCat === 'ratchet') {
+        const m = text.match(/固鎖：([^|]+)/);
+        if (m) match = m[1].split('/').map(s => norm(s.trim())).includes(nid);
+      } else if (partCat === 'bit') {
+        const m = text.match(/軸心：([^|（]+)/);
+        if (m) match = m[1].split('/').map(s => norm(s.trim())).includes(nid);
+      } else if (partCat === 'assist') {
+        match = norm(text).includes(nid);
+      }
+      if (match) communityResults.push({ blade, text });
+    });
+  });
+
+  // ── 推薦配置（掃描 comboText / noteText） ──
+  const recommendResults = [];
+  DB.filter(x => x.cat === 'blade' && (x.comboText || x.noteText)).forEach(blade => {
+    const combined = [blade.comboText, blade.noteText].filter(Boolean).join('\n');
+    if (norm(combined).includes(nid)) {
+      recommendResults.push({ blade, text: combined });
+    }
+  });
+
+  // ── 熱門度計算（分母與分子用相同過濾條件）──
+  const totalAppear = statsResults.length + communityResults.length + recommendResults.length;
+  // 賽事：只算冠軍率 > 0 的
+  const totalStatsValid = Object.values(COMBO_STATS_FULL)
+    .reduce((s, arr) => s + arr.filter(c => c.championRate > 0).length, 0);
+  // 海巡：每顆有 communityCombo 的戰刃算一個
+  const totalCommunity = DB.filter(x => x.cat === 'blade' && x.communityCombo).length;
+  // 推薦：每顆有 comboText 或 noteText 的戰刃算一個
+  const totalRecommend = DB.filter(x => x.cat === 'blade' && (x.comboText || x.noteText)).length;
+  const totalCombos = totalStatsValid + totalCommunity + totalRecommend;
+  const popularity = totalCombos > 0 ? ((totalAppear / totalCombos) * 100).toFixed(1) : '0.0';
+
+  // ── 建立 Modal 內容 ──
+  const partEntry = DB.find(x => x.id === partId && x.cat === partCat);
+  const partName  = partEntry?.name || partId;
+  const partImg   = partEntry ? getImgUrl(partEntry) : '';
+  const partImgHtml = partImg
+    ? `<img src="${partImg}" style="width:72px;height:72px;object-fit:contain;border-radius:12px;margin:0 auto 10px;display:block;">`
+    : `<div style="width:72px;height:72px;border-radius:12px;margin:0 auto 10px;"></div>`;
+
+  function renderBladeRow(blade, extraHtml) {
+    const img = getImgUrl(blade);
+    const imgHtml = img ? `<img src="${img}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;background:#0d0d14;flex-shrink:0;">` : `<div style="width:36px;height:36px;border-radius:6px;background:#151520;flex-shrink:0;"></div>`;
+    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+      <div onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${blade.id}"&&x.cat==="blade"))' style="cursor:pointer;">${imgHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--text);cursor:pointer;" onclick='modalHistory.push(currentModalData); openModal(DB.find(x=>x.id==="${blade.id}"&&x.cat==="blade"))'>${blade.name} <span style="font-size:0.65rem;opacity:0.5;">${blade.id}</span></div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:3px;line-height:1.5;">${extraHtml}</div>
+      </div>
+    </div>`;
+  }
+
+  let sectionsHtml = '';
+
+  // 海巡配置區
+  if (communityResults.length > 0) {
+    const rows = communityResults.map(({ blade, text }) =>
+      renderBladeRow(blade, text.replace(/固鎖：/g,'固鎖：').replace(/軸心：/g,'軸心：'))
+    ).join('');
+    sectionsHtml += `<div style="margin-bottom:18px;">
+      <div style="font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">海巡配置 (${communityResults.length})</div>
+      ${rows}
+    </div>`;
+  }
+
+  // 推薦配置區
+  if (recommendResults.length > 0) {
+    const rows = recommendResults.map(({ blade, text }) =>
+      renderBladeRow(blade, text.replace(/\n/g, '<br>').substring(0, 120) + (text.length > 120 ? '...' : ''))
+    ).join('');
+    sectionsHtml += `<div style="margin-bottom:18px;">
+      <div style="font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">推薦配置 (${recommendResults.length})</div>
+      ${rows}
+    </div>`;
+  }
+
+  // 賽事統計區
+  if (statsResults.length > 0) {
+    const rows = statsResults.map(({ blade, combo }) => {
+      const rate = combo.championRate ? `冠軍率 ${(combo.championRate*100).toFixed(1)}%` : '';
+      const wins = combo.totalWins ? `${combo.totalWins}場` : '';
+      return renderBladeRow(blade, `${combo.ratchet} | ${combo.bit}${rate ? ` <span style="color:var(--accent);">${rate}</span>` : ''}${wins ? ` (${wins})` : ''}`);
+    }).join('');
+    sectionsHtml += `<div style="margin-bottom:18px;">
+      <div style="font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.08);">賽事統計 (${statsResults.length})</div>
+      ${rows}
+    </div>`;
+  }
+
+  if (totalAppear === 0) {
+    sectionsHtml = `<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:0.85rem;">目前沒有找到含有此配件的組合資料</div>`;
+  }
+
+  // 開啟 Modal
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      ${modalHistory.length > 0 ? `<button class="modal-back" onclick="goBackModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>` : ''}
+      <button class="modal-close" onclick="closeModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <div style="text-align:center;margin-bottom:1.2rem;">
+        ${partImgHtml}
+        <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:10px;">${partId}</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <span style="font-size:0.78rem;color:var(--accent);font-weight:700;background:rgba(18,239,206,0.08);border:1px solid rgba(18,239,206,0.2);border-radius:999px;padding:5px 12px;">出現在 ${totalAppear} 個組合中</span>
+          <span style="font-size:1rem;font-weight:700;color:${
+            parseFloat(popularity) > 10   ? '#FF6B6B' :
+            parseFloat(popularity) > 5    ? '#FFD700' :
+            parseFloat(popularity) > 2    ? '#4CAF50' :
+            parseFloat(popularity) >= 1   ? '#FFFFFF' : 'rgba(255,255,255,0.35)'
+          };">熱門度 ${popularity}%</span>
+        </div>
+      </div>
+      <div style="max-height:55vh;overflow-y:auto;padding-right:4px;">
+        ${sectionsHtml}
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+  currentModalData = { type: 'partComboSearch', partCat, partId };
+}
+
 function openModal(d) {
   document.querySelector(".modal-overlay")?.remove();
   currentModalData = d;
@@ -2527,6 +2697,19 @@ function openModal(d) {
         <span class="buy-rec ${d.buy}">${BUY_LABELS[d.buy]}<span style="font-weight:400; opacity:0.7; font-size:0.7rem;">${BUY_DESCS[d.buy]}</span></span>
       </div>
       ${detailsHtml}
+      ${(d.cat === 'ratchet' || d.cat === 'bit' || d.cat === 'assist') ? `
+        <div style="margin-top:16px;text-align:center;">
+          <button onclick="modalHistory.push(currentModalData); openPartComboSearch('${d.cat}','${d.id}')" style="
+            font-family:'Barlow Condensed',sans-serif;
+            font-size:0.82rem;font-weight:700;letter-spacing:0.06em;
+            background:rgba(18,239,206,0.08);border:1px solid rgba(18,239,206,0.25);
+            color:var(--accent);border-radius:999px;padding:8px 20px;cursor:pointer;
+            transition:background 0.15s;
+          " onmouseover="this.style.background='rgba(18,239,206,0.15)'" onmouseout="this.style.background='rgba(18,239,206,0.08)'">
+            查詢應用組合
+          </button>
+        </div>
+      ` : ''}
     </div>
   `;
   overlay.onclick = e => {
