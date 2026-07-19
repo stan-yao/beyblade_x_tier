@@ -1345,19 +1345,21 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 /* 中央控制軸 */
 .scorer-center {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 22px; padding: 0 18px;
+  gap: 22px; padding: 40px 36px;
   border-left: 1px solid rgba(255,255,255,0.06);
   border-right: 1px solid rgba(255,255,255,0.06);
   position: relative;
 }
 .scorer-reset-btn {
-  font-family: 'Roboto', sans-serif;
-  font-size: 0.78rem; font-weight: 100; letter-spacing: 0.14em;
-  color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
-  padding: 9px 24px; cursor: pointer; transition: background 0.15s;
+  position: absolute; top: 46px; right: 92px; z-index: 20;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  font-family: 'Roboto', sans-serif; font-size: 0.55rem; font-weight: 700;
+  letter-spacing: 0.06em;
 }
-.scorer-reset-btn:hover { background: rgba(255,255,255,0.1); }
+.scorer-reset-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95); }
 .scorer-dots { display: flex; flex-direction: column; gap: 7px; align-items: center; margin-top: 36px; }
 .scorer-dots span { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
 .scorer-start-btn {
@@ -5530,6 +5532,8 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     </button>
     <div class="scorer-theme-popover" id="scorerThemePopover"></div>
 
+    <button class="scorer-reset-btn" onclick="event.stopPropagation(); scorerReset()" title="重置">RESET</button>
+
     <div class="scorer-board">
       <div class="scorer-stepper-col">
         <div class="scorer-stepper">
@@ -5547,15 +5551,13 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
         <div class="scorer-score" id="scorerScoreA">00</div>
       </div>
 
-      <div class="scorer-center">
-        <button class="scorer-reset-btn" onclick="scorerReset()">RESET</button>
-        <div class="scorer-dots"><span></span><span></span></div>
-        <button class="scorer-start-btn" onclick="scorerStart()" id="scorerStartBtn">
+      <div class="scorer-center" onclick="scorerStart()" style="cursor:pointer;">
+        <button class="scorer-start-btn" id="scorerStartBtn" style="pointer-events:none;">
           <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
         </button>
         <div class="scorer-start-label">START</div>
 
-        <div class="scorer-countdown" id="scorerCountdown">
+        <div class="scorer-countdown" id="scorerCountdown" style="pointer-events:none;">
           <div class="scorer-countdown-text" id="scorerCountdownText"></div>
         </div>
       </div>
