@@ -1784,6 +1784,7 @@ let modalHistory = [];
 let currentModalData = null;
 let IMG = {};
 let PARTS_IMG = {};
+let PARTS_TIER = {}; // 零件階級：{ 'id_cat': tier }，從零件圖鑑 D 欄讀取
 
 const sheetUrl = "https://docs.google.com/spreadsheets/d/1TBHOpcsv25bBfWERq14CBIy4P1G7j-qpPhmclx_nTWI/gviz/tq?tqx=out:csv";
 const partsSheetUrl = sheetUrl + "&sheet=零件圖鑑";
@@ -1893,12 +1894,14 @@ async function loadData(force = false) {
   const cachedDB = localStorage.getItem('bey_db_v2');
   const cachedIMG = localStorage.getItem('bey_img_v2');
   const cachedPartsIMG = localStorage.getItem('bey_parts_img_v2');
+  const cachedPartsTier = localStorage.getItem('bey_parts_tier_v1');
   const cachedDate = localStorage.getItem('bey_date_v2');
 
   if (!force && cachedDB && cachedIMG && cachedPartsIMG && cachedDate) {
       DB = JSON.parse(cachedDB);
       IMG = JSON.parse(cachedIMG);
       PARTS_IMG = JSON.parse(cachedPartsIMG);
+      if (cachedPartsTier) PARTS_TIER = JSON.parse(cachedPartsTier);
       
       const dateEl = document.getElementById('updateDateDisplay');
       dateEl.textContent = extractDateOnly(cachedDate);
@@ -1914,6 +1917,7 @@ async function loadData(force = false) {
           localStorage.removeItem('bey_db_v2');
           localStorage.removeItem('bey_img_v2');
           localStorage.removeItem('bey_parts_img_v2');
+          localStorage.removeItem('bey_parts_tier_v1');
           localStorage.removeItem('bey_date_v2');
           localStorage.removeItem('bey_combo_stats_v1');
       }
@@ -2005,23 +2009,30 @@ function processData(dataMain, dataParts, latestDate) {
   DB = [];
   IMG = {};
   PARTS_IMG = {};
+  PARTS_TIER = {};
   
   if (dataParts && dataParts.length > 0) {
       let headRow = dataParts[0].map(h => (h||"").trim().toLowerCase());
-      let idxId = headRow.findIndex(h => h.includes("型號") || h.includes("名稱") || h.includes("name"));
-      let idxImg = headRow.findIndex(h => h.includes("圖片") || h.includes("img") || h.includes("url"));
-      
-      if(idxId === -1) idxId = 0;
-      if(idxImg === -1) idxImg = 2;
+      let idxId   = headRow.findIndex(h => h.includes("型號") || h.includes("名稱") || h.includes("name"));
+      let idxCat  = headRow.findIndex(h => h.includes("分類") || h.includes("cat") || h.includes("type"));
+      let idxImg  = headRow.findIndex(h => h.includes("圖片") || h.includes("img") || h.includes("url"));
+      let idxTier = headRow.findIndex(h => h.includes("階級") || h.includes("tier"));
+
+      if (idxId   === -1) idxId   = 0;
+      if (idxCat  === -1) idxCat  = 1;
+      if (idxImg  === -1) idxImg  = 2;
+      if (idxTier === -1) idxTier = 3;
 
       for (let i = 1; i < dataParts.length; i++) {
           const row = dataParts[i];
           if (!row || !row[idxId]) continue;
-          const pid = row[idxId].trim();
-          const pImg = row[idxImg] ? row[idxImg].trim() : "";
-          if (pid && pImg) {
-              PARTS_IMG[pid] = pImg;
-          }
+          const pid   = row[idxId].trim();
+          const pCat  = row[idxCat]  ? row[idxCat].trim()  : "";
+          const pImg  = row[idxImg]  ? row[idxImg].trim()  : "";
+          const pTier = row[idxTier] ? row[idxTier].trim() : "";
+
+          if (pid && pImg)            PARTS_IMG[pid] = pImg;
+          if (pid && pCat && pTier)   PARTS_TIER[`${pid}_${pCat}`] = pTier;
       }
   }
   
@@ -2038,9 +2049,11 @@ function processData(dataMain, dataParts, latestDate) {
       const tier = row[4].trim() || "-";
       const manualBuy = row[5] ? row[5].trim().toLowerCase() : "";
       const ratchet = row[6] ? row[6].trim() : "";
-      const ratchetTier = row[7] ? row[7].trim() : "";
+      // 優先從零件圖鑑 PARTS_TIER 取階級，fallback 到 beyblade_x_database H 欄
+      const ratchetTier = ratchet ? (PARTS_TIER[`${ratchet}_ratchet`] || (row[7] ? row[7].trim() : "")) : "";
       const bit = row[8] ? row[8].trim() : "";
-      const bitTier = row[9] ? row[9].trim() : "";
+      // 優先從零件圖鑑 PARTS_TIER 取階級，fallback 到 beyblade_x_database J 欄
+      const bitTier = bit ? (PARTS_TIER[`${bit}_bit`] || (row[9] ? row[9].trim() : "")) : "";
       const assistBlade = row[10] ? row[10].trim() : "";
       const source = row[11] ? row[11].trim() : "";
       const imgUrl = row[12] ? row[12].trim() : "";
@@ -2124,6 +2137,7 @@ function processData(dataMain, dataParts, latestDate) {
   localStorage.setItem('bey_db_v2', JSON.stringify(DB));
   localStorage.setItem('bey_img_v2', JSON.stringify(IMG));
   localStorage.setItem('bey_parts_img_v2', JSON.stringify(PARTS_IMG));
+  localStorage.setItem('bey_parts_tier_v1', JSON.stringify(PARTS_TIER));
   localStorage.setItem('bey_date_v2', latestDate);
   
   const dateEl = document.getElementById("updateDateDisplay");
@@ -5568,6 +5582,7 @@ async function applyUpdate() {
   localStorage.removeItem('bey_db_v2');
   localStorage.removeItem('bey_img_v2');
   localStorage.removeItem('bey_parts_img_v2');
+  localStorage.removeItem('bey_parts_tier_v1');
   localStorage.removeItem('bey_date_v2');
   localStorage.removeItem('bey_combo_stats_v1');
   localStorage.removeItem('bey_parts_count_v2');
