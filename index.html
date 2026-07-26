@@ -4820,8 +4820,9 @@ function renderAnalysis() {
 
   // 所有倉庫裡有的戰刃（含原裝＋散件）
   const ownedBladeIds = new Set([
-    ...(inv.ownedBlades||[]),
-    ...(inv.blade||[]),
+    ...(inv.ownedBlades||[]),   // 原裝陀螺
+    ...(inv.blade||[]),          // 散件戰刃（備用）
+    ...(inv.bladeCover||[]),     // 散件戰刃上蓋（二手買的戰刃本體）
     ...fromBlades.blade,
   ]);
 
