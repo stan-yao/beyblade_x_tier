@@ -1957,7 +1957,7 @@ async function loadData(force = false) {
   const cachedPartsTier = localStorage.getItem('bey_parts_tier_v1');
   const cachedDate = localStorage.getItem('bey_date_v2');
 
-  if (!force && cachedDB && cachedIMG && cachedPartsIMG && cachedDate) {
+  if (!force && cachedDB && cachedIMG && cachedPartsIMG && cachedPartsTier && cachedDate) {
       DB = JSON.parse(cachedDB);
       IMG = JSON.parse(cachedIMG);
       PARTS_IMG = JSON.parse(cachedPartsIMG);
@@ -4026,11 +4026,11 @@ async function renderShareCanvas(transparentMode = false) {
           const bladeLabel = item.name && item.name !== item.id
             ? `${item.id} ${item.name}`
             : (item.id || item.name || '');
-          ctx.font = `600 16px "Inter","Noto Sans TC",sans-serif`;
+          ctx.font = `600 12px "Inter","Noto Sans TC",sans-serif`;
           ctx.fillStyle = 'rgba(255,255,255,0.85)';
           ctx.fillText(bladeLabel, x, nameY);
         } else {
-          ctx.font = `600 17px "Noto Sans TC","Inter",sans-serif`;
+          ctx.font = `600 13px "Noto Sans TC","Inter",sans-serif`;
           ctx.fillStyle = 'rgba(255,255,255,0.8)';
           ctx.fillText(name, x, nameY);
         }
