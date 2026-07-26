@@ -4727,10 +4727,10 @@ function parseComboNeed(blade) {
   const rawText = [blade.comboText, blade.noteText].filter(Boolean).join("\n");
   if (!rawText) return combos;
 
-  // 把 <br> 換成換行，再按行處理
-  const lines = rawText.replace(/<br\s*\/?>\s*/gi, "\n").split(/\n/);
+  // 移除 # 開頭的註解
+  const cleaned = rawText.replace(/#[^\n]*/g, '').replace(/<br\s*\/?>\s*/gi, "\n");
+  const lines = cleaned.split(/\n/);
 
-  // 去除前綴標籤（固鎖：/ 軸心：/ 輔助戰刃：/ 冠軍配置：等）
   function stripLabels(str) {
     return str.replace(/[^\|\/,]+：/g, ' ').trim();
   }
@@ -4739,57 +4739,76 @@ function parseComboNeed(blade) {
     const trimmed = stripLabels(line.trim());
     if (!trimmed) return;
 
-    // | 切成左右兩段（左=固鎖段，右=軸心段）
     const pipeIdx = trimmed.indexOf("|");
-    const leftRaw  = pipeIdx !== -1 ? trimmed.slice(0, pipeIdx) : trimmed;
-    const rightRaw = pipeIdx !== -1 ? trimmed.slice(pipeIdx + 1) : "";
+    const leftRaw  = pipeIdx !== -1 ? trimmed.slice(0, pipeIdx).trim() : trimmed.trim();
+    const rightRaw = pipeIdx !== -1 ? trimmed.slice(pipeIdx + 1).trim() : "";
 
-    function parseColumn(raw) {
-      if (!raw.trim()) return [[]];
-      return raw.split("/").map(group =>
-        group.split(",").map(s => s.trim()).filter(Boolean)
-      );
-    }
+    // 右欄軸心/輔助選項
+    const rightBits = rightRaw
+      ? rightRaw.split("/").map(s => s.trim()).filter(s => DB.find(x => x.cat === "bit" && x.id === s))
+      : [];
+    const rightAssists = rightRaw
+      ? rightRaw.split("/").map(s => s.trim()).filter(s => s.startsWith("輔助"))
+      : [];
 
-    const leftGroups  = parseColumn(leftRaw);
-    const rightGroups = parseColumn(rightRaw);
+    // 左欄用 / 分隔成多個 slot，每個 slot 可能含逗號綁定
+    const leftSlots = leftRaw.split("/").map(s => s.trim()).filter(Boolean);
 
-    leftGroups.forEach(leftItems => {
-      const lRatchets = [], lBits = [], lAssists = [];
-      leftItems.forEach(token => {
-        if (token.startsWith("輔助")) lAssists.push(token);
-        else if (DB.find(x => x.cat === "ratchet" && x.id === token)) lRatchets.push(token);
-        else if (DB.find(x => x.cat === "bit"     && x.id === token)) lBits.push(token);
-      });
+    leftSlots.forEach(slot => {
+      // 逗號分隔：第一個是主零件，後面是綁定搭配
+      const parts = slot.split(",").map(s => s.trim()).filter(Boolean);
+      const primary = parts[0];
+      const bound   = parts.slice(1);
 
-      // 左欄已同時含固鎖+軸心 → 直接輸出
-      if (lRatchets.length >= 1 && lBits.length >= 1) {
-        combos.push({ ratchets: lRatchets, bits: lBits, assists: lAssists });
-        return;
-      }
+      const isRatchet = !!DB.find(x => x.cat === "ratchet" && x.id === primary);
+      const isBit     = !!DB.find(x => x.cat === "bit"     && x.id === primary);
+      const isAssist  = primary.startsWith("輔助");
 
-      // 否則與右欄做笛卡兒積
-      if (rightGroups.length === 0 || (rightGroups.length === 1 && rightGroups[0].length === 0)) {
-        if (lRatchets.length || lBits.length || lAssists.length)
-          combos.push({ ratchets: lRatchets, bits: lBits, assists: lAssists });
-        return;
-      }
+      if (bound.length > 0) {
+        // 有逗號綁定：直接用綁定的零件，不看右欄
+        const ratchets = isRatchet ? [primary] : [];
+        const bits     = isBit     ? [primary] : [];
+        const assists  = isAssist  ? [primary] : [];
 
-      rightGroups.forEach(rightItems => {
-        const ratchets = [...lRatchets], bits = [...lBits], assists = [...lAssists];
-        rightItems.forEach(token => {
-          if (token.startsWith("輔助")) assists.push(token);
-          else if (DB.find(x => x.cat === "bit"     && x.id === token)) bits.push(token);
-          else if (DB.find(x => x.cat === "ratchet" && x.id === token)) ratchets.push(token);
+        bound.forEach(b => {
+          if (b.startsWith("輔助"))                                assists.push(b);
+          else if (DB.find(x => x.cat === "bit"     && x.id === b)) bits.push(b);
+          else if (DB.find(x => x.cat === "ratchet" && x.id === b)) ratchets.push(b);
         });
-        if (ratchets.length || bits.length || assists.length)
+
+        if (ratchets.length >= 1 && bits.length >= 1) {
           combos.push({ ratchets, bits, assists });
-      });
+        }
+      } else {
+        // 無逗號綁定：與右欄做笛卡兒積
+        if (rightBits.length > 0 || rightAssists.length > 0) {
+          const bitsToUse = rightBits.length > 0 ? rightBits : [undefined];
+          bitsToUse.forEach(bit => {
+            const ratchets = isRatchet ? [primary] : [];
+            const bits     = [];
+            const assists  = [...rightAssists];
+            if (isBit && primary) bits.push(primary);
+            if (bit)              bits.push(bit);
+            if (isAssist)         assists.push(primary);
+            if (ratchets.length >= 1 && bits.length >= 1) {
+              combos.push({ ratchets, bits, assists });
+            }
+          });
+        } else {
+          const ratchets = isRatchet ? [primary] : [];
+          const bits     = isBit     ? [primary] : [];
+          const assists  = isAssist  ? [primary] : [];
+          if (ratchets.length || bits.length || assists.length) {
+            combos.push({ ratchets, bits, assists });
+          }
+        }
+      }
     });
   });
 
   return combos;
 }
+
 
 function renderAnalysis() {
   const inv = loadInventory();
