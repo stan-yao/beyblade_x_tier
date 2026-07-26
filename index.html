@@ -191,6 +191,8 @@ body.engineer-mode {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
   color: #fff; text-align: center;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
 body.engineer-mode #engineerBar { display: block; }
 /* 拖曳中的卡片 */
@@ -1675,10 +1677,6 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 </style>
 <body>
 
-<!-- 工程師模式提示條 -->
-<div id="engineerBar">⚙ 工程師模式｜拖曳卡片到目標階級區塊以修改｜長按「建議與問題回報」3秒退出</div>
-<div id="tierSaveToast"></div>
-
 <!-- 版本更新提示 Banner -->
 <div id="updateBanner">
   <div class="ub-inner">
@@ -1734,6 +1732,10 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   </div>
   <p class="source-note">網站建立 @stan_yao　資料來源 阿土 / @RENLIgames 等主觀綜合評估</p>
 </header>
+
+<!-- 工程師模式提示條（放在 header 之後避免 iOS sticky bug） -->
+<div id="engineerBar">⚙ 工程師模式｜拖曳卡片到目標階級區塊以修改｜長按「建議與問題回報」2秒退出</div>
+<div id="tierSaveToast"></div>
 
 <main id="main"></main>
 
