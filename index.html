@@ -3709,7 +3709,7 @@ function renderSharePage() {
     const cells = partOrder.map(part => {
       const item = combo[part];
       if (item) {
-        const imgUrl = part==='blade'||part==='assist' ? getImgUrl(item) : PARTS_IMG[item.id]||'';
+        const imgUrl = part==='blade'||part==='assist' ? getImgUrl(item) : (item._variantImgUrl || PARTS_IMG[item.id]||'');
         const thumb = imgUrl
           ? `<img src="${imgUrl}" style="width:44px;height:44px;object-fit:contain;">`
           : `<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);"></div>`;
@@ -4026,11 +4026,11 @@ async function renderShareCanvas(transparentMode = false) {
           const bladeLabel = item.name && item.name !== item.id
             ? `${item.id} ${item.name}`
             : (item.id || item.name || '');
-          ctx.font = `600 12px "Inter","Noto Sans TC",sans-serif`;
+          ctx.font = `600 16px "Inter","Noto Sans TC",sans-serif`;
           ctx.fillStyle = 'rgba(255,255,255,0.85)';
           ctx.fillText(bladeLabel, x, nameY);
         } else {
-          ctx.font = `600 13px "Noto Sans TC","Inter",sans-serif`;
+          ctx.font = `600 17px "Noto Sans TC","Inter",sans-serif`;
           ctx.fillStyle = 'rgba(255,255,255,0.8)';
           ctx.fillText(name, x, nameY);
         }
