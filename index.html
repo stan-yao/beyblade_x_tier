@@ -2417,6 +2417,7 @@ function processData(dataMain, dataParts, latestDate) {
       // 優先從零件圖鑑 PARTS_TIER 取階級，fallback 到 beyblade_x_database J 欄
       const bitTier = bit ? (PARTS_TIER[`${bit}_bit`] || (row[9] ? row[9].trim() : "")) : "";
       const assistBlade = row[10] ? row[10].trim() : "";
+      const assistTier = assistBlade ? (PARTS_TIER[`輔助${assistBlade}_assist`] || "") : "";
       const source = row[11] ? row[11].trim() : "";
       const imgUrl = row[12] ? row[12].trim() : "";
       const comboText = row[13] ? row[13].trim() : "";
@@ -2443,10 +2444,10 @@ function processData(dataMain, dataParts, latestDate) {
       if (["yes", "maybe", "no"].includes(manualBuy)) {
           finalBuy = manualBuy;
       } else {
-          finalBuy = calculateBuyRec(tier, ratchetTier, bitTier);
+          finalBuy = calculateBuyRec(tier, ratchetTier, bitTier, assistTier);
       }
       
-      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, comboText, noteText, communityCombo };
+      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, assistTier, comboText, noteText, communityCombo };
 
       if (tier) {
           DB.push(bladeObj);
@@ -2482,9 +2483,10 @@ function processData(dataMain, dataParts, latestDate) {
           const assistId = "輔助" + assistBlade;
           const assistKey = "assist_" + assistBlade;
           if (!partAggregator[assistKey]) {
+              const aTier = PARTS_TIER[`${assistId}_assist`] || "-";
               partAggregator[assistKey] = {
                   id: assistId, name: assistId, cat: "assist", type: "assist",
-                  tier: "-",
+                  tier: aTier,
                   buy: "no",
                   source: "輔助戰刃",
                   products: []
@@ -2516,22 +2518,24 @@ function getBuyRec(t) {
     return "no";
 }
 
-function calculateBuyRec(bladeT, ratchetT, bitT) {
+function calculateBuyRec(bladeT, ratchetT, bitT, assistT) {
     const scores = {
         "X": 100, "S+": 90, "S": 80, "A+": 70, "A": 60,
         "B+": 50, "B": 40, "C+": 30, "C": 20, "D+": 15, "D": 10, "E+": 5, "E": 0
     };
     
-    let bScore = scores[bladeT];
-    let rScore = scores[ratchetT];
+    let bScore   = scores[bladeT];
+    let rScore   = scores[ratchetT];
     let bitScore = scores[bitT];
+    let aScore   = scores[assistT];
 
     let totalWeight = 0;
-    let totalScore = 0;
+    let totalScore  = 0;
 
-    if (bScore !== undefined) { totalScore += bScore * 2; totalWeight += 2; }
-    if (rScore !== undefined) { totalScore += rScore * 1; totalWeight += 1; }
+    if (bScore   !== undefined) { totalScore += bScore   * 2; totalWeight += 2; }
+    if (rScore   !== undefined) { totalScore += rScore   * 1; totalWeight += 1; }
     if (bitScore !== undefined) { totalScore += bitScore * 1; totalWeight += 1; }
+    if (aScore   !== undefined) { totalScore += aScore   * 1; totalWeight += 1; }
 
     if (totalWeight === 0) return "no";
 
@@ -2740,7 +2744,7 @@ function render() {
       const imgUrl = getImgUrl(d);
 
       let displayName = d.name;
-      let displaySub = (d.cat === "blade") ? d.id : (d.cat === "ratchet" ? "固鎖 Ratchet" : "軸心 Bit");
+      let displaySub = (d.cat === "blade") ? d.id : (d.cat === "ratchet" ? "固鎖 Ratchet" : d.cat === "bit" ? "軸心 Bit" : "輔助戰刃");
 
       const imgHtml = imgUrl
         ? `<img class="card-img" src="${imgUrl}" alt="${d.name}" loading="lazy"
@@ -2998,7 +3002,7 @@ function openModal(d, fromBladeId) {
           <div style="margin-top:1rem; padding-top:0.8rem; border-top:1px solid var(--border); text-align:left;">
             <div style="display: flex; align-items: center; font-size: 0.85rem; color: var(--accent); margin-bottom: 6px; font-weight:700;"><div style="width: 2px; height: 14px; background: var(--accent); border-radius: 1px; margin-right: 6px;"></div>原裝配置 <span style="font-weight: 300; opacity: 0.6; font-size: 0.75rem; margin-left: 5px;">(點擊查看)</span>：</div>
             <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text);">
-              ${d.assistBlade ? `輔助戰刃：<span class="clickable-part" ${aClick}>輔助${d.assistBlade}</span><br>` : ''}
+              ${d.assistBlade ? `輔助戰刃：<span class="clickable-part" ${aClick}>輔助${d.assistBlade}</span>${d.assistTier ? ` (${d.assistTier}級)` : ''}<br>` : ''}
               ${d.ratchet ? `固鎖：<span class="clickable-part" ${rClick}>${d.ratchet}</span>${d.ratchetTier ? ` (${d.ratchetTier}級)` : ''}<br>` : ''}
               ${d.bit ? `軸心：<span class="clickable-part" ${bClick}>${d.bit}</span>${d.bitTier ? ` (${d.bitTier}級)` : ''}` : ''}
             </div>
