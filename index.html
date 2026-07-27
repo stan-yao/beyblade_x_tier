@@ -1495,22 +1495,26 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 /* 中央控制軸 */
 .scorer-center {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 22px; padding: 0 36px;
+  gap: 22px; padding: 24px 36px 48px;
   border-left: 1px solid rgba(255,255,255,0.06);
   border-right: 1px solid rgba(255,255,255,0.06);
   position: relative;
   align-self: stretch;
 }
 .scorer-reset-btn {
-  position: absolute; top: 46px; right: 92px; z-index: 20;
-  width: 38px; height: 38px; border-radius: 50%;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.6); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: background 0.15s, color 0.15s;
-  font-family: 'Roboto', sans-serif; font-size: 0.55rem; font-weight: 700;
-  letter-spacing: 0.06em;
+  width: 68px; height: 68px; border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.45);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif; font-size: 0.65rem; font-weight: 400; letter-spacing: 0.12em;
+  user-select: none; -webkit-user-select: none;
+  pointer-events: auto;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  margin-top: auto;
 }
-.scorer-reset-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.95); }
+.scorer-reset-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.35); }
 .scorer-dots { display: flex; flex-direction: column; gap: 7px; align-items: center; margin-top: 36px; }
 .scorer-dots span { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
 .scorer-start-btn {
@@ -1585,7 +1589,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   .scorer-stepper button { font-size: 1.2rem; }
   .scorer-start-btn { width: 52px; height: 52px; }
   .scorer-start-btn svg { width: 18px; height: 18px; }
-  .scorer-reset-btn { padding: 6px 12px; font-size: 0.62rem; }
+
   .scorer-center { gap: 12px; padding: 0 8px; max-width: 100px; }
 }
 
@@ -1597,7 +1601,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
   .scorer-stepper button { font-size: 1rem; }
   .scorer-start-btn { width: 52px; height: 52px; }
   .scorer-start-btn svg { width: 18px; height: 18px; }
-  .scorer-reset-btn { padding: 7px 14px; font-size: 0.62rem; }
+
   .scorer-center { gap: 12px; padding: 0 10px; }
   .scorer-team-label { font-size: 0.7rem; }
   .scorer-team-underline { margin-bottom: 10px; }
@@ -6241,8 +6245,6 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     </button>
     <div class="scorer-theme-popover" id="scorerThemePopover"></div>
 
-    <button class="scorer-reset-btn" onclick="event.stopPropagation(); scorerReset()" title="重置">RESET</button>
-
     <div class="scorer-board">
       <div class="scorer-stepper-col">
         <div class="scorer-stepper">
@@ -6261,14 +6263,15 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
       </div>
 
       <div class="scorer-center" onclick="scorerStart()" style="cursor:pointer;">
-        <button class="scorer-start-btn" id="scorerStartBtn" style="pointer-events:none;">
+        <button class="scorer-start-btn" id="scorerStartBtn" style="pointer-events:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);">
           <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
         </button>
-        <div class="scorer-start-label">START</div>
+        <div class="scorer-start-label" style="position:absolute; top:calc(50% + 46px); left:50%; transform:translateX(-50%);">START</div>
 
         <div class="scorer-countdown" id="scorerCountdown" style="pointer-events:none;">
           <div class="scorer-countdown-text" id="scorerCountdownText"></div>
         </div>
+        <div class="scorer-reset-btn" onclick="event.stopPropagation(); scorerReset()">RESET</div>
       </div>
 
       <div class="scorer-team team-b">
