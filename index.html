@@ -4608,7 +4608,7 @@ function renderOverview(inv, fromBlades) {
 
       // 戰刃卡片（跟散件零件同款 owned-blade-card）
       const bladeKey = `blade|${bid}`;
-      const bladeCard = `<div class="owned-blade-card owned overview-card" style="cursor:default;position:relative;">
+      const bladeCard = `<div class="owned-blade-card owned overview-card" onclick="openModal(DB.find(x=>x.id==='${bid}'&&x.cat==='blade'))" style="cursor:pointer;position:relative;">
         ${bladeImg ? `<img class="owned-blade-thumb" src="${bladeImg}" loading="lazy">` : `<div class="owned-blade-thumb-ph">${bid}</div>`}
         <div class="owned-blade-info" style="flex:1;min-width:0;">
           <div class="owned-blade-name">${blade.name}</div>
@@ -4633,8 +4633,8 @@ function renderOverview(inv, fromBlades) {
         const isManual = (inv[p.cat] || []).includes(p.val);
         const canDel = overviewDeleteMode && isManual;
         return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}"
-          ${canDel ? `onclick="overviewToggleSelect('${key}')"` : ''}
-          style="cursor:${canDel?'pointer':'default'};position:relative;${isSelected?'border-color:var(--danger) !important;outline:1.5px solid var(--danger);':''}">
+          ${canDel ? `onclick="overviewToggleSelect('${key}')"` : `onclick="openModal(DB.find(x=>x.id==='${p.val}'&&x.cat==='${p.cat}'),'${bid}')"`}
+          style="cursor:pointer;position:relative;${isSelected?'border-color:var(--danger) !important;outline:1.5px solid var(--danger);':''}">
           ${canDel ? `<div class="overview-del-badge" style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:${isSelected?'var(--danger)':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;font-weight:700;z-index:2;">✕</div>` : ''}
           ${img ? `<img class="owned-blade-thumb" src="${img}" loading="lazy" style="background:transparent;">` : `<div class="owned-blade-thumb-ph">${p.val}</div>`}
           <div class="owned-blade-info" style="flex:1;min-width:0;">
@@ -4690,6 +4690,7 @@ function renderOverview(inv, fromBlades) {
       const displayIndices = selectedIndices.length > 0 ? selectedIndices : autoColorIndices;
       const key = `${cat}|${id}`;
       const isSelected = overviewDeleteSelected.has(key);
+      const modalCat = cat === 'bladeCover' ? 'blade' : cat;
       const canDel = overviewDeleteMode && isManual;
       const delAttrs = canDel ? `onclick="overviewToggleSelect('${key}')" style="cursor:pointer;position:relative;${isSelected?'outline:1.5px solid var(--danger);':''}"`  : `style="cursor:default;position:relative;"`;
       const delBadge = canDel ? `<div class="overview-del-badge" style="position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:${isSelected?'var(--danger)':'rgba(255,255,255,0.2)'};display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#fff;font-weight:700;z-index:2;">✕</div>` : '';
@@ -4699,8 +4700,12 @@ function renderOverview(inv, fromBlades) {
         return displayIndices.map(i => {
           const v = variants[i]; if (!v) return '';
           const colorThumb = v.img ? `<img class="owned-blade-thumb" src="${v.img}" alt="${v.color||''}" loading="lazy">` : `<div class="owned-blade-thumb-ph">${v.color||id}</div>`;
-          return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}" ${isAuto?'style="opacity:0.75;cursor:default;position:relative;"':delAttrs}>
-            ${!isAuto ? delBadge : ''}
+          const colorModalClick = item && !overviewDeleteMode ? `onclick="openModal(DB.find(x=>x.id==='${id}'&&x.cat==='${modalCat}'))"` : '';
+          const colorAttrs = isAuto
+            ? `style="opacity:0.75;cursor:${overviewDeleteMode?'default':'pointer'};position:relative;" ${!overviewDeleteMode ? colorModalClick : ''}`
+            : overviewDeleteMode ? delAttrs : `style="cursor:pointer;position:relative;" ${colorModalClick}`;
+          return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}" ${colorAttrs}>
+            ${!isAuto && overviewDeleteMode ? delBadge : ''}
             ${colorThumb}
             <div class="owned-blade-info" style="flex:1;min-width:0;">
               <div class="owned-blade-name">${id}</div>
@@ -4712,9 +4717,12 @@ function renderOverview(inv, fromBlades) {
       }
       // 純原裝帶入（沒有手動加入）才鎖死不可刪除；有手動加入的即使同時是原裝帶入也可刪
       const pureFromB = fromB && !isManual;
-      const finalAttrs = pureFromB ? `style="opacity:0.75;cursor:default;position:relative;"` : delAttrs;
+      const modalClick = item && !overviewDeleteMode ? `onclick="openModal(DB.find(x=>x.id==='${id}'&&x.cat==='${modalCat}'))"` : '';
+      const finalAttrs = pureFromB
+        ? `style="opacity:0.75;${overviewDeleteMode?'cursor:default;':'cursor:pointer;'}position:relative;" ${modalClick}`
+        : overviewDeleteMode ? delAttrs : `style="cursor:pointer;position:relative;" ${modalClick}`;
       return `<div class="owned-blade-card owned overview-card overview-del-card" data-delkey="${key}" ${finalAttrs}>
-        ${!pureFromB ? delBadge : ''}
+        ${!pureFromB && overviewDeleteMode ? delBadge : ''}
         ${thumb}
         <div class="owned-blade-info" style="flex:1;min-width:0;">
           <div class="owned-blade-name">${item?.name||id}</div>
