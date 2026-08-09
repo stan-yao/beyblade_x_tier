@@ -754,11 +754,12 @@ main { padding: 1.2rem 2rem 4rem; }
   pointer-events: auto;
   margin-top: 2px;
 }
-.float-island.fi-open .fi-expand-btn:nth-of-type(1) { transition-delay: 0.22s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(2) { transition-delay: 0.18s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(3) { transition-delay: 0.14s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(4) { transition-delay: 0.06s; }
-.float-island.fi-open .fi-expand-btn:nth-of-type(5) { transition-delay: 0.02s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(1) { transition-delay: 0.26s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(2) { transition-delay: 0.22s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(3) { transition-delay: 0.18s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(4) { transition-delay: 0.14s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(5) { transition-delay: 0.06s; }
+.float-island.fi-open .fi-expand-btn:nth-of-type(6) { transition-delay: 0.02s; }
 
 /* 九點漢堡 → X 圖示切換 */
 .fi-dots-icon, .fi-x-icon {
@@ -1251,6 +1252,112 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .sim-picker-item-id { font-size: 0.88rem; color: var(--text); }
 .sim-picker-item-name { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
 .sim-picker-item-tier { font-family: 'Barlow Condensed', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+
+/* ── 補貨情報站 ── */
+.restock-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.restock-status {
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted);
+}
+.restock-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(122,223,96,0.6);
+  animation: restock-pulse 2s ease-in-out infinite;
+}
+@keyframes restock-pulse {
+  0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+.restock-add-btn {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  background: rgba(18,239,206,0.08); border: 1px solid rgba(18,239,206,0.2);
+  color: var(--accent); cursor: pointer; transition: all 0.15s;
+}
+.restock-add-btn:hover { background: rgba(18,239,206,0.14); }
+
+.restock-list { display: flex; flex-direction: column; gap: 8px; }
+
+.restock-item {
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  padding: 12px; overflow: hidden; transition: border-color 0.18s;
+  display: flex; align-items: center; gap: 12px;
+}
+.restock-item.in-stock { border-color: rgba(122,223,96,0.2); }
+.restock-item.out-of-stock { opacity: 0.55; }
+
+/* 縮圖 */
+.restock-thumb {
+  width: 72px; height: 72px; flex-shrink: 0; flex-grow: 0;
+  border-radius: 10px; overflow: hidden;
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.restock-thumb img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.restock-thumb-ph {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--muted); text-align: center; padding: 4px; line-height: 1.3;
+  width: 100%; display: flex; align-items: center; justify-content: center;
+}
+
+/* 中間資訊 */
+.restock-info { flex: 1; min-width: 0; }
+.restock-name {
+  font-size: 0.9rem; color: var(--text); font-weight: 500; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 5px;
+}
+.restock-tags {
+  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+}
+.restock-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em;
+  padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+}
+.badge-instock { background: rgba(122,223,96,0.15); color: var(--success); border: 1px solid rgba(122,223,96,0.25); }
+.badge-nostock { background: rgba(255,255,255,0.05); color: var(--muted);  border: 1px solid rgba(255,255,255,0.1); }
+.badge-monitor { background: rgba(18,239,206,0.07);  color: rgba(18,239,206,0.55); border: 1px solid rgba(18,239,206,0.14); }
+.badge-manual  { background: rgba(105,167,255,0.08); color: var(--accent-2); border: 1px solid rgba(105,167,255,0.18); }
+.restock-stock {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem; letter-spacing: 0.04em; color: var(--muted);
+}
+.restock-platform {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; color: var(--accent-2);
+}
+.restock-price { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; color: var(--warn); }
+.restock-time  { font-size: 0.62rem; color: rgba(122,165,255,0.4); }
+.restock-note  { font-size: 0.65rem; color: var(--muted); }
+
+/* 購買按鈕 */
+.restock-buy-btn {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem;
+  font-weight: 700; letter-spacing: 0.06em;
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  background: rgba(18,239,206,0.08); border: 1px solid rgba(18,239,206,0.25);
+  color: var(--accent); cursor: pointer; transition: all 0.15s;
+  text-decoration: none; display: inline-block; flex-shrink: 0; white-space: nowrap;
+}
+.restock-buy-btn:hover { background: rgba(18,239,206,0.16); }
+
+.restock-empty {
+  text-align: center; padding: 50px 20px;
+  color: var(--muted); font-size: 0.85rem; line-height: 1.8;
+}
 
 .share-page {
   position: fixed; top: 0; left: 0; right: 0;
@@ -1930,6 +2037,13 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 <main id="main"></main>
 
 <div class="float-island" id="floatIsland">
+  <button class="fi-btn fi-expand-btn" onclick="openRestock(); closeFiIsland();" title="補貨情報站" id="restockFiBtn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+  </button>
   <button class="fi-btn fi-expand-btn" onclick="openSimulator(); closeFiIsland();" title="組合模擬器" id="simulatorFiBtn">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -2108,6 +2222,60 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
     </div>
     <input class="sim-picker-search" id="simPickerSearch" placeholder="搜尋型號或名稱..." oninput="simFilterPicker(this.value)" autocomplete="off">
     <div class="sim-picker-list" id="simPickerList"></div>
+  </div>
+</div>
+
+<!-- 補貨情報站 -->
+<div class="share-page" id="restockPage">
+  <div class="share-inner">
+    <div class="share-header">
+      <div class="share-title-wrap">
+        <div class="share-title" style="transform:skewX(-8deg);">RESTOCK</div>
+        <div class="share-subtitle">補貨情報站</div>
+      </div>
+    </div>
+
+    <div class="restock-toolbar">
+      <div class="restock-status" id="restockStatus">
+        <span class="restock-dot"></span><span id="restockStatusText">監控中</span>
+      </div>
+
+    </div>
+
+    <div id="restockList" class="restock-list"></div>
+
+  </div>
+</div>
+
+<!-- 補貨情報站 新增/編輯 Modal -->
+<div class="modal-overlay" id="restockAddOverlay" style="display:none;z-index:9998;" onclick="if(event.target===this)restockCloseAdd()">
+  <div class="modal-card" style="max-width:400px;width:90%;">
+    <div class="modal-header">
+      <div class="modal-title" id="restockAddTitle">新增監控商品</div>
+      <button class="modal-close" onclick="restockCloseAdd()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;padding:16px 0 8px;">
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;letter-spacing:0.06em;">商品名稱</div>
+        <input id="restockInputName" type="text" placeholder="例：BX-23 天馬 Prominence" style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:16px;font-family:'Noto Sans TC',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;letter-spacing:0.06em;">購買連結（選填）</div>
+        <input id="restockInputUrl" type="url" placeholder="https://..." style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:16px;font-family:'Noto Sans TC',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;letter-spacing:0.06em;">參考售價（選填）</div>
+        <input id="restockInputPrice" type="text" placeholder="例：NT$ 390" style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:16px;font-family:'Noto Sans TC',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:5px;letter-spacing:0.06em;">備註（選填）</div>
+        <input id="restockInputNote" type="text" placeholder="例：限量、預購..." style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:16px;font-family:'Noto Sans TC',sans-serif;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding-top:8px;">
+      <button onclick="restockCloseAdd()" style="flex:1;padding:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;letter-spacing:0.06em;">取消</button>
+      <button onclick="restockSaveAdd()" style="flex:2;padding:10px;background:rgba(18,239,206,0.1);border:1px solid rgba(18,239,206,0.3);border-radius:10px;color:var(--accent);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;font-weight:700;letter-spacing:0.06em;">儲存</button>
+    </div>
   </div>
 </div>
 
@@ -3572,6 +3740,7 @@ function goHome() {
   document.getElementById("vaultPage").classList.remove("active");
   document.getElementById("sharePage").classList.remove("active");
   document.getElementById("simulatorPage").classList.remove("active");
+  document.getElementById("restockPage").classList.remove("active");
   document.body.style.overflow = "";
   setIslandActive("home");
 }
@@ -3607,6 +3776,7 @@ document.addEventListener('click', (e) => {
 function openSimulator() {
   document.getElementById('sharePage').classList.remove('active');
   document.getElementById('vaultPage').classList.remove('active');
+  document.getElementById('restockPage').classList.remove('active');
   document.getElementById('simulatorPage').classList.add('active');
   document.body.style.overflow = 'hidden';
   setIslandActive('simulator');
@@ -3620,6 +3790,7 @@ function closeSimulator() {
 function openVault() {
   document.getElementById("sharePage").classList.remove("active");
   document.getElementById("simulatorPage").classList.remove("active");
+  document.getElementById("restockPage").classList.remove("active");
   const vp = document.getElementById("vaultPage");
   vp.scrollTop = 0;
   vp.classList.add("active");
@@ -3831,6 +4002,7 @@ let shareState = {
 function openShare() {
   document.getElementById("vaultPage").classList.remove("active");
   document.getElementById("simulatorPage").classList.remove("active");
+  document.getElementById("restockPage").classList.remove("active");
   const sp = document.getElementById("sharePage");
   sp.scrollTop = 0;
   sp.classList.add("active");
@@ -6710,6 +6882,243 @@ setTimeout(hideSplash, 8000);
     document.getElementById('simScoreSection').classList.remove('show');
   };
 })();
+
+// ════════════════════════════════════════════════
+// 補貨情報站
+// ════════════════════════════════════════════════
+const RESTOCK_KEY = 'bey_restock_v1';
+let restockEditId = null;
+
+function loadRestockItems() {
+  try { return JSON.parse(localStorage.getItem(RESTOCK_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveRestockItems(items) {
+  localStorage.setItem(RESTOCK_KEY, JSON.stringify(items));
+}
+
+function openRestock() {
+  document.getElementById('sharePage').classList.remove('active');
+  document.getElementById('vaultPage').classList.remove('active');
+  document.getElementById('simulatorPage').classList.remove('active');
+  document.getElementById('restockPage').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  setIslandActive('restock');
+  renderRestockList(); // 先顯示快取
+  fetchRestockFromSheet(); // 背景拉最新資料
+}
+function closeRestock() {
+  document.getElementById('restockPage').classList.remove('active');
+  document.body.style.overflow = '';
+  setIslandActive('home');
+}
+
+function renderRestockList() {
+  const items = loadRestockItems();
+  const el = document.getElementById('restockList');
+  if (!el) return;
+  if (items.length === 0) {
+    el.innerHTML = `<div class="restock-empty">
+      📦 目前沒有監控中的商品<br>
+      <span style="font-size:0.75rem;">點擊右上角「新增商品」手動加入</span>
+    </div>`;
+    return;
+  }
+  // 排序：有庫存的在上面，再依時間排序
+  const sorted = [...items].sort((a, b) => {
+    if (a.inStock !== b.inStock) return b.inStock - a.inStock;
+    return (b.updatedAt || 0) - (a.updatedAt || 0);
+  });
+  el.innerHTML = sorted.map(item => {
+    const statusClass = item.inStock ? 'in-stock' : 'out-of-stock';
+
+    // 縮圖：優先用商品圖，否則平台名稱
+    const ph = item.platform || '?';
+    const thumbHtml = item.imageUrl
+      ? `<img src="${item.imageUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:10px;"
+           onerror="this.style.display='none';this.parentNode.querySelector('.restock-thumb-ph').style.display='flex';">
+         <div class="restock-thumb-ph" style="display:none;">${ph}</div>`
+      : `<div class="restock-thumb-ph">${ph}</div>`;
+
+    // 時間
+    const timeStr = item.updatedAt
+      ? new Date(item.updatedAt).toLocaleString('zh-TW', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '';
+
+    // Badges
+    const stockBadge = item.inStock
+      ? '<span class="restock-badge badge-instock">新商品</span>'
+      : '<span class="restock-badge badge-nostock">缺貨</span>';
+    const sourceBadge = item.source === 'monitor'
+      ? '<span class="restock-badge badge-monitor">自動監控</span>'
+      : '<span class="restock-badge badge-manual">常態商品</span>';
+
+    // 購買按鈕
+    const buyBtn = item.url
+      ? `<a href="${item.url}" target="_blank" rel="noopener" class="restock-buy-btn">前往購買 →</a>`
+      : '';
+
+    return `<div class="restock-item ${statusClass}" data-id="${item.id}">
+      <div class="restock-thumb">${thumbHtml}</div>
+      <div class="restock-info">
+        <div class="restock-name">${item.name}</div>
+        <div class="restock-tags">
+          ${stockBadge}
+          ${item.stockLabel && item.stockLabel !== '有庫存' ? `<span class="restock-stock">庫存 ${item.stockLabel}</span>` : ''}
+          ${item.platform ? `<span class="restock-platform">${item.platform}</span>` : ''}
+          ${item.price    ? `<span class="restock-price">${item.price}</span>` : ''}
+          ${item.note     ? `<span class="restock-note">${item.note}</span>` : ''}
+          ${timeStr       ? `<span class="restock-time">${timeStr}</span>` : ''}
+        </div>
+      </div>
+      ${buyBtn}
+    </div>`;
+  }).join('');
+}
+
+function restockOpenAdd() {
+  restockEditId = null;
+  document.getElementById('restockAddTitle').textContent = '新增監控商品';
+  document.getElementById('restockInputName').value  = '';
+  document.getElementById('restockInputUrl').value   = '';
+  document.getElementById('restockInputPrice').value = '';
+  document.getElementById('restockInputNote').value  = '';
+  document.getElementById('restockAddOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('restockInputName').focus(), 100);
+}
+function restockOpenEdit(id) {
+  const items = loadRestockItems();
+  const item = items.find(x => x.id === id);
+  if (!item) return;
+  restockEditId = id;
+  document.getElementById('restockAddTitle').textContent = '編輯商品';
+  document.getElementById('restockInputName').value  = item.name  || '';
+  document.getElementById('restockInputUrl').value   = item.url   || '';
+  document.getElementById('restockInputPrice').value = item.price || '';
+  document.getElementById('restockInputNote').value  = item.note  || '';
+  document.getElementById('restockAddOverlay').style.display = 'flex';
+}
+function restockCloseAdd() {
+  document.getElementById('restockAddOverlay').style.display = 'none';
+  restockEditId = null;
+}
+function restockSaveAdd() {
+  const name  = document.getElementById('restockInputName').value.trim();
+  if (!name) { document.getElementById('restockInputName').focus(); return; }
+  const url   = document.getElementById('restockInputUrl').value.trim();
+  const price = document.getElementById('restockInputPrice').value.trim();
+  const note  = document.getElementById('restockInputNote').value.trim();
+  const items = loadRestockItems();
+  if (restockEditId) {
+    const idx = items.findIndex(x => x.id === restockEditId);
+    if (idx !== -1) {
+      items[idx] = { ...items[idx], name, url, price, note, updatedAt: Date.now() };
+    }
+  } else {
+    items.unshift({ id: 'local-' + Date.now(), name, url, price, note,
+      source: 'local', inStock: false, updatedAt: Date.now() });
+  }
+  saveRestockItems(items);
+  restockCloseAdd();
+  renderRestockList();
+}
+function restockDelete(id) {
+  if (!confirm('確定要刪除這個商品嗎？')) return;
+  const items = loadRestockItems().filter(x => x.id !== id);
+  saveRestockItems(items);
+  renderRestockList();
+}
+
+// Sheet ID（補貨情報站）
+const RESTOCK_SHEET_ID = '1qm4C4Mz6yK-Ogqa7dk4-oJvW2ACMYQyT0VEUaXQZsO8';
+const RESTOCK_SHEET_URL = `https://docs.google.com/spreadsheets/d/${RESTOCK_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=補貨情報`;
+
+// 從 Google Sheets 拉取補貨資料（開啟頁面時呼叫）
+async function fetchRestockFromSheet() {
+  const statusEl = document.getElementById('restockStatusText');
+  try {
+    if (statusEl) statusEl.textContent = '更新中...';
+    const res = await fetch(RESTOCK_SHEET_URL + '&_=' + Date.now());
+    if (!res.ok) throw new Error('fetch failed');
+    const csv = await res.text();
+    const rows = parseCSV(csv);
+    if (rows.length < 2) {
+      if (statusEl) statusEl.textContent = '監控中（無資料）';
+      return;
+    }
+    const head = rows[0].map(h => (h||'').trim().toLowerCase());
+    const iId   = head.indexOf('id');
+    const iName = head.indexOf('name');
+    const iPlat = head.indexOf('platform');
+    const iUrl  = head.indexOf('url');
+    const iPrice= head.indexOf('price');
+    const iStock= head.indexOf('instock');
+    const iSrc  = head.indexOf('source');
+    const iNote = head.indexOf('note');
+    const iLabel= head.indexOf('stocklabel');
+    const iTime = head.indexOf('updatedat');
+
+    const sheetItems = [];
+    for (let i = 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || !r[iName < 0 ? 1 : iName]) continue;
+      sheetItems.push({
+        id:         r[iId   >= 0 ? iId   : 0]  || String(i),
+        name:       r[iName >= 0 ? iName : 1]  || '',
+        platform:   r[iPlat >= 0 ? iPlat : 2]  || '',
+        url:        r[iUrl  >= 0 ? iUrl  : 3]  || '',
+        price:      r[iPrice>= 0 ? iPrice: 4]  || '',
+        inStock:    (r[iStock>= 0 ? iStock: 5]||'').toUpperCase() === 'TRUE',
+        source:     r[iSrc  >= 0 ? iSrc  : 6]  || 'monitor',
+        note:       r[iNote >= 0 ? iNote : 7]  || '',
+        stockLabel: r[iLabel>= 0 ? iLabel: 8]  || '',
+        updatedAt:  r[iTime >= 0 ? iTime : 9] ? new Date(r[iTime]).getTime() : 0,
+        imageUrl:   r[10] || '',
+      });
+    }
+
+    // 合併 Sheet 資料和手動新增的資料
+    // Sheet 來的 (source=monitor/manual) + 本地手動新增的 (source=local)
+    const localItems = loadRestockItems().filter(x => x.source === 'local');
+    const merged = [...sheetItems, ...localItems];
+    saveRestockItems(merged);
+
+    if (statusEl) {
+      const inStockCount = merged.filter(x => x.inStock).length;
+      statusEl.textContent = inStockCount > 0
+        ? `${inStockCount} 件有貨`
+        : `監控中（${merged.length} 項）`;
+    }
+    renderRestockList();
+  } catch (err) {
+    console.error('[補貨情報] fetch 失敗:', err);
+    if (statusEl) statusEl.textContent = '離線 / 無法連線';
+    renderRestockList(); // 仍顯示本地快取
+  }
+}
+
+// 供監控程式未來透過 localStorage 更新庫存狀態（舊相容）
+function restockUpdateFromMonitor(data) {
+  const items = loadRestockItems();
+  const idx = items.findIndex(x => x.name === data.name || x.id === data.id);
+  if (idx !== -1) {
+    items[idx] = { ...items[idx], ...data, updatedAt: Date.now() };
+  } else {
+    items.unshift({ id: Date.now().toString(), ...data, updatedAt: Date.now() });
+  }
+  saveRestockItems(items);
+  if (document.getElementById('restockPage')?.classList.contains('active')) {
+    renderRestockList();
+  }
+}
+
+// setIslandActive 需要知道 restock
+const _origSetIslandActive = setIslandActive;
+setIslandActive = function(which) {
+  _origSetIslandActive(which);
+  const restockBtn = document.getElementById('restockFiBtn');
+  if (restockBtn) restockBtn.classList.toggle('fi-btn--active', which === 'restock');
+};
 
 checkForUpdate();
 
