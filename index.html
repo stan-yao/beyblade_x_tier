@@ -3745,7 +3745,7 @@ function goHome() {
   setIslandActive("home");
 }
 function setIslandActive(which) {
-  // which: 'home' | 'vault' | 'share' | 'simulator'
+  // which: 'home' | 'vault' | 'share' | 'simulator' | 'restock'
   document.querySelectorAll('.fi-btn').forEach(b => b.classList.remove('fi-btn--active'));
   if (which === 'vault') {
     document.getElementById('vaultFiBtn')?.classList.add('fi-btn--active');
@@ -3753,6 +3753,8 @@ function setIslandActive(which) {
     document.getElementById('shareFiBtn')?.classList.add('fi-btn--active');
   } else if (which === 'simulator') {
     document.getElementById('simulatorFiBtn')?.classList.add('fi-btn--active');
+  } else if (which === 'restock') {
+    document.getElementById('restockFiBtn')?.classList.add('fi-btn--active');
   } else {
     document.getElementById('homeFiBtn')?.classList.add('fi-btn--active');
   }
@@ -6673,6 +6675,7 @@ setTimeout(hideSplash, 8000);
   window.openSimulator = function() {
     document.getElementById('sharePage').classList.remove('active');
     document.getElementById('vaultPage').classList.remove('active');
+    document.getElementById('restockPage').classList.remove('active');
     document.getElementById('simulatorPage').classList.add('active');
     document.body.style.overflow = 'hidden';
     setIslandActive('simulator');
@@ -7111,14 +7114,6 @@ function restockUpdateFromMonitor(data) {
     renderRestockList();
   }
 }
-
-// setIslandActive 需要知道 restock
-const _origSetIslandActive = setIslandActive;
-setIslandActive = function(which) {
-  _origSetIslandActive(which);
-  const restockBtn = document.getElementById('restockFiBtn');
-  if (restockBtn) restockBtn.classList.toggle('fi-btn--active', which === 'restock');
-};
 
 checkForUpdate();
 
