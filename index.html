@@ -988,6 +988,44 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 .analysis-combo .have { color: var(--success); }
 .analysis-combo .missing { color: var(--warn); font-weight: 700; }
 .analysis-empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 0.85rem; }
+.analysis-toolbar { margin: 0 0 14px; }
+.analysis-search {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.05); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; font-size: 0.86rem; outline: none;
+}
+.analysis-search:focus { border-color: rgba(153,255,0,0.45); box-shadow: 0 0 0 3px rgba(153,255,0,0.08); }
+.analysis-blade-group {
+  background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+  border: 1px solid var(--border); border-radius: var(--radius-card);
+  margin-bottom: 8px; overflow: hidden; backdrop-filter: blur(6px);
+}
+.analysis-blade-group[open] { border-color: rgba(255,255,255,0.2); }
+.analysis-blade-summary {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+  padding: 12px 14px; cursor: pointer; list-style: none;
+}
+.analysis-blade-summary::-webkit-details-marker { display: none; }
+.analysis-toggle { color: var(--muted); font-size: 0.78rem; transition: transform 0.15s; }
+.analysis-blade-group[open] .analysis-toggle { transform: rotate(90deg); }
+.analysis-counts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.analysis-count {
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+  padding: 3px 8px; font-size: 0.68rem; font-weight: 700; white-space: nowrap;
+}
+.analysis-count.complete { color: var(--success); background: rgba(122,223,96,0.08); border-color: rgba(122,223,96,0.22); }
+.analysis-count.near { color: var(--warn); background: rgba(255,184,48,0.08); border-color: rgba(255,184,48,0.22); }
+.analysis-open-btn {
+  background: rgba(255,255,255,0.06); color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+  padding: 4px 8px; font-size: 0.68rem; cursor: pointer;
+}
+.analysis-open-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.24); }
+.analysis-group-body { padding: 0 14px 12px; }
+.analysis-section-title { font-size: 0.68rem; font-weight: 800; margin: 8px 0 4px; }
+.analysis-section-title.complete { color: var(--success); }
+.analysis-section-title.near { color: var(--warn); }
 
 .vault-notice {
   position: relative;
@@ -2323,11 +2361,13 @@ const announcementUrl = sheetUrl + "&sheet=公告";
 // 賽事統計資料：{ [site_blade_id]: [ { ratchet, bit, champion_rate, total_wins }, ... ] }
 let COMBO_STATS = {};
 let COMBO_STATS_FULL = {}; // 未截斷的完整賽事資料，供反向查詢用
+const COMBO_STATS_CACHE_KEY = 'bey_combo_stats_v2';
+const COMBO_STATS_FULL_CACHE_KEY = 'bey_combo_stats_full_v2';
 
 async function loadComboStats() {
   try {
-    const cached     = localStorage.getItem('bey_combo_stats_v1');
-    const cachedFull = localStorage.getItem('bey_combo_stats_full_v1');
+    const cached     = localStorage.getItem(COMBO_STATS_CACHE_KEY);
+    const cachedFull = localStorage.getItem(COMBO_STATS_FULL_CACHE_KEY);
     if (cached && cachedFull) {
       COMBO_STATS      = JSON.parse(cached);
       COMBO_STATS_FULL = JSON.parse(cachedFull);
@@ -2374,8 +2414,8 @@ async function loadComboStats() {
     Object.keys(map).forEach(k => {
       COMBO_STATS[k] = map[k].slice(0, 5); // 截斷版，供戰刃卡片用
     });
-    localStorage.setItem('bey_combo_stats_v1',      JSON.stringify(COMBO_STATS));
-    localStorage.setItem('bey_combo_stats_full_v1', JSON.stringify(COMBO_STATS_FULL));
+    localStorage.setItem(COMBO_STATS_CACHE_KEY,      JSON.stringify(COMBO_STATS));
+    localStorage.setItem(COMBO_STATS_FULL_CACHE_KEY, JSON.stringify(COMBO_STATS_FULL));
   } catch(e) {
     console.log("賽事資料載入失敗", e);
   }
@@ -2448,7 +2488,10 @@ async function loadData(force = false) {
           localStorage.removeItem('bey_parts_img_v2');
           localStorage.removeItem('bey_parts_tier_v1');
           localStorage.removeItem('bey_date_v2');
+          localStorage.removeItem(COMBO_STATS_CACHE_KEY);
+          localStorage.removeItem(COMBO_STATS_FULL_CACHE_KEY);
           localStorage.removeItem('bey_combo_stats_v1');
+          localStorage.removeItem('bey_combo_stats_full_v1');
       }
       await loadComboStats();
       await fetchAndProcess();
@@ -2777,6 +2820,46 @@ function showTierToast(msg, duration = 2500) {
   el.style.display = 'block';
   clearTimeout(el._timer);
   el._timer = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+function showInventoryToast(msg = '零件已加入倉庫', duration = 2200) {
+  const existing = document.getElementById('inventoryToast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'inventoryToast';
+  toast.innerHTML = `<span style="font-size:1rem;">✓</span><span>${msg}</span>`;
+  toast.style.cssText = `
+    position: fixed; top: calc(16px + env(safe-area-inset-top)); left: 50%;
+    transform: translateX(-50%) translateY(-18px);
+    z-index: 99999;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(14,16,24,0.94);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(18,239,206,0.28);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.42);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.02em;
+    color: var(--accent);
+    opacity: 0;
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+  `;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+  });
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-18px)';
+    setTimeout(() => toast.remove(), 320);
+  }, duration);
 }
 
 function showDataUpdatedToast() {
@@ -5671,6 +5754,7 @@ function savePartVariants() {
   const inv = loadInventory();
   if (!inv.partVariants) inv.partVariants = {};
   const key = `${_pvpCat}_${_pvpId}`;
+  const addedToWarehouse = _pvpTempSelected.length > 0;
 
   if (_pvpTempSelected.length === 0) {
     // 一個都沒選 → 視同取消擁有這個零件
@@ -5697,6 +5781,7 @@ function savePartVariants() {
   const latestInv = loadInventory();
   console.log('[savePartVariants] rendering with q=""', 'DB.length:', DB.length, 'ratchets:', DB.filter(x=>x.cat==='ratchet').length);
   renderLooseParts(latestInv, getPartsFromOwnedBlades(latestInv), '');
+  if (addedToWarehouse) showInventoryToast('零件已加入倉庫');
 }
 
 // 點外部區域不關閉（強迫使用者按儲存），但可按 ESC
@@ -5725,6 +5810,7 @@ function togglePart(cat, id) {
   const inv = loadInventory();
   if (!inv[cat]) inv[cat]=[];
   const idx = inv[cat].indexOf(id);
+  const isAdding = idx === -1;
   if (idx===-1) {
     inv[cat].push(id);
     autoPromoteToOwned(inv);
@@ -5737,6 +5823,7 @@ function togglePart(cat, id) {
   const latestInv = loadInventory();
   const q = document.getElementById('looseSearchInput')?.value || '';
   renderLooseParts(latestInv, getPartsFromOwnedBlades(latestInv), q);
+  if (isAdding) showInventoryToast('零件已加入倉庫');
 }
 
 // 散件湊成整套原裝陀螺 → 自動升級為原裝
@@ -5841,7 +5928,7 @@ function parseComboNeed(blade) {
           else if (DB.find(x => x.cat === "ratchet" && x.id === b)) ratchets.push(b);
         });
 
-        if (ratchets.length >= 1 && bits.length >= 1) {
+        if (bits.length >= 1) {
           combos.push({ ratchets, bits, assists });
         }
       } else {
@@ -5855,7 +5942,7 @@ function parseComboNeed(blade) {
             if (isBit && primary) bits.push(primary);
             if (bit)              bits.push(bit);
             if (isAssist)         assists.push(primary);
-            if (ratchets.length >= 1 && bits.length >= 1) {
+            if (bits.length >= 1) {
               combos.push({ ratchets, bits, assists });
             }
           });
@@ -5893,7 +5980,7 @@ function renderAnalysis() {
 
   // 同時納入：有 comboText/noteText 的 AND 有賽事資料的戰刃
   const bladesWithManual = new Set(DB.filter(x=>x.cat==='blade'&&(x.comboText||x.noteText)).map(x=>x.id));
-  const bladesWithStats  = new Set(Object.keys(COMBO_STATS));
+  const bladesWithStats  = new Set(Object.keys(COMBO_STATS_FULL));
   const allBladeIds = new Set([...bladesWithManual, ...bladesWithStats]);
   const blades = DB.filter(x => x.cat==='blade' && allBladeIds.has(x.id));
 
@@ -5905,7 +5992,7 @@ function renderAnalysis() {
 
     // ── 手動 comboText 解析（原有邏輯）──
     parseComboNeed(blade).forEach(combo=>{
-      const isValidCombo = combo.ratchets.length >= 1 && combo.bits.length >= 1;
+      const isValidCombo = combo.bits.length >= 1;
       if (!isValidCombo) return;
       const nR=combo.ratchets.filter(r=>!ownedR.has(r));
       const nB=combo.bits.filter(b=>!ownedB.has(b));
@@ -5917,20 +6004,19 @@ function renderAnalysis() {
     });
 
     // ── 賽事資料推薦（新增）──
-    const stats = COMBO_STATS[blade.id] || [];
+    const stats = COMBO_STATS_FULL[blade.id] || [];
     stats.forEach(s => {
-      if (!s.ratchet || !s.bit) return;
+      if (!s.bit) return;
       // 避免與手動 comboText 重複（同固鎖＋軸心）
       const isDupe = [...complete, ...nearMiss].some(e =>
         e.blade.id === blade.id &&
-        e.source === 'stats' &&
-        e.combo.ratchets[0] === s.ratchet &&
+        (e.combo.ratchets[0] || '') === (s.ratchet || '') &&
         e.combo.bits[0] === s.bit
       );
       if (isDupe) return;
 
-      const combo = { ratchets: [s.ratchet], bits: [s.bit], assists: [] };
-      const nR = ownedR.has(s.ratchet) ? [] : [s.ratchet];
+      const combo = { ratchets: s.ratchet ? [s.ratchet] : [], bits: [s.bit], assists: [] };
+      const nR = s.ratchet && !ownedR.has(s.ratchet) ? [s.ratchet] : [];
       const nB = ownedB.has(s.bit)     ? [] : [s.bit];
       const miss = nR.length + nB.length;
       const entry = {blade, combo, neededR:nR, neededB:nB, neededA:[], totalMissing:miss,
@@ -5977,83 +6063,108 @@ function renderAnalysis() {
     return comboLine;
   }
 
-  // 依陀螺群組化
-  function groupByBlade(entries) {
-    const map = new Map();
-    entries.forEach(e => {
-      if (!map.has(e.blade.id)) map.set(e.blade.id, { blade: e.blade, combos: [] });
-      map.get(e.blade.id).combos.push(e);
-    });
-    return [...map.values()];
+  function escAttr(v) {
+    return String(v ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function groupHtml(group, isComplete) {
-    const { blade, combos } = group;
+  function normalizeAnalysisText(v) {
+    return String(v || '').toLowerCase().replace(/[\s\-＿_]/g, '');
+  }
 
-    // 手動 comboText 在前，賽事資料在後
-    const manualCombos = combos.filter(e => e.source === 'manual');
-    const statsCombos  = combos.filter(e => e.source === 'stats');
-    const sorted = [...manualCombos, ...statsCombos];
+  // 依戰刃群組化：同一顆戰刃底下同時放完整組合與接近達成
+  function groupByBladeStatus(completeEntries, nearEntries) {
+    const map = new Map();
+    function ensure(blade) {
+      if (!map.has(blade.id)) map.set(blade.id, { blade, complete: [], nearMiss: [] });
+      return map.get(blade.id);
+    }
+    completeEntries.forEach(e => ensure(e.blade).complete.push(e));
+    nearEntries.forEach(e => ensure(e.blade).nearMiss.push(e));
+    return [...map.values()].sort((a, b) => a.blade.id.localeCompare(b.blade.id, 'zh-Hant', { numeric: true }));
+  }
 
-    const comboLines = sorted.map(e => {
-      const line = comboHtml(e);
-      const missing = e.totalMissing === 1
-        ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
-        : '';
-      const isStats = e.source === 'stats';
-      return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;${isStats?'opacity:0.9;':''}">${line}${missing}</div>`;
-    }).join('');
-
-    // 如果有賽事資料，在兩段之間加分隔標籤
-    const hasManual = manualCombos.length > 0;
-    const hasStats  = statsCombos.length > 0;
-    const manualLines = manualCombos.map(e => {
-      const line = comboHtml(e);
-      const missing = e.totalMissing === 1
-        ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
-        : '';
-      return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;">${line}${missing}</div>`;
-    }).join('');
-    const statsLines = statsCombos.map(e => {
+  function comboLinesHtml(entries) {
+    const manualCombos = entries.filter(e => e.source === 'manual');
+    const statsCombos  = entries.filter(e => e.source === 'stats');
+    const renderLines = list => list.map(e => {
       const line = comboHtml(e);
       const missing = e.totalMissing === 1
         ? ` <span style="color:var(--warn);font-size:0.7rem;">← 缺 ${[...e.neededR,...e.neededB,...e.neededA].join('、')}</span>`
         : '';
       return `<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);line-height:1.6;">${line}${missing}</div>`;
     }).join('');
+    return `
+      ${manualCombos.length ? renderLines(manualCombos) : ''}
+      ${statsCombos.length ? `${manualCombos.length ? `<div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;padding:6px 0 2px;opacity:0.7;">🏆 賽事推薦</div>` : ''}${renderLines(statsCombos)}` : ''}
+    `;
+  }
 
-    const statsSection = hasStats ? `
-      ${hasManual ? `<div style="font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;padding:6px 0 2px;opacity:0.7;">🏆 賽事推薦</div>` : ''}
-      ${statsLines}` : '';
-    const finalLines = (hasManual ? manualLines : '') + statsSection;
+  function groupHtml(group) {
+    const { blade, complete: completeList, nearMiss: nearList } = group;
+    const searchText = `${blade.id} ${blade.name} ${normalizeAnalysisText(blade.id)} ${normalizeAnalysisText(blade.name)}`;
+    const completeSection = completeList.length ? `
+      <div class="analysis-section-title complete">可完整組合</div>
+      <div class="analysis-combo">${comboLinesHtml(completeList)}</div>` : '';
+    const nearSection = nearList.length ? `
+      <div class="analysis-section-title near">接近達成組合</div>
+      <div class="analysis-combo">${comboLinesHtml(nearList)}</div>` : '';
 
-    return `<div class="analysis-item" onclick="openModal(DB.find(x=>x.id=='${blade.id}'&&x.cat=='blade'))">
-      <div class="analysis-item-head">
-        <span class="analysis-status">${isComplete ? '✅' : '🔧'}</span>
+    return `<details class="analysis-blade-group" data-analysis-search="${escAttr(searchText)}">
+      <summary class="analysis-blade-summary">
+        <span class="analysis-toggle">▶</span>
         <div>
           <div class="analysis-name">${blade.name}</div>
-          <div class="analysis-id">${blade.id} <span style="color:var(--muted);font-size:0.68rem;">${combos.length} 組配置</span></div>
+          <div class="analysis-id">${blade.id}</div>
         </div>
-      </div>
-      <div class="analysis-combo" style="margin-top:6px;">${finalLines}</div>
-    </div>`;
+        <div class="analysis-counts">
+          <span class="analysis-count complete">完整 ${completeList.length}</span>
+          <span class="analysis-count near">接近 ${nearList.length}</span>
+          <button class="analysis-open-btn" onclick="event.preventDefault(); event.stopPropagation(); openModal(DB.find(x=>x.id=='${blade.id}'&&x.cat=='blade'))">圖鑑</button>
+        </div>
+      </summary>
+      <div class="analysis-group-body">${completeSection}${nearSection}</div>
+    </details>`;
   }
 
-  const completeGroups = groupByBlade(complete);
-  const nearMissGroups = groupByBlade(nearMiss);
+  const bladeGroups = groupByBladeStatus(complete, nearMiss);
 
   const totalOwned = ownedR.size+ownedB.size+ownedA.size;
   const hasAny = (inv.ownedBlades||[]).length>0 || totalOwned>0;
+  const currentQuery = window.analysisBladeQuery || '';
+
+  window.filterAnalysisBlade = function(query) {
+    window.analysisBladeQuery = query || '';
+    const q = normalizeAnalysisText(query);
+    const groups = document.querySelectorAll('.analysis-blade-group');
+    let visible = 0;
+    groups.forEach(group => {
+      const haystack = normalizeAnalysisText(group.getAttribute('data-analysis-search') || '');
+      const matched = !q || haystack.includes(q);
+      group.style.display = matched ? '' : 'none';
+      if (matched) visible++;
+      if (q) group.open = matched;
+      else group.open = false;
+    });
+    const noResult = document.getElementById('analysisNoSearchResult');
+    if (noResult) noResult.style.display = (q && visible === 0) ? '' : 'none';
+  };
 
   document.getElementById("vaultTabContent").innerHTML = `
     <div class="analysis-summary">
       <div class="summary-card complete"><div class="summary-num">${complete.length}</div><div class="summary-label">✅ 可完整組合</div></div>
       <div class="summary-card near"><div class="summary-num">${nearMiss.length}</div><div class="summary-label">🔧 接近達成組合</div></div>
     </div>
+    ${bladeGroups.length>0?`
+      <div class="analysis-toolbar">
+        <input class="analysis-search" id="analysisBladeSearch" value="${escAttr(currentQuery)}" placeholder="搜尋戰刃名稱或型號，例如 UX-20…" autocomplete="off" oninput="filterAnalysisBlade(this.value)">
+      </div>
+    `:''}
     ${!hasAny?'<div class="analysis-empty">📦 請先在「零件倉庫」勾選原裝陀螺或散件零件</div>':''}
-    ${completeGroups.length>0?`<div style="font-size:0.75rem;color:var(--success);font-weight:700;margin-bottom:8px;">✅ 可完整組合</div>${completeGroups.map(g=>groupHtml(g,true)).join('')}`:''}
-    ${nearMissGroups.length>0?`<div style="font-size:0.75rem;color:var(--warn);font-weight:700;margin:14px 0 8px;">🔧 接近達成組合</div>${nearMissGroups.map(g=>groupHtml(g,false)).join('')}`:''}
-    ${completeGroups.length===0&&nearMissGroups.length===0&&hasAny?'<div class="analysis-empty">目前收藏的零件還無法湊成任何建議配置<br>繼續收集吧！</div>':''}`;
+    ${bladeGroups.map(groupHtml).join('')}
+    <div class="analysis-empty" id="analysisNoSearchResult" style="display:none;">找不到符合的戰刃</div>
+    ${bladeGroups.length===0&&hasAny?'<div class="analysis-empty">目前收藏的零件還無法湊成任何建議配置<br>繼續收集吧！</div>':''}`;
+
+  if (currentQuery) window.filterAnalysisBlade(currentQuery);
 }
 
 buildCatTabs();
@@ -6635,7 +6746,10 @@ async function applyUpdate() {
   localStorage.removeItem('bey_parts_img_v2');
   localStorage.removeItem('bey_parts_tier_v1');
   localStorage.removeItem('bey_date_v2');
+  localStorage.removeItem(COMBO_STATS_CACHE_KEY);
+  localStorage.removeItem(COMBO_STATS_FULL_CACHE_KEY);
   localStorage.removeItem('bey_combo_stats_v1');
+  localStorage.removeItem('bey_combo_stats_full_v1');
   localStorage.removeItem('bey_parts_count_v2');
 
   // 嘗試清除瀏覽器層級快取（Cache Storage API，部分瀏覽器支援）
