@@ -5917,20 +5917,27 @@ function parseComboNeed(blade) {
       const isAssist  = primary.startsWith("輔助");
 
       if (bound.length > 0) {
-        // 有逗號綁定：直接用綁定的零件，不看右欄
-        const ratchets = isRatchet ? [primary] : [];
-        const bits     = isBit     ? [primary] : [];
-        const assists  = isAssist  ? [primary] : [];
+        // 有逗號綁定：保留左欄綁定零件，同時合併右欄軸心/輔助
+        const baseRatchets = isRatchet ? [primary] : [];
+        const baseBits     = isBit     ? [primary] : [];
+        const baseAssists  = isAssist  ? [primary] : [];
 
         bound.forEach(b => {
-          if (b.startsWith("輔助"))                                assists.push(b);
-          else if (DB.find(x => x.cat === "bit"     && x.id === b)) bits.push(b);
-          else if (DB.find(x => x.cat === "ratchet" && x.id === b)) ratchets.push(b);
+          if (b.startsWith("輔助"))                                baseAssists.push(b);
+          else if (DB.find(x => x.cat === "bit"     && x.id === b)) baseBits.push(b);
+          else if (DB.find(x => x.cat === "ratchet" && x.id === b)) baseRatchets.push(b);
         });
 
-        if (bits.length >= 1) {
-          combos.push({ ratchets, bits, assists });
-        }
+        const bitsToUse = rightBits.length > 0 ? rightBits : [undefined];
+        bitsToUse.forEach(bit => {
+          const ratchets = [...baseRatchets];
+          const bits     = [...baseBits];
+          const assists  = [...baseAssists, ...rightAssists];
+          if (bit) bits.push(bit);
+          if (bits.length >= 1) {
+            combos.push({ ratchets, bits, assists });
+          }
+        });
       } else {
         // 無逗號綁定：與右欄做笛卡兒積
         if (rightBits.length > 0 || rightAssists.length > 0) {
