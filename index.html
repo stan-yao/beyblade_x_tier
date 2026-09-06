@@ -5968,6 +5968,15 @@ function parseComboNeed(blade) {
   return combos;
 }
 
+function isRatchetlessBlade(blade) {
+  return !String(blade?.ratchet || '').trim();
+}
+
+function isValidAnalysisCombo(blade, combo) {
+  if (!combo || combo.bits.length < 1) return false;
+  return isRatchetlessBlade(blade) || combo.ratchets.length >= 1;
+}
+
 
 function renderAnalysis() {
   const inv = loadInventory();
@@ -5999,8 +6008,7 @@ function renderAnalysis() {
 
     // ── 手動 comboText 解析（原有邏輯）──
     parseComboNeed(blade).forEach(combo=>{
-      const isValidCombo = combo.bits.length >= 1;
-      if (!isValidCombo) return;
+      if (!isValidAnalysisCombo(blade, combo)) return;
       const nR=combo.ratchets.filter(r=>!ownedR.has(r));
       const nB=combo.bits.filter(b=>!ownedB.has(b));
       const nA=combo.assists.filter(a=>!ownedA.has(a));
@@ -6013,18 +6021,21 @@ function renderAnalysis() {
     // ── 賽事資料推薦（新增）──
     const stats = COMBO_STATS_FULL[blade.id] || [];
     stats.forEach(s => {
-      if (!s.bit) return;
+      const statRatchet = (s.ratchet || '').trim();
+      const statBit = (s.bit || '').trim();
+      if (!statBit) return;
+      if (!statRatchet && !isRatchetlessBlade(blade)) return;
       // 避免與手動 comboText 重複（同固鎖＋軸心）
       const isDupe = [...complete, ...nearMiss].some(e =>
         e.blade.id === blade.id &&
-        (e.combo.ratchets[0] || '') === (s.ratchet || '') &&
-        e.combo.bits[0] === s.bit
+        (e.combo.ratchets[0] || '') === statRatchet &&
+        e.combo.bits[0] === statBit
       );
       if (isDupe) return;
 
-      const combo = { ratchets: s.ratchet ? [s.ratchet] : [], bits: [s.bit], assists: [] };
-      const nR = s.ratchet && !ownedR.has(s.ratchet) ? [s.ratchet] : [];
-      const nB = ownedB.has(s.bit)     ? [] : [s.bit];
+      const combo = { ratchets: statRatchet ? [statRatchet] : [], bits: [statBit], assists: [] };
+      const nR = statRatchet && !ownedR.has(statRatchet) ? [statRatchet] : [];
+      const nB = ownedB.has(statBit)     ? [] : [statBit];
       const miss = nR.length + nB.length;
       const entry = {blade, combo, neededR:nR, neededB:nB, neededA:[], totalMissing:miss,
                      source:'stats', championRate:s.championRate, totalWins:s.totalWins};
