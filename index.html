@@ -2951,6 +2951,10 @@ function processData(dataMain, dataParts, latestDate) {
   }
   
   const partAggregator = {};
+  const mainHead = (dataMain[0] || []).map(h => (h || "").trim().toLowerCase());
+  const idxTopWeight = mainHead.findIndex(h =>
+    h.includes("頂重") || h.includes("高重") || h.includes("top_weight") || h.includes("top weight")
+  );
 
   for (let i = 1; i < dataMain.length; i++) {
       const row = dataMain[i];
@@ -2975,6 +2979,7 @@ function processData(dataMain, dataParts, latestDate) {
       const comboText = row[13] ? row[13].trim() : "";
       const noteText = row[14] ? row[14].trim() : "";
       const communityCombo = row[15] ? row[15].trim() : "";
+      const topWeightInfo = row[idxTopWeight !== -1 ? idxTopWeight : 16] ? row[idxTopWeight !== -1 ? idxTopWeight : 16].trim() : "";
       
       if (imgUrl) {
         if (IMG[id]) {
@@ -2999,7 +3004,7 @@ function processData(dataMain, dataParts, latestDate) {
           finalBuy = calculateBuyRec(tier, ratchetTier, bitTier, assistTier);
       }
       
-      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, assistTier, comboText, noteText, communityCombo };
+      const bladeObj = { id, name, cat, type, tier, buy: finalBuy, source, ratchet, ratchetTier, bit, bitTier, assistBlade, assistTier, comboText, noteText, communityCombo, topWeightInfo };
 
       if (tier) {
           DB.push(bladeObj);
@@ -3540,6 +3545,9 @@ function openModal(d, fromBladeId) {
 
   if (d.cat === "blade") {
       sourceRowHtml = `<div class="modal-row"><span class="modal-label">來源產品</span><span class="modal-val" style="text-align:right;">${d.source || d.id}</span></div>`;
+      if (d.topWeightInfo) {
+        sourceRowHtml += `<div class="modal-row"><span class="modal-label">高重/頂重</span><span class="modal-val" style="text-align:right;">${d.topWeightInfo}</span></div>`;
+      }
       
       if (d.ratchet || d.bit || d.assistBlade) {
         const rTarget = DB.find(x => x.cat === 'ratchet' && x.id === d.ratchet);
