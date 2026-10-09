@@ -2537,9 +2537,15 @@ function handleFeedbackClick() {
 
 function startEngineerHold(e) {
   engineerHoldTimer = setTimeout(() => {
-    engineerJustToggled = true;
-    toggleEngineerMode();
     engineerHoldTimer = null;
+    // 顯示密碼驗證彈窗，驗證通過後再進入工程師模式
+    const overlay = document.getElementById('engineerPwOverlay');
+    const input   = document.getElementById('engineerPwInput');
+    const errEl   = document.getElementById('engineerPwError');
+    overlay.style.display = 'flex';
+    errEl.style.display = 'none';
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
   }, 2000);
 }
 function cancelEngineerHold() {
@@ -2547,6 +2553,26 @@ function cancelEngineerHold() {
     clearTimeout(engineerHoldTimer);
     engineerHoldTimer = null;
   }
+}
+
+function confirmEngineerPw() {
+  const input = document.getElementById('engineerPwInput');
+  const errEl = document.getElementById('engineerPwError');
+  if (input.value === '936899') {
+    document.getElementById('engineerPwOverlay').style.display = 'none';
+    engineerJustToggled = true;
+    toggleEngineerMode();
+  } else {
+    errEl.style.display = 'block';
+    input.value = '';
+    input.focus();
+  }
+}
+
+function cancelEngineerPw() {
+  document.getElementById('engineerPwOverlay').style.display = 'none';
+  document.getElementById('engineerPwInput').value = '';
+  document.getElementById('engineerPwError').style.display = 'none';
 }
 
 function toggleEngineerMode() {
@@ -7397,6 +7423,23 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 </div>
 
 <!-- 建議與問題回報 Modal -->
+<!-- 工程師模式密碼驗證 -->
+<div id="engineerPwOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-modal);padding:28px 24px;width:88%;max-width:320px;display:flex;flex-direction:column;gap:14px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.1em;color:var(--accent);">⚙ 工程師模式</div>
+    <div style="font-size:0.78rem;color:var(--muted);">請輸入密碼以繼續</div>
+    <input id="engineerPwInput" type="password" placeholder="密碼" autocomplete="off"
+      style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:16px;font-family:'Noto Sans TC',sans-serif;outline:none;box-sizing:border-box;"
+      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"
+      onkeydown="if(event.key==='Enter')confirmEngineerPw()">
+    <div id="engineerPwError" style="font-size:0.72rem;color:var(--danger);display:none;">密碼錯誤，請再試一次</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="cancelEngineerPw()" style="flex:1;padding:9px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;letter-spacing:0.06em;">取消</button>
+      <button onclick="confirmEngineerPw()" style="flex:1;padding:9px;background:rgba(255,94,122,0.1);border:1px solid rgba(255,94,122,0.3);border-radius:10px;color:var(--danger);cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;font-weight:700;letter-spacing:0.06em;">確認</button>
+    </div>
+  </div>
+</div>
+
 <div id="feedbackOverlay" onclick="if(event.target===this)this.classList.remove('show')">
   <div id="feedbackBox" style="position:relative;">
     <button class="fb-close" onclick="document.getElementById('feedbackOverlay').classList.remove('show')">✕</button>
