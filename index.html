@@ -2538,7 +2538,13 @@ function handleFeedbackClick() {
 function startEngineerHold(e) {
   engineerHoldTimer = setTimeout(() => {
     engineerHoldTimer = null;
-    // 顯示密碼驗證彈窗，驗證通過後再進入工程師模式
+    // 退出時不需要密碼，直接切換
+    if (engineerMode) {
+      engineerJustToggled = true;
+      toggleEngineerMode();
+      return;
+    }
+    // 進入時需要密碼驗證
     const overlay = document.getElementById('engineerPwOverlay');
     const input   = document.getElementById('engineerPwInput');
     const errEl   = document.getElementById('engineerPwError');
